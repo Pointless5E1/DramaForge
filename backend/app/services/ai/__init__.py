@@ -1,6 +1,6 @@
-"""AI服务模块
+﻿"""AI服務模塊
 
-统一的LLM调用、结构化生成、续写和助手服务。
+統一的LLM調用、結構化生成、續寫和助手服務。
 """
 
 from .core.chat_model_factory import build_chat_model

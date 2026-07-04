@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed } from 'vue'
 import { QuestionFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
@@ -9,7 +9,7 @@ import {
   unlockTaskDoneSound
 } from '@renderer/utils/taskDoneNotifier'
 
-// 通过组合式统一管理灵感助手偏好，方便在设置页与助手面板之间复用
+// 通過組合式統一管理靈感助手偏好，方便在設置頁與助手面板之間複用
 const prefs = useAssistantPreferences()
 
 const ctxSummaryEnabled = computed({
@@ -72,10 +72,10 @@ async function handleTestTaskDoneSound(): Promise<void> {
   try {
     const played = await playTaskDoneSound()
     if (!played) {
-      ElMessage.warning('提示音播放失败，请检查系统音量、应用音量或浏览器音频权限。')
+      ElMessage.warning('提示音播放失敗，請檢查系統音量、應用音量或瀏覽器音頻權限。')
     }
   } catch {
-    ElMessage.warning('提示音播放失败，请检查系统音量、应用音量或浏览器音频权限。')
+    ElMessage.warning('提示音播放失敗，請檢查系統音量、應用音量或瀏覽器音頻權限。')
   }
 }
 
@@ -85,41 +85,41 @@ async function setTaskDoneDesktopNotificationEnabled(val: boolean): Promise<void
 
   const permission = await requestTaskDoneNotificationPermission()
   if (permission === 'granted') {
-    ElMessage.success('桌面通知已启用。')
+    ElMessage.success('桌面通知已啓用。')
     return
   }
 
   prefs.setTaskDoneDesktopNotificationEnabled(false)
   if (permission === 'denied') {
-    ElMessage.warning('桌面通知权限已被系统或浏览器拒绝，请在系统/浏览器设置中允许通知。')
+    ElMessage.warning('桌面通知權限已被系統或瀏覽器拒絕，請在系統/瀏覽器設置中允許通知。')
     return
   }
   if (permission === 'unsupported') {
-    ElMessage.warning('当前环境不支持桌面通知。')
+    ElMessage.warning('當前環境不支持桌面通知。')
     return
   }
-  ElMessage.warning('未授予桌面通知权限。')
+  ElMessage.warning('未授予桌面通知權限。')
 }
 </script>
 
 <template>
   <div class="assistant-settings-root">
-    <h3 class="section-title">Agent 设置</h3>
+    <h3 class="section-title">Agent 設置</h3>
     <p class="section-desc">
-      配置通用 Agent 的高级能力，灵感助手与工作流 Agent 共享这些参数与模式。
+      配置通用 Agent 的高級能力，靈感助手與工作流 Agent 共享這些參數與模式。
     </p>
 
     <el-form label-width="160px" class="assistant-form" size="small">
-      <!-- 参数配置组 -->
-      <div class="group-title">参数设置</div>
+      <!-- 參數配置組 -->
+      <div class="group-title">參數設置</div>
 
       <el-form-item>
         <template #label>
           <span>
-            助手字体大小
+            助手字體大小
             <el-tooltip placement="top" effect="dark">
               <template #content>
-                控制灵感助手消息、工具结果和输入框的主要文字大小。默认 16px，不影响正文编辑器字号。
+                控制靈感助手消息、工具結果和輸入框的主要文字大小。默認 16px，不影響正文編輯器字號。
               </template>
               <el-icon class="field-help-icon"><QuestionFilled /></el-icon>
             </el-tooltip>
@@ -138,11 +138,11 @@ async function setTaskDoneDesktopNotificationEnabled(val: boolean): Promise<void
       <el-form-item>
         <template #label>
           <span>
-            采样温度 (temperature)
+            採樣溫度 (temperature)
             <el-tooltip placement="top" effect="dark">
               <template #content>
-                控制输出的随机性，数值越大越有创意、越发散，越小越保守、越稳定。<br/>
-                建议范围 0.4 ~ 0.9。默认值为 0.6。
+                控制輸出的隨機性，數值越大越有創意、越發散，越小越保守、越穩定。<br/>
+                建議範圍 0.4 ~ 0.9。默認值爲 0.6。
               </template>
               <el-icon class="field-help-icon"><QuestionFilled /></el-icon>
             </el-tooltip>
@@ -162,11 +162,11 @@ async function setTaskDoneDesktopNotificationEnabled(val: boolean): Promise<void
       <el-form-item>
         <template #label>
           <span>
-            最大输出 Token 数
+            最大輸出 Token 數
             <el-tooltip placement="top" effect="dark">
               <template #content>
-                控制单次回复的最大长度。值越大，回复可以越长，但也会增加响应时间和费用。<br/>
-                默认值为 -1（不限制）。
+                控制單次回覆的最大長度。值越大，回覆可以越長，但也會增加響應時間和費用。<br/>
+                默認值爲 -1（不限制）。
               </template>
               <el-icon class="field-help-icon"><QuestionFilled /></el-icon>
             </el-tooltip>
@@ -185,11 +185,11 @@ async function setTaskDoneDesktopNotificationEnabled(val: boolean): Promise<void
       <el-form-item>
         <template #label>
           <span>
-            超时 (秒)
+            超時 (秒)
             <el-tooltip placement="top" effect="dark">
               <template #content>
-                限制单次调用的最长等待时间，避免请求长时间挂起。<br/>
-                默认值为 90 秒。
+                限制單次調用的最長等待時間，避免請求長時間掛起。<br/>
+                默認值爲 90 秒。
               </template>
               <el-icon class="field-help-icon"><QuestionFilled /></el-icon>
             </el-tooltip>
@@ -207,16 +207,16 @@ async function setTaskDoneDesktopNotificationEnabled(val: boolean): Promise<void
 
       <el-divider />
 
-      <!-- React 配置组 -->
-      <div class="group-title">模式设置</div>
+      <!-- React 配置組 -->
+      <div class="group-title">模式設置</div>
       <el-form-item>
         <template #label>
           <span>
             React 模式
             <el-tooltip placement="top" effect="dark">
               <template #content>
-                让模型通过文本协议输出工具调用指令（<Action>{...}</Action>），
-                系统解析后真正调用工具，适合不支持函数调用的模型。
+                讓模型通過文本協議輸出工具調用指令（<Action>{...}</Action>），
+                系統解析後真正調用工具，適合不支持函數調用的模型。
               </template>
               <el-icon class="field-help-icon"><QuestionFilled /></el-icon>
             </el-tooltip>
@@ -228,20 +228,20 @@ async function setTaskDoneDesktopNotificationEnabled(val: boolean): Promise<void
       <el-divider />
 
       <div class="group-title">完成提醒</div>
-      <el-form-item label="任务完成后播放提示音">
+      <el-form-item label="任務完成後播放提示音">
         <div class="reminder-control">
           <div class="reminder-control-row">
             <el-switch v-model="taskDoneSoundEnabled" />
-            <el-button size="small" plain @click="handleTestTaskDoneSound">试听提示音</el-button>
+            <el-button size="small" plain @click="handleTestTaskDoneSound">試聽提示音</el-button>
           </div>
           <span class="field-hint reminder-hint"
-            >灵感助手、续写、润色、扩写、审阅完成时播放短提示音。</span
+            >靈感助手、續寫、潤色、擴寫、審閱完成時播放短提示音。</span
           >
         </div>
       </el-form-item>
-      <el-form-item label="任务完成后显示桌面通知">
+      <el-form-item label="任務完成後顯示桌面通知">
         <el-switch v-model="taskDoneDesktopNotificationEnabled" />
-        <span class="field-hint">任务完成时显示系统桌面通知，需要系统或浏览器允许通知权限。</span>
+        <span class="field-hint">任務完成時顯示系統桌面通知，需要系統或瀏覽器允許通知權限。</span>
       </el-form-item>
     </el-form>
   </div>

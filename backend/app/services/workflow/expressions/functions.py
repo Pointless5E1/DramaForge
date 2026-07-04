@@ -1,8 +1,8 @@
-"""表达式 helper 函数库（精简版）
+﻿"""表達式 helper 函數庫（精簡版）
 
-说明：
-- 仅保留非 Python 内置、且在工作流中有明确价值的 helper。
-- 与内置同名的能力（如 len/str/int/range/sum 等）统一由 `builtins.py` 提供。
+說明：
+- 僅保留非 Python 內置、且在工作流中有明確價值的 helper。
+- 與內置同名的能力（如 len/str/int/range/sum 等）統一由 `builtins.py` 提供。
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ _HELPER_META_REGISTRY: Dict[str, "HelperMeta"] = {}
 
 @dataclass(frozen=True)
 class HelperMeta:
-    """helper 元信息（用于自动生成 AI 说明）"""
+    """helper 元信息（用於自動生成 AI 說明）"""
 
     summary: str
     scenario: str
@@ -35,7 +35,7 @@ def register_function(
     priority: int = 50,
     example: str = "",
 ):
-    """注册 helper 的装饰器（保留扩展能力）"""
+    """註冊 helper 的裝飾器（保留擴展能力）"""
 
     def decorator(func: Callable[..., Any]):
         _HELPER_REGISTRY[name] = func
@@ -51,36 +51,36 @@ def register_function(
 
 
 def get_builtin_functions() -> Dict[str, Callable[..., Any]]:
-    """获取所有 helper（返回副本）"""
+    """獲取所有 helper（返回副本）"""
     return _HELPER_REGISTRY.copy()
 
 
 def get_helper_metadata() -> Dict[str, HelperMeta]:
-    """获取 helper 元信息（返回副本）"""
+    """獲取 helper 元信息（返回副本）"""
     return _HELPER_META_REGISTRY.copy()
 
 
 @register_function(
     "default",
-    summary="当 value 为 None 时返回默认值",
+    summary="當 value 爲 None 時返回默認值",
     scenario="空值兜底",
     priority=75,
     example="default(card.content.title, '未命名')",
 )
 def fn_default(value: Any, default_value: Any) -> Any:
-    """当 value 为 None 时返回默认值"""
+    """當 value 爲 None 時返回默認值"""
     return value if value is not None else default_value
 
 
 @register_function(
     "coalesce",
-    summary="返回第一个非 None 的值",
-    scenario="多候选字段回退",
+    summary="返回第一個非 None 的值",
+    scenario="多候選字段回退",
     priority=85,
     example="coalesce(a.title, a.name, '未命名')",
 )
 def fn_coalesce(*values: Any) -> Any:
-    """返回第一个非 None 的值"""
+    """返回第一個非 None 的值"""
     for value in values:
         if value is not None:
             return value
@@ -89,13 +89,13 @@ def fn_coalesce(*values: Any) -> Any:
 
 @register_function(
     "merge",
-    summary="合并多个字典，忽略非字典参数",
-    scenario="数据拼装",
+    summary="合併多個字典，忽略非字典參數",
+    scenario="數據拼裝",
     priority=80,
     example="merge(base, {'project_id': project.id})",
 )
 def fn_merge(*dicts: Any) -> Dict[str, Any]:
-    """合并多个字典，忽略非字典参数"""
+    """合併多個字典，忽略非字典參數"""
     result: Dict[str, Any] = {}
     for item in dicts:
         if isinstance(item, dict):
@@ -105,48 +105,48 @@ def fn_merge(*dicts: Any) -> Dict[str, Any]:
 
 @register_function(
     "json_parse",
-    summary="JSON 字符串转对象",
+    summary="JSON 字符串轉對象",
     scenario="解析外部返回 JSON",
     priority=60,
     example="json_parse(raw_json).get('items', [])",
 )
 def fn_json_parse(json_str: str) -> Any:
-    """JSON 字符串转对象"""
+    """JSON 字符串轉對象"""
     return json.loads(json_str)
 
 
 @register_function(
     "json_stringify",
-    summary="对象转 JSON 字符串",
-    scenario="调试输出与存档",
+    summary="對象轉 JSON 字符串",
+    scenario="調試輸出與存檔",
     priority=55,
     example="json_stringify(result, indent=2)",
 )
 def fn_json_stringify(obj: Any, indent: int | None = None) -> str:
-    """对象转 JSON 字符串"""
+    """對象轉 JSON 字符串"""
     return json.dumps(obj, indent=indent, ensure_ascii=False)
 
 
 @register_function(
     "read_file",
-    summary="读取文件内容（失败时返回错误文本）",
-    scenario="把外部文件内容注入工作流",
+    summary="讀取文件內容（失敗時返回錯誤文本）",
+    scenario="把外部文件內容注入工作流",
     priority=95,
     example="read_file(item.meta.path)",
 )
 def fn_read_file(path: str, encoding: str = "utf-8") -> str:
-    """读取文件内容（失败时返回错误文本）"""
+    """讀取文件內容（失敗時返回錯誤文本）"""
     try:
         with open(path, "r", encoding=encoding) as file:
             return file.read()
     except Exception as exc:
-        return f"[读取失败: {exc}]"
+        return f"[讀取失敗: {exc}]"
 
 
 @register_function(
     "normalize_ranges",
-    summary="修复范围列表的缺口/重叠，保证连续覆盖",
-    scenario="阶段范围/章节归属兜底",
+    summary="修復範圍列表的缺口/重疊，保證連續覆蓋",
+    scenario="階段範圍/章節歸屬兜底",
     priority=92,
     example="normalize_ranges(stages, start=1, end=total_chapters)",
 )
@@ -158,15 +158,15 @@ def fn_normalize_ranges(
     start_key: str = "chapter_start",
     end_key: str = "chapter_end",
 ) -> list[dict[str, Any]]:
-    """规范化范围列表，修复缺口与重叠。
+    """規範化範圍列表，修復缺口與重疊。
 
-    - 输入：list[dict]，每项至少包含 start_key/end_key。
-    - 输出：按 start_key 排序后的新 list[dict]（不修改原对象）。
-    - 规则：
+    - 輸入：list[dict]，每項至少包含 start_key/end_key。
+    - 輸出：按 start_key 排序後的新 list[dict]（不修改原對象）。
+    - 規則：
       1) 按 start_key 排序
-      2) 若出现缺口（cur_start > prev_end + 1），则把缺口并入上一段（扩展 prev_end）
-      3) 若出现重叠（cur_start <= prev_end），则将 cur_start 调整为 prev_end + 1
-      4) 若 end 指定，则最后一段补齐到 end（若不足），并且所有段 end 不超过 end
+      2) 若出現缺口（cur_start > prev_end + 1），則把缺口併入上一段（擴展 prev_end）
+      3) 若出現重疊（cur_start <= prev_end），則將 cur_start 調整爲 prev_end + 1
+      4) 若 end 指定，則最後一段補齊到 end（若不足），並且所有段 end 不超過 end
     """
 
     if not isinstance(ranges, list) or not ranges:
@@ -180,7 +180,7 @@ def fn_normalize_ranges(
         except Exception:
             return None
 
-    # 过滤并复制
+    # 過濾並複製
     cleaned: list[dict[str, Any]] = []
     for item in ranges:
         if not isinstance(item, dict):
@@ -221,7 +221,7 @@ def fn_normalize_ranges(
         expected = prev_end + 1
 
         if cur_start > expected:
-            # 缺口并入上一段：把上一段 end 扩展到缺口末尾（expected..cur_start-1）
+            # 缺口併入上一段：把上一段 end 擴展到缺口末尾（expected..cur_start-1）
             prev[end_key] = cur_start - 1
             prev_end = int(prev[end_key])
             expected = prev_end + 1
@@ -252,8 +252,8 @@ def fn_normalize_ranges(
 
 @register_function(
     "squash_adjacent_stages",
-    summary="合并相邻重复阶段，抑制单章重复阶段",
-    scenario="阶段规划去重",
+    summary="合併相鄰重複階段，抑制單章重複階段",
+    scenario="階段規劃去重",
     priority=90,
     example="squash_adjacent_stages(stages)",
 )
@@ -267,12 +267,12 @@ def fn_squash_adjacent_stages(
     summary_key: str = "stage_summary",
     tiny_threshold: int = 1,
 ) -> list[dict[str, Any]]:
-    """合并相邻重复阶段，避免“同名+近似内容+单章”碎片。
+    """合併相鄰重複階段，避免“同名+近似內容+單章”碎片。
 
-    规则：
-    1) 仅处理相邻阶段。
-    2) 若相邻阶段同名，直接合并章节范围，保留信息更丰富的一侧文本。
-    3) 若当前阶段仅 1 章且与前一阶段文本高度相似，也合并到前一阶段。
+    規則：
+    1) 僅處理相鄰階段。
+    2) 若相鄰階段同名，直接合並章節範圍，保留信息更豐富的一側文本。
+    3) 若當前階段僅 1 章且與前一階段文本高度相似，也合併到前一階段。
     """
 
     if not isinstance(stages, list) or not stages:

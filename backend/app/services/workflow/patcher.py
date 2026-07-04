@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import difflib
 import hashlib
@@ -291,7 +291,7 @@ def apply_patch_ops(code: str, patch_ops: Sequence[WorkflowPatchOp]) -> Tuple[st
                 raise ValueError(f"{op_name} 缺少 target_node 或 new_block")
             target = next((b for b in blocks if b.variable == op.target_node), None)
             if not target:
-                raise ValueError(f"未找到目标节点: {op.target_node}")
+                raise ValueError(f"未找到目標節點: {op.target_node}")
             lines = _insert_block(lines, target, op.new_block, before=(op_name == "insert_node_before"))
             new_blocks = _find_blocks(_rebuild_lines_from_code("".join(lines)))
             inserted = [b.variable for b in new_blocks if b.variable not in {x.variable for x in blocks}]
@@ -304,7 +304,7 @@ def apply_patch_ops(code: str, patch_ops: Sequence[WorkflowPatchOp]) -> Tuple[st
                 raise ValueError("delete_node 缺少 target_node")
             target = next((b for b in blocks if b.variable == op.target_node), None)
             if not target:
-                raise ValueError(f"未找到目标节点: {op.target_node}")
+                raise ValueError(f"未找到目標節點: {op.target_node}")
             lines = [*lines[:target.start_line], *lines[target.end_line + 1 :]]
             changed_nodes.append(op.target_node)
             applied_ops += 1
@@ -315,7 +315,7 @@ def apply_patch_ops(code: str, patch_ops: Sequence[WorkflowPatchOp]) -> Tuple[st
                 raise ValueError("update_node_meta 缺少 target_node")
             target = next((b for b in blocks if b.variable == op.target_node), None)
             if not target:
-                raise ValueError(f"未找到目标节点: {op.target_node}")
+                raise ValueError(f"未找到目標節點: {op.target_node}")
             current_meta = _parse_node_meta(target.meta_raw)
             merged = {**current_meta, **(op.new_meta or {})}
             rendered = _render_node_meta(merged)
@@ -330,9 +330,9 @@ def apply_patch_ops(code: str, patch_ops: Sequence[WorkflowPatchOp]) -> Tuple[st
                 raise ValueError("update_node_call 缺少 target_node 或 new_call")
             target = next((b for b in blocks if b.variable == op.target_node), None)
             if not target:
-                raise ValueError(f"未找到目标节点: {op.target_node}")
+                raise ValueError(f"未找到目標節點: {op.target_node}")
             if target.assignment_line < 0:
-                raise ValueError(f"节点缺少赋值语句: {op.target_node}")
+                raise ValueError(f"節點缺少賦值語句: {op.target_node}")
 
             current_meta = _parse_node_meta(target.meta_raw)
             rendered_meta = _render_node_meta(current_meta)
@@ -341,7 +341,7 @@ def apply_patch_ops(code: str, patch_ops: Sequence[WorkflowPatchOp]) -> Tuple[st
             while call_lines and not call_lines[-1].strip():
                 call_lines.pop()
             if not call_lines:
-                raise ValueError("update_node_call 的 new_call 为空")
+                raise ValueError("update_node_call 的 new_call 爲空")
 
             rebuilt_block: List[str] = [rendered_meta + "\n"]
             rebuilt_block.append(f"{target.variable} = {call_lines[0]}\n")

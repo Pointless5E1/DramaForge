@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import asyncio
 import json
@@ -261,7 +261,7 @@ def _render_tool_catalog(tool_descriptions: Mapping[str, Any]) -> str:
     lines: list[str] = []
     for name, meta in tool_descriptions.items():
         desc_raw = meta.get("description") if isinstance(meta, dict) else ""
-        desc = (desc_raw or "").strip() or "(无描述)"
+        desc = (desc_raw or "").strip() or "(無描述)"
         args_meta = meta.get("args") if isinstance(meta, dict) else None
 
         arg_names: list[str] = []
@@ -272,8 +272,8 @@ def _render_tool_catalog(tool_descriptions: Mapping[str, Any]) -> str:
         elif args_meta:
             arg_names = [str(args_meta)]
 
-        args_text = ", ".join(arg_names) if arg_names else "无参数"
-        lines.append(f"- {name}: {desc}（参数: {args_text}）")
+        args_text = ", ".join(arg_names) if arg_names else "無參數"
+        lines.append(f"- {name}: {desc}（參數: {args_text}）")
     return "\n".join(lines)
 
 
@@ -285,27 +285,27 @@ def build_react_user_prompt(
     protocol_instructions: Optional[str] = None,
 ) -> str:
     protocol = (protocol_instructions or """
-你处于 React-Tool 模式，必须真实调用工具。
+你處於 React-Tool 模式，必須真實調用工具。
 
-工具调用格式（严格）：
-<Action>{"tool":"工具名","args":{"参数名":参数值}}</Action>
+工具調用格式（嚴格）：
+<Action>{"tool":"工具名","args":{"參數名":參數值}}</Action>
 
 示例：
 <Action>{"tool":"wf_get_current_code","args":{"workflow_id":19}}</Action>
 
-执行规则：
-1) 先读代码：先调 wf_get_current_code。
-2) 需要改代码时，调用 wf_replace_code 或 wf_apply_patch。
-3) 每次改动后必须检查 parse/validation。
-4) 若 parse/validation 未通过，继续调用工具修复，直到通过再结束。
-5) 不要输出“wf_xxx(...)”伪调用文本替代工具调用。
+執行規則：
+1) 先讀代碼：先調 wf_get_current_code。
+2) 需要改代碼時，調用 wf_replace_code 或 wf_apply_patch。
+3) 每次改動後必須檢查 parse/validation。
+4) 若 parse/validation 未通過，繼續調用工具修復，直到通過再結束。
+5) 不要輸出“wf_xxx(...)”僞調用文本替代工具調用。
 """).strip()
 
     parts: list[str] = [protocol]
     if context_info:
         parts.append(f"上下文:\n{context_info}")
     if user_prompt:
-        parts.append(f"用户输入:\n{user_prompt}")
+        parts.append(f"用戶輸入:\n{user_prompt}")
     tool_catalog = _render_tool_catalog(tool_descriptions)
     if tool_catalog:
         parts.append("可用工具列表:\n" + tool_catalog)
@@ -324,7 +324,7 @@ async def _invoke_tool_from_registry(
         raise ValueError(f"未知工具: {tool_name}")
 
     logger.info(
-        "[{}] 调用工具 {}, args={}",
+        "[{}] 調用工具 {}, args={}",
         log_tag,
         tool_name,
         json.dumps(args or {}, ensure_ascii=False, default=str),
@@ -371,7 +371,7 @@ def _chunk_to_message(full_chunk: Optional[AIMessageChunk], fallback_text: str) 
 def _extract_usage_from_chunk(full_chunk: AIMessageChunk) -> Tuple[int, int]:
     usage = getattr(full_chunk, "usage_metadata", None)
     if not isinstance(usage, dict):
-        # 兼容不同 provider/适配层把 usage 放在 additional_kwargs 的情况
+        # 兼容不同 provider/適配層把 usage 放在 additional_kwargs 的情況
         additional_kwargs = getattr(full_chunk, "additional_kwargs", None)
         if isinstance(additional_kwargs, dict):
             usage = (
@@ -445,7 +445,7 @@ async def stream_chat_with_react_protocol(
         need_calls=1,
     )
     if not ok:
-        raise ValueError(f"LLM配额不足: {reason}")
+        raise ValueError(f"LLM配額不足: {reason}")
 
     model = build_chat_model(
         session=session,
@@ -575,7 +575,7 @@ async def stream_chat_with_react_protocol(
 
             if _contains_action_marker(step_text):
                 logger.warning(
-                    "[{}] 检测到 Action 标记但解析失败，要求模型按规范重发。step={} preview={}",
+                    "[{}] 檢測到 Action 標記但解析失敗，要求模型按規範重發。step={} preview={}",
                     log_tag,
                     _step + 1,
                     (step_text or "")[:240],
@@ -583,10 +583,10 @@ async def stream_chat_with_react_protocol(
                 messages.append(
                     HumanMessage(
                         content=(
-                            "你上一条消息包含工具调用意图，但格式无法解析。"
-                            "请严格只输出一个可解析的工具调用块："
+                            "你上一條消息包含工具調用意圖，但格式無法解析。"
+                            "請嚴格只輸出一個可解析的工具調用塊："
                             "<Action>{\"tool\":\"工具名\",\"args\":{...}}</Action>。"
-                            "不要输出多余解释文本。"
+                            "不要輸出多餘解釋文本。"
                         )
                     )
                 )
@@ -596,7 +596,7 @@ async def stream_chat_with_react_protocol(
             break
 
         if not completed:
-            raise RuntimeError("React模式达到最大思考轮数仍未结束")
+            raise RuntimeError("React模式達到最大思考輪數仍未結束")
 
     except asyncio.CancelledError:
         in_tokens = usage_in_total or calc_input_tokens(system_prompt, final_user_prompt)

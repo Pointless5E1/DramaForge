@@ -1,9 +1,9 @@
-<template>
+﻿<template>
   <div class="workflow-notebook">
     <div class="notebook-header">
       <div class="header-left">
-        <span class="notebook-title">执行结果</span>
-        <el-tag v-if="isRunning" type="primary" size="small">运行中</el-tag>
+        <span class="notebook-title">執行結果</span>
+        <el-tag v-if="isRunning" type="primary" size="small">運行中</el-tag>
       </div>
       <el-button
         text
@@ -11,13 +11,13 @@
         @click="handleClearOutput"
         :icon="Delete"
       >
-        清空输出
+        清空輸出
       </el-button>
     </div>
 
     <div ref="notebookContent" class="notebook-content">
       <div v-if="cells.length === 0" class="empty-state">
-        <el-empty description="点击执行按钮运行工作流" />
+        <el-empty description="點擊執行按鈕運行工作流" />
       </div>
 
       <div v-else class="cells-container">
@@ -60,7 +60,7 @@ const handleClearOutput = () => {
   emit('clear-output')
 }
 
-// 监听 cells 变化，自动滚动到底部
+// 監聽 cells 變化，自動滾動到底部
 watch(() => props.cells.length, () => {
   nextTick(() => {
     if (notebookContent.value) {

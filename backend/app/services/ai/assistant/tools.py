@@ -1,5 +1,5 @@
-"""
-灵感助手工具函数集合（LangChain 原生工具实现）。
+﻿"""
+靈感助手工具函數集合（LangChain 原生工具實現）。
 """
 import json
 import uuid
@@ -24,42 +24,42 @@ from app.schemas.tool_result import (
 )
 import copy
 
-REVIEW_RESULT_CARD_TYPE_NAME = "内容审核卡片"
+REVIEW_RESULT_CARD_TYPE_NAME = "內容審核卡片"
 
 
 class AssistantDeps:
-    """灵感助手的依赖（用于传递 session 和 project_id）。"""
+    """靈感助手的依賴（用於傳遞 session 和 project_id）。"""
 
     def __init__(self, session, project_id: int):
         self.session = session
         self.project_id = project_id
 
 
-# 使用 ContextVar 在每个请求上下文中注入依赖，避免为每个工具再包一层。
+# 使用 ContextVar 在每個請求上下文中注入依賴，避免爲每個工具再包一層。
 _assistant_deps_var: ContextVar[AssistantDeps | None] = ContextVar(
     "assistant_deps", default=None
 )
 
 
 def set_assistant_deps(deps: AssistantDeps) -> None:
-    """为当前请求上下文设置助手依赖，在调用工具前必须先设置。"""
+    """爲當前請求上下文設置助手依賴，在調用工具前必須先設置。"""
 
     _assistant_deps_var.set(deps)
 
 
 def _get_deps() -> AssistantDeps:
-    """获取当前请求上下文中的助手依赖。"""
+    """獲取當前請求上下文中的助手依賴。"""
 
     deps = _assistant_deps_var.get()
     if deps is None:
         raise RuntimeError(
-            "AssistantDeps 未设置，请在调用助手工具前先调用 set_assistant_deps(...)。"
+            "AssistantDeps 未設置，請在調用助手工具前先調用 set_assistant_deps(...)。"
         )
     return deps
 
 
 def _get_card_type_schema(session, card_type_name: str) -> Dict[str, Any]:
-    """获取卡片类型的 JSON Schema"""
+    """獲取卡片類型的 JSON Schema"""
     result = get_card_type_schema_payload(
         session,
         card_type_name,
@@ -69,18 +69,18 @@ def _get_card_type_schema(session, card_type_name: str) -> Dict[str, Any]:
     if not result.get("success"):
         error = result.get("error")
         if error == "not_found":
-            raise ValueError(f"卡片类型 '{card_type_name}' 不存在")
+            raise ValueError(f"卡片類型 '{card_type_name}' 不存在")
         if error == "schema_not_defined":
-            raise ValueError(f"卡片类型 '{card_type_name}' 没有定义 Schema")
-        raise ValueError("获取卡片类型 Schema 失败")
+            raise ValueError(f"卡片類型 '{card_type_name}' 沒有定義 Schema")
+        raise ValueError("獲取卡片類型 Schema 失敗")
     return result.get("schema") or {}
 
 
 def _create_empty_card(session, card_type_name: str, title: str, parent_card_id: Optional[int], project_id: int) -> Card:
-    """创建空卡片"""
+    """創建空卡片"""
     card_type = session.query(CardType).filter_by(name=card_type_name).first()
     if not card_type:
-        raise ValueError(f"卡片类型 '{card_type_name}' 不存在")
+        raise ValueError(f"卡片類型 '{card_type_name}' 不存在")
     
     card = Card(
         card_type_id=card_type.id,
@@ -90,13 +90,13 @@ def _create_empty_card(session, card_type_name: str, title: str, parent_card_id:
         content={}
     )
     session.add(card)
-    session.flush()  # 获取 card.id
+    session.flush()  # 獲取 card.id
     
     return card
 
 
 def _get_card_by_id(session, card_id: int, project_id: int) -> Optional[Card]:
-    """根据ID获取卡片"""
+    """根據ID獲取卡片"""
     card = session.get(Card, card_id)
     if card and card.project_id == project_id:
         return card
@@ -110,18 +110,18 @@ def search_cards(
     limit: int = 10,
 ) -> Dict[str, Any]:
     """
-    搜索项目中的卡片
+    搜索項目中的卡片
     
     Args:
-        card_type: 卡片类型名称（可选）
-        title_keyword: 标题关键词（可选）
-        limit: 返回结果数量上限
+        card_type: 卡片類型名稱（可選）
+        title_keyword: 標題關鍵詞（可選）
+        limit: 返回結果數量上限
     
     Returns:
-        success: True 表示成功，False 表示失败
-        error: 错误信息
+        success: True 表示成功，False 表示失敗
+        error: 錯誤信息
         cards: 卡片列表
-        count: 卡片数量
+        count: 卡片數量
     """
 
     deps = _get_deps()
@@ -151,7 +151,7 @@ def search_cards(
         "count": len(cards)
     }
     
-    logger.info(f"✅ [Assistant.search_cards] 找到 {len(cards)} 个卡片")
+    logger.info(f"✅ [Assistant.search_cards] 找到 {len(cards)} 個卡片")
     return result
 
 
@@ -163,36 +163,36 @@ def create_card(
     parent_card_id: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
-    创建**新**卡片并填充内容。
+    創建**新**卡片並填充內容。
     
-    ⚠️ **核心规则**：
-    - ✅ **创建新卡片**：仅当用户明确要求新建时使用。
-    - ❌ **修改/完善**：若需修改现有卡片或补充内容，必须使用 `update_card`。
-    - ✅ **显式赋值**：即使字段有默认值，也必须显式生成指令进行赋值，以确认 AI 的意图。
+    ⚠️ **核心規則**：
+    - ✅ **創建新卡片**：僅當用戶明確要求新建時使用。
+    - ❌ **修改/完善**：若需修改現有卡片或補充內容，必須使用 `update_card`。
+    - ✅ **顯式賦值**：即使字段有默認值，也必須顯式生成指令進行賦值，以確認 AI 的意圖。
     
-    **策略建议（分步创建）**：
-    - **复杂卡片**：推荐先仅填充核心字段（如 name）创建框架，获取 ID 后再通过 `update_card` 分批补充剩余内容。这能降低错误率并允许中途调整。
-    - **简单卡片**：可一次性创建。
+    **策略建議（分步創建）**：
+    - **複雜卡片**：推薦先僅填充核心字段（如 name）創建框架，獲取 ID 後再通過 `update_card` 分批補充剩餘內容。這能降低錯誤率並允許中途調整。
+    - **簡單卡片**：可一次性創建。
     
     Args:
-        card_type: 卡片类型（如：角色卡、世界观设定）
-        title: 标题
-        instructions: 指令数组，如 `[{"op":"set", "path":"/name", "value":"张三"}]`
-        parent_card_id: (可选) 父卡片ID
+        card_type: 卡片類型（如：角色卡、世界觀設定）
+        title: 標題
+        instructions: 指令數組，如 `[{"op":"set", "path":"/name", "value":"張三"}]`
+        parent_card_id: (可選) 父卡片ID
     
     Returns:
         包含 success, card_id, missing_fields 等信息。
-        若 success=False (内容不完整)，请根据 missing_fields 生成补充指令并调用 update_card。
+        若 success=False (內容不完整)，請根據 missing_fields 生成補充指令並調用 update_card。
     """
     deps = _get_deps()
     
     logger.info(f"📝 [Assistant.create_card] type={card_type}, title={title}, instructions={len(instructions)}")
     
     try:
-        # 1. 获取Schema
+        # 1. 獲取Schema
         schema = _get_card_type_schema(deps.session, card_type)
         
-        # 2. 创建空卡片
+        # 2. 創建空卡片
         card = _create_empty_card(
             session=deps.session,
             card_type_name=card_type,
@@ -201,15 +201,15 @@ def create_card(
             project_id=deps.project_id
         )
         
-        logger.info(f"  创建空卡片成功, card_id={card.id}")
+        logger.info(f"  創建空卡片成功, card_id={card.id}")
         
-        # 3. 创建指令执行器
+        # 3. 創建指令執行器
         executor = InstructionExecutor(schema=schema, initial_data={})
         
-        # 4. 执行指令数组
+        # 4. 執行指令數組
         result = executor.execute_batch(instructions)
         
-        # 5. 保存数据并标记为 AI 修改
+        # 5. 保存數據並標記爲 AI 修改
         card.content = result["data"]
         flag_modified(card, "content")
         card.ai_modified = True
@@ -217,31 +217,31 @@ def create_card(
         card.last_modified_by = "ai"
         deps.session.commit()
         
-        logger.info(f"  指令执行完成: applied={result['applied']}, failed={result['failed']}")
-        logger.info(f"  已标记为 AI 修改，需要用户确认")
+        logger.info(f"  指令執行完成: applied={result['applied']}, failed={result['failed']}")
+        logger.info(f"  已標記爲 AI 修改，需要用戶確認")
         
-        # 6. 构建返回结果
+        # 6. 構建返回結果
         if result["success"]:
-            logger.info(f"✅ [Assistant.create_card] 创建成功且内容完整")
+            logger.info(f"✅ [Assistant.create_card] 創建成功且內容完整")
             return {
                 "success": True,
                 "card_id": card.id,
                 "card_title": title,
                 "card_type": card_type,
-                "message": f"✅ 卡片《{title}》创建成功，填充了 {result['applied']} 个字段。请在前端检查内容后点击保存以触发工作流。",
+                "message": f"✅ 卡片《{title}》創建成功，填充了 {result['applied']} 個字段。請在前端檢查內容後點擊保存以觸發工作流。",
                 "applied": result['applied'],
                 "needs_confirmation": True
             }
         else:
-            # 数据不完整
+            # 數據不完整
             missing_fields_str = ", ".join(result["missing_fields"])
-            logger.warning(f"⚠️ [Assistant.create_card] 卡片已创建但内容不完整: {missing_fields_str}")
+            logger.warning(f"⚠️ [Assistant.create_card] 卡片已創建但內容不完整: {missing_fields_str}")
             return {
                 "success": False,
                 "card_id": card.id,
                 "card_title": title,
                 "card_type": card_type,
-                "message": f"⚠️ 卡片已创建但内容不完整，需要补充字段。补充完成后请在前端点击保存以触发工作流。",
+                "message": f"⚠️ 卡片已創建但內容不完整，需要補充字段。補充完成後請在前端點擊保存以觸發工作流。",
                 "error": f"缺失必填字段：{missing_fields_str}",
                 "missing_fields": result["missing_fields"],
                 "current_data": result["data"],
@@ -252,10 +252,10 @@ def create_card(
             }
     
     except Exception as e:
-        logger.error(f"❌ [Assistant.create_card] 失败: {e}", exc_info=True)
+        logger.error(f"❌ [Assistant.create_card] 失敗: {e}", exc_info=True)
         return {
             "success": False,
-            "error": f"创建失败: {str(e)}"
+            "error": f"創建失敗: {str(e)}"
         }
 
 
@@ -264,38 +264,38 @@ def _update_card_impl(
     instructions: List[Dict[str, Any]]
 ) -> Dict[str, Any]:
     """
-    更新卡片的内部实现（核心逻辑）
+    更新卡片的內部實現（核心邏輯）
     
-    此函数包含实际的更新逻辑，可被多个工具函数复用。
-    不要直接暴露给 LLM，而是通过 @tool 装饰的函数调用。
+    此函數包含實際的更新邏輯，可被多個工具函數複用。
+    不要直接暴露給 LLM，而是通過 @tool 裝飾的函數調用。
     """
     deps = _get_deps()
     
     logger.info(f"📝 [_update_card_impl] card_id={card_id}, instructions={len(instructions)}")
     
     try:
-        # 1. 获取卡片
+        # 1. 獲取卡片
         card = _get_card_by_id(deps.session, card_id, deps.project_id)
         if not card:
             return {
                 "success": False,
-                "error": f"卡片 ID={card_id} 不存在或不属于当前项目"
+                "error": f"卡片 ID={card_id} 不存在或不屬於當前項目"
             }
         
-        # 2. 获取Schema
+        # 2. 獲取Schema
         schema = _get_card_type_schema(deps.session, card.card_type.name)
         
-        # 3. 创建执行器（使用现有数据）
+        # 3. 創建執行器（使用現有數據）
         initial_data = copy.deepcopy(card.content) if isinstance(card.content, dict) else {}
         executor = InstructionExecutor(
             schema=schema,
             initial_data=initial_data
         )
         
-        # 4. 执行指令
+        # 4. 執行指令
         result = executor.execute_batch(instructions)
         
-        # 5. 保存并标记为 AI 修改
+        # 5. 保存並標記爲 AI 修改
         card.content = result["data"]
         flag_modified(card, "content")
         card.ai_modified = True
@@ -303,17 +303,17 @@ def _update_card_impl(
         card.last_modified_by = "ai"
         deps.session.commit()
         
-        logger.info(f"  指令执行完成: applied={result['applied']}, failed={result['failed']}")
-        logger.info(f"  已标记为 AI 修改，需要用户确认")
+        logger.info(f"  指令執行完成: applied={result['applied']}, failed={result['failed']}")
+        logger.info(f"  已標記爲 AI 修改，需要用戶確認")
         
-        # 6. 返回结果
+        # 6. 返回結果
         if result["success"]:
-            logger.info(f"✅ [_update_card_impl] 更新成功且内容完整")
+            logger.info(f"✅ [_update_card_impl] 更新成功且內容完整")
             return {
                 "success": True,
                 "card_id": card_id,
                 "card_title": card.title,
-                "message": f"✅ 卡片《{card.title}》更新成功，修改了 {result['applied']} 个字段。请在前端检查内容后点击保存以触发工作流。",
+                "message": f"✅ 卡片《{card.title}》更新成功，修改了 {result['applied']} 個字段。請在前端檢查內容後點擊保存以觸發工作流。",
                 "current_data": result["data"],
                 "applied": result["applied"],
                 "needs_confirmation": True
@@ -325,7 +325,7 @@ def _update_card_impl(
                 "success": True,
                 "card_id": card_id,
                 "card_title": card.title,
-                "message": f"⚠️ 卡片已更新但仍不完整，需要继续补充字段。补充完成后请在前端点击保存以触发工作流。",
+                "message": f"⚠️ 卡片已更新但仍不完整，需要繼續補充字段。補充完成後請在前端點擊保存以觸發工作流。",
                 "is_complete": False,
                 "completion_status": "incomplete",
                 "warning": f"缺失必填字段：{missing_fields_str}",
@@ -337,10 +337,10 @@ def _update_card_impl(
             }
     
     except Exception as e:
-        logger.error(f"❌ [_update_card_impl] 失败: {e}", exc_info=True)
+        logger.error(f"❌ [_update_card_impl] 失敗: {e}", exc_info=True)
         return {
             "success": False,
-            "error": f"更新失败: {str(e)}"
+            "error": f"更新失敗: {str(e)}"
         }
 
 
@@ -350,48 +350,48 @@ def update_card(
     instructions: List[Dict[str, Any]]
 ) -> Dict[str, Any]:
     """
-    更新**现有**卡片内容（执行指令数组）
+    更新**現有**卡片內容（執行指令數組）
     
-    ⚠️ **重要：何时使用此工具？**
+    ⚠️ **重要：何時使用此工具？**
     
-    - ✅ **修改现有卡片**：用户选中/引用了某个卡片，要求修改或完善
-    - ✅ **补充内容**：用户说"完善这个卡片"、"补充内容"、"添加字段"等
-    - ✅ **分步创建**：使用 create_card 创建基础框架后，逐步补充内容
-    - ❌ **创建新卡片**：如果是创建全新的卡片，应该使用 create_card
+    - ✅ **修改現有卡片**：用戶選中/引用了某個卡片，要求修改或完善
+    - ✅ **補充內容**：用戶說"完善這個卡片"、"補充內容"、"添加字段"等
+    - ✅ **分步創建**：使用 create_card 創建基礎框架後，逐步補充內容
+    - ❌ **創建新卡片**：如果是創建全新的卡片，應該使用 create_card
     
-    **判断依据：**
-    1. 如果对话上下文中有卡片引用（如 @卡片名称），使用此工具
-    2. 如果用户说"修改"、"完善"、"补充"、"更新"，使用此工具
-    3. 如果是 create_card 返回不完整，继续补充内容，使用此工具
+    **判斷依據：**
+    1. 如果對話上下文中有卡片引用（如 @卡片名稱），使用此工具
+    2. 如果用戶說"修改"、"完善"、"補充"、"更新"，使用此工具
+    3. 如果是 create_card 返回不完整，繼續補充內容，使用此工具
     
-    用于补充或修改已存在卡片的内容。支持批量修改多个字段。
+    用於補充或修改已存在卡片的內容。支持批量修改多個字段。
     
     Args:
         card_id: 卡片ID
-        instructions: 指令数组，每个指令包含：
-            - op: 操作类型（"set" 设置字段，"append" 追加到数组）
-            - path: 字段路径（JSON Pointer 格式，如 "/name"）
-            - value: 要设置的值
+        instructions: 指令數組，每個指令包含：
+            - op: 操作類型（"set" 設置字段，"append" 追加到數組）
+            - path: 字段路徑（JSON Pointer 格式，如 "/name"）
+            - value: 要設置的值
     
     Returns:
         Dict 包含:
         - success (bool): 是否成功
-        - message (str): 结果消息
+        - message (str): 結果消息
         - card_id (int): 卡片ID
-        - card_title (str): 卡片标题
-        - current_data (dict): 更新后的完整数据
-        - applied (int): 成功执行的指令数
-        - missing_fields (list, 可选): 仍缺失的必填字段路径列表
-        - failed (int, 可选): 失败的指令数
+        - card_title (str): 卡片標題
+        - current_data (dict): 更新後的完整數據
+        - applied (int): 成功執行的指令數
+        - missing_fields (list, 可選): 仍缺失的必填字段路徑列表
+        - failed (int, 可選): 失敗的指令數
     
     Examples:
-        # 补充缺失字段
+        # 補充缺失字段
         update_card(
             card_id=123,
             instructions=[
                 {"op":"set", "path":"/personality", "value":"正直勇敢"},
-                {"op":"set", "path":"/background", "value":"武当弟子"},
-                {"op":"append", "path":"/skills", "value":"降龙十八掌"}
+                {"op":"set", "path":"/background", "value":"武當弟子"},
+                {"op":"append", "path":"/skills", "value":"降龍十八掌"}
             ]
         )
     """
@@ -405,35 +405,35 @@ def modify_card_field(
     new_value: Any,
 ) -> Dict[str, Any]:
     """
-    快速修改单个字段（便捷工具）
+    快速修改單個字段（便捷工具）
     
-    这是 update_card 的简化版本，用于快速修改单个字段。
-    如需同时修改多个字段，请使用 update_card 工具。
+    這是 update_card 的簡化版本，用於快速修改單個字段。
+    如需同時修改多個字段，請使用 update_card 工具。
     
     Args:
         card_id: 卡片ID
-        field_path: 字段路径，不需要前导斜杠（如 "name" 或 "personality"）
-        new_value: 新值（字符串、数字、布尔值等）
+        field_path: 字段路徑，不需要前導斜槓（如 "name" 或 "personality"）
+        new_value: 新值（字符串、數字、布爾值等）
     
     Returns:
         Dict 包含:
         - success (bool): 是否成功
-        - message (str): 结果消息
+        - message (str): 結果消息
         - card_id (int): 卡片ID
-        - card_title (str): 卡片标题
+        - card_title (str): 卡片標題
     
     Examples:
-        # 修改角色名称
+        # 修改角色名稱
         modify_card_field(card_id=123, field_path="name", new_value="李四")
         
         # 修改角色性格
         modify_card_field(card_id=123, field_path="personality", new_value="正直勇敢")
     """
-    # 转换为指令格式（添加前导斜杠）
+    # 轉換爲指令格式（添加前導斜槓）
     path = "/" + field_path if not field_path.startswith("/") else field_path
     instruction = {"op": "set", "path": path, "value": new_value}
     
-    # 调用内部实现（不是调用 @tool 装饰的函数）
+    # 調用內部實現（不是調用 @tool 裝飾的函數）
     return _update_card_impl(card_id=card_id, instructions=[instruction])
 
 
@@ -442,19 +442,19 @@ def get_card_type_schema(
     card_type_name: str,
 ) -> Dict[str, Any]:
     """
-    获取指定卡片类型的 JSON Schema 定义
+    獲取指定卡片類型的 JSON Schema 定義
     
-    使用场景：当需要创建卡片但不清楚其结构时调用
+    使用場景：當需要創建卡片但不清楚其結構時調用
     
     Args:
-        card_type_name: 卡片类型名称
+        card_type_name: 卡片類型名稱
     
     Returns:
-        success: True 表示成功，False 表示失败
-        error: 错误信息
-        card_type: 卡片类型名称
-        schema: 卡片类型的 JSON Schema 定义
-        description: 卡片类型的描述
+        success: True 表示成功，False 表示失敗
+        error: 錯誤信息
+        card_type: 卡片類型名稱
+        schema: 卡片類型的 JSON Schema 定義
+        description: 卡片類型的描述
     """
 
     deps = _get_deps()
@@ -470,18 +470,18 @@ def get_card_type_schema(
 
     if not result.get("success"):
         logger.warning(
-            f"⚠️ [Assistant.get_card_type_schema] 卡片类型 '{card_type_name}' 不存在"
+            f"⚠️ [Assistant.get_card_type_schema] 卡片類型 '{card_type_name}' 不存在"
         )
         return {
             "success": False,
-            "error": f"卡片类型 '{card_type_name}' 不存在"
+            "error": f"卡片類型 '{card_type_name}' 不存在"
         }
 
     output = {
         "success": True,
         "card_type": result.get("card_type") or card_type_name,
         "schema": result.get("schema") or {},
-        "description": f"卡片类型 '{card_type_name}' 的完整结构定义"
+        "description": f"卡片類型 '{card_type_name}' 的完整結構定義"
     }
 
     logger.info(f"✅ [Assistant.get_card_type_schema] 已返回 Schema：{output}")
@@ -493,24 +493,24 @@ def get_card_content(
     card_id: int,
 ) -> Dict[str, Any]:
     """
-    获取指定卡片的详细内容
+    獲取指定卡片的詳細內容
     
-    使用场景：需要查看卡片的完整数据时调用
+    使用場景：需要查看卡片的完整數據時調用
     
     Args:
         card_id: 卡片ID
     
     Returns:
-        success: True 表示成功，False 表示失败
-        error: 错误信息（失败时）
+        success: True 表示成功，False 表示失敗
+        error: 錯誤信息（失敗時）
         card_id: 卡片ID
-        title: 卡片标题
-        card_type: 卡片类型
-        parent_id: 父卡片ID（None表示根级卡片）
-        parent_title: 父卡片标题（如果有父卡片）
-        parent_type: 父卡片类型（如果有父卡片）
-        content: 卡片内容
-        created_at: 卡片创建时间
+        title: 卡片標題
+        card_type: 卡片類型
+        parent_id: 父卡片ID（None表示根級卡片）
+        parent_title: 父卡片標題（如果有父卡片）
+        parent_type: 父卡片類型（如果有父卡片）
+        content: 卡片內容
+        created_at: 卡片創建時間
     """
 
     deps = _get_deps()
@@ -531,7 +531,7 @@ def get_card_content(
         "card_id": card.id,
         "title": card.title,
         "card_type": card.card_type.name if card.card_type else "Unknown",
-        "parent_id": card.parent_id,  # 父卡片ID，用于了解层级关系
+        "parent_id": card.parent_id,  # 父卡片ID，用於瞭解層級關係
         "content": card.content or {},
         "created_at": str(card.created_at) if card.created_at else None
     }
@@ -542,7 +542,7 @@ def get_card_content(
         result["parent_type"] = card.parent.card_type.name if card.parent.card_type else "Unknown"
     
     logger.info(
-        f"✅ [Assistant.get_card_content] 已返回卡片内容 (parent_id={card.parent_id})"
+        f"✅ [Assistant.get_card_content] 已返回卡片內容 (parent_id={card.parent_id})"
     )
     return result
 
@@ -603,34 +603,34 @@ def _nf_assistant_context(text, old_text, radius=120):
 @tool
 def propose_card_text_patches(card_id: int, field_path: str, patches: list) -> dict:
     """
-    批量提交正文修改建议，不直接写入数据库，由前端编辑器逐条预览、接受或拒绝。
+    批量提交正文修改建議，不直接寫入數據庫，由前端編輯器逐條預覽、接受或拒絕。
 
-    使用场景：
-    - 用户要求对正文提出多条修改建议（润色、纠错、改写等）时，使用本工具。
+    使用場景：
+    - 用戶要求對正文提出多條修改建議（潤色、糾錯、改寫等）時，使用本工具。
 
     Args:
-        card_id: 目标卡片的ID
-        field_path: 字段路径（如 "content" 表示章节正文）
-        patches: 修改建议列表（最多处理 30 条），每条为 dict，包含：
-            - old_text (必填): 当前正文中需要替换的原文片段，应尽量精确
-            - new_text (必填): 建议替换为的新文本
-            - start_line/end_line (可选): 1-based 行号范围，仅作为辅助定位提示
-            - context_before/context_after (可选): 原文前后的上下文片段，用于前端重新定位
-            - instruction/reason (可选): 本条修改的理由或说明
+        card_id: 目標卡片的ID
+        field_path: 字段路徑（如 "content" 表示章節正文）
+        patches: 修改建議列表（最多處理 30 條），每條爲 dict，包含：
+            - old_text (必填): 當前正文中需要替換的原文片段，應儘量精確
+            - new_text (必填): 建議替換爲的新文本
+            - start_line/end_line (可選): 1-based 行號範圍，僅作爲輔助定位提示
+            - context_before/context_after (可選): 原文前後的上下文片段，用於前端重新定位
+            - instruction/reason (可選): 本條修改的理由或說明
 
-    重要约束：
-        - 每条 patch 必须同时包含 old_text 和 new_text。
-        - old_text 应为当前正文的精确片段，便于前端定位。
+    重要約束：
+        - 每條 patch 必須同時包含 old_text 和 new_text。
+        - old_text 應爲當前正文的精確片段，便於前端定位。
 
     Returns:
-        success: True 表示建议已生成，False 表示失败
-        kind: "assistant_text_patch_batch"（前端识别标记）
-        count: 有效建议条数
-        patches: 归一化后的建议列表
-        failed_count: 校验失败的条数
-        failed_patches: 失败条目及原因
-        preview_only: True（表示仅预览，不写数据库）
-        needs_user_accept: True（需要用户逐条确认）
+        success: True 表示建議已生成，False 表示失敗
+        kind: "assistant_text_patch_batch"（前端識別標記）
+        count: 有效建議條數
+        patches: 歸一化後的建議列表
+        failed_count: 校驗失敗的條數
+        failed_patches: 失敗條目及原因
+        preview_only: True（表示僅預覽，不寫數據庫）
+        needs_user_accept: True（需要用戶逐條確認）
     """
     deps = _get_deps()
     logger.info("[Assistant.propose_card_text_patches] card_id=%s path=%s count=%s", card_id, field_path, len(patches or []))
@@ -731,49 +731,49 @@ def replace_field_text(
     new_value: str,
 ) -> Dict[str, Any]:
     """
-    替换卡片字段中的指定文本片段（旧兼容工具，优先级低于按行替换）。
+    替換卡片字段中的指定文本片段（舊兼容工具，優先級低於按行替換）。
 
-    使用场景：
-    - 只有在拿不到稳定行号、没有 `chapter_excerpt` 引用、也没有 `snapshot_hash` 时，才把它当作兜底方案。
-    - 如果上下文已经明确给出“第 X-Y 行”、`chapter_excerpt` 引用或 `snapshot_hash`，不要调用本工具，应改用 `replace_card_text_by_lines`。
-    - 适用于大纲描述、短段落或非正文长文本中的模糊片段替换。
+    使用場景：
+    - 只有在拿不到穩定行號、沒有 `chapter_excerpt` 引用、也沒有 `snapshot_hash` 時，才把它當作兜底方案。
+    - 如果上下文已經明確給出“第 X-Y 行”、`chapter_excerpt` 引用或 `snapshot_hash`，不要調用本工具，應改用 `replace_card_text_by_lines`。
+    - 適用於大綱描述、短段落或非正文長文本中的模糊片段替換。
     
     Examples:
-        1. 精确匹配（短文本，且没有可用行号）：
+        1. 精確匹配（短文本，且沒有可用行號）：
         replace_field_text(card_id=42, field_path="content", 
-                            old_value="林风犹豫了片刻",
-                            new_value="林风毫不犹豫地")
+                            old_value="林風猶豫了片刻",
+                            new_value="林風毫不猶豫地")
         
-        2. 模糊匹配（长文本兜底）：
+        2. 模糊匹配（長文本兜底）：
         replace_field_text(card_id=42, field_path="content",
-                            old_value="少年面色苍白，额头青筋暴起...现在却成了个废人。",
-                            new_value="新的完整段落内容...")
+                            old_value="少年面色蒼白，額頭青筋暴起...現在卻成了個廢人。",
+                            new_value="新的完整段落內容...")
     
     Args:
-        card_id: 目标卡片的ID
-        field_path: 字段路径（如 "content" 表示章节正文，"overview" 表示概述）
-        old_value: 要被替换的原文片段，支持两种模式：
-            1. 精确匹配：提供完整的原文（适用于短文本，50字以内）
-            2. 模糊匹配：提供开头10字 + "..." + 结尾10字（适用于长文本，50字以上）
-        new_value: 新的文本内容
+        card_id: 目標卡片的ID
+        field_path: 字段路徑（如 "content" 表示章節正文，"overview" 表示概述）
+        old_value: 要被替換的原文片段，支持兩種模式：
+            1. 精確匹配：提供完整的原文（適用於短文本，50字以內）
+            2. 模糊匹配：提供開頭10字 + "..." + 結尾10字（適用於長文本，50字以上）
+        new_value: 新的文本內容
 
-    重要约束：
-        - 如果已知行号范围，请不要使用本工具。
-        - 如果引用来源是正文选区，请优先使用 `replace_card_text_by_lines`。
+    重要約束：
+        - 如果已知行號範圍，請不要使用本工具。
+        - 如果引用來源是正文選區，請優先使用 `replace_card_text_by_lines`。
 
     Returns:
-        success: True 表示成功，False 表示失败
-        error: 错误信息
-        card_title: 卡片标题
-        replaced_count: 替换的次数
-        message: 用户友好的消息
+        success: True 表示成功，False 表示失敗
+        error: 錯誤信息
+        card_title: 卡片標題
+        replaced_count: 替換的次數
+        message: 用戶友好的消息
     """
 
     deps = _get_deps()
 
     logger.info(f" [Assistant.replace_field_text] card_id={card_id}, path={field_path}")
-    logger.info(f"  要替换的文本长度: {len(old_value)} 字符")
-    logger.info(f"  新文本长度: {len(new_value)} 字符")
+    logger.info(f"  要替換的文本長度: {len(old_value)} 字符")
+    logger.info(f"  新文本長度: {len(new_value)} 字符")
 
     try:
         # Use CardService logic directly
@@ -786,48 +786,48 @@ def replace_field_text(
             fuzzy_match=True
         )
 
-        # 如果Service执行失败
+        # 如果Service執行失敗
         if not result.get("success"):
-            raw_error = str(result.get("error") or "替换失败")
+            raw_error = str(result.get("error") or "替換失敗")
             raw_hint = str(result.get("hint") or "").strip()
 
             suggestion = ""
-            if raw_error in ("未找到指定的原文片段", "未找到开头文本", "未找到结尾文本", "模糊匹配格式错误"):
-                suggestion = "建议先调用 get_card_content 获取最新内容，再复制准确片段重试；长文本请使用“开头...结尾”格式。"
-            elif "不是文本类型" in raw_error:
-                suggestion = "目标字段不是字符串文本，建议改用 modify_card_field 按结构化方式更新。"
-            elif "字段路径" in raw_error:
-                suggestion = "字段路径可能不正确，建议先查看卡片结构并确认 field_path。"
+            if raw_error in ("未找到指定的原文片段", "未找到開頭文本", "未找到結尾文本", "模糊匹配格式錯誤"):
+                suggestion = "建議先調用 get_card_content 獲取最新內容，再複製準確片段重試；長文本請使用“開頭...結尾”格式。"
+            elif "不是文本類型" in raw_error:
+                suggestion = "目標字段不是字符串文本，建議改用 modify_card_field 按結構化方式更新。"
+            elif "字段路徑" in raw_error:
+                suggestion = "字段路徑可能不正確，建議先查看卡片結構並確認 field_path。"
 
             if suggestion:
-                result["message"] = f"⚠️ 文本替换失败：{raw_error}。{suggestion}"
+                result["message"] = f"⚠️ 文本替換失敗：{raw_error}。{suggestion}"
             else:
-                result["message"] = f"⚠️ 文本替换失败：{raw_error}。"
+                result["message"] = f"⚠️ 文本替換失敗：{raw_error}。"
 
             if raw_hint:
                 result["message"] = f"{result['message']}（定位提示：{raw_hint}）"
 
             logger.warning(
-                f"⚠️ [Assistant.replace_field_text] 替换失败: {result.get('error')}"
+                f"⚠️ [Assistant.replace_field_text] 替換失敗: {result.get('error')}"
             )
             return result
         
         # Service already commits, but tool flow often expects us to handle it or just be sure.
         # CardService.replace_field_text does commit.
         
-        logger.info(f"✅ [Assistant.replace_field_text] 替换成功")
+        logger.info(f"✅ [Assistant.replace_field_text] 替換成功")
 
-        # 添加用户友好的消息
+        # 添加用戶友好的消息
         result["message"] = (
-            f"✅ 已在「{result.get('card_title')}」的 {field_path} 中替换 "
-            f"{result.get('replaced_count')} 处内容"
+            f"✅ 已在「{result.get('card_title')}」的 {field_path} 中替換 "
+            f"{result.get('replaced_count')} 處內容"
         )
 
         return result
 
     except Exception as e:
-        logger.error(f"❌ [Assistant.replace_field_text] 替换失败: {e}")
-        return {"success": False, "error": f"替换失败: {str(e)}"}
+        logger.error(f"❌ [Assistant.replace_field_text] 替換失敗: {e}")
+        return {"success": False, "error": f"替換失敗: {str(e)}"}
 
 
 @tool
@@ -840,21 +840,21 @@ def replace_card_text_by_lines(
     snapshot_hash: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-    按行号替换卡片文本片段（位置型替换，正文片段编辑时应优先使用本工具）。
+    按行號替換卡片文本片段（位置型替換，正文片段編輯時應優先使用本工具）。
 
-    这是“章节正文 / Markdown 长文本片段修订”的首选工具，适合以下场景：
-    - 用户明确指定“第 93-102 行”
-    - 上下文里已经有 `chapter_excerpt` 引用
+    這是“章節正文 / Markdown 長文本片段修訂”的首選工具，適合以下場景：
+    - 用戶明確指定“第 93-102 行”
+    - 上下文裏已經有 `chapter_excerpt` 引用
     - 已拿到 `snapshot_hash`
-    - 想避免 `replace_field_text` 的模糊匹配误伤
+    - 想避免 `replace_field_text` 的模糊匹配誤傷
 
-    调用建议：
-    - `field_path` 对章节正文通常传 `content`
-    - 如果有片段引用，优先传 `snapshot_hash`；通常不需要再额外传旧片段文本
-    - 当你能定位具体行号时，不要退回 `replace_field_text`
+    調用建議：
+    - `field_path` 對章節正文通常傳 `content`
+    - 如果有片段引用，優先傳 `snapshot_hash`；通常不需要再額外傳舊片段文本
+    - 當你能定位具體行號時，不要退回 `replace_field_text`
 
     Examples:
-        1. 根据正文片段引用直接替换：
+        1. 根據正文片段引用直接替換：
            replace_card_text_by_lines(
                card_id=666,
                field_path="content",
@@ -864,13 +864,13 @@ def replace_card_text_by_lines(
                snapshot_hash="abc123"
            )
 
-        2. 已知要修改的行段，但没有快照时：
+        2. 已知要修改的行段，但沒有快照時：
            replace_card_text_by_lines(
                card_id=666,
                field_path="content",
                start_line=40,
                end_line=44,
-               new_text="修订后的内容"
+               new_text="修訂後的內容"
            )
     """
     deps = _get_deps()
@@ -890,24 +890,24 @@ def replace_card_text_by_lines(
             snapshot_hash=snapshot_hash,
         )
         if not result.get("success"):
-            raw_error = str(result.get("error") or "按行替换失败")
-            if "快照校验失败" in raw_error or "原片段校验失败" in raw_error:
+            raw_error = str(result.get("error") or "按行替換失敗")
+            if "快照校驗失敗" in raw_error or "原片段校驗失敗" in raw_error:
                 result["message"] = (
-                    f"⚠️ {raw_error}。建议先重新引用最新正文片段，再按行替换。"
+                    f"⚠️ {raw_error}。建議先重新引用最新正文片段，再按行替換。"
                 )
             else:
-                result["message"] = f"⚠️ 按行替换失败：{raw_error}"
+                result["message"] = f"⚠️ 按行替換失敗：{raw_error}"
             return result
 
         result["message"] = (
-            f"✅ 已按行替换 {start_line}-{end_line} 行，"
-            f"将 {result.get('replaced_line_count')} 行替换为 {result.get('new_line_count')} 行，"
-            f"目标字段：{field_path}"
+            f"✅ 已按行替換 {start_line}-{end_line} 行，"
+            f"將 {result.get('replaced_line_count')} 行替換爲 {result.get('new_line_count')} 行，"
+            f"目標字段：{field_path}"
         )
         return result
     except Exception as e:
-        logger.error(f"❌ [Assistant.replace_card_text_by_lines] 失败: {e}")
-        return {"success": False, "error": f"按行替换失败: {str(e)}"}
+        logger.error(f"❌ [Assistant.replace_card_text_by_lines] 失敗: {e}")
+        return {"success": False, "error": f"按行替換失敗: {str(e)}"}
 
 
 @tool
@@ -917,7 +917,7 @@ def list_reviews_for_target(
     limit: int = 20,
 ) -> Dict[str, Any]:
     """
-    获取指定目标卡片绑定的审核结果卡片列表（用于注入 review_result 引用）。
+    獲取指定目標卡片綁定的審核結果卡片列表（用於注入 review_result 引用）。
     """
     deps = _get_deps()
     logger.info(
@@ -926,7 +926,7 @@ def list_reviews_for_target(
     try:
         review_card_type = deps.session.query(CardType).filter(CardType.name == REVIEW_RESULT_CARD_TYPE_NAME).first()
         if not review_card_type:
-            return {"success": False, "error": f"缺少卡片类型: {REVIEW_RESULT_CARD_TYPE_NAME}"}
+            return {"success": False, "error": f"缺少卡片類型: {REVIEW_RESULT_CARD_TYPE_NAME}"}
 
         rows = (
             deps.session.query(Card)
@@ -964,14 +964,14 @@ def list_reviews_for_target(
             ],
         }
     except Exception as e:
-        logger.error(f"❌ [Assistant.list_reviews_for_target] 失败: {e}")
-        return {"success": False, "error": f"获取审核记录失败: {str(e)}"}
+        logger.error(f"❌ [Assistant.list_reviews_for_target] 失敗: {e}")
+        return {"success": False, "error": f"獲取審核記錄失敗: {str(e)}"}
 
 
 @tool
 def get_review_record(review_id: int) -> Dict[str, Any]:
     """
-    获取单张审核结果卡片详情（包含完整审核 Markdown）。
+    獲取單張審核結果卡片詳情（包含完整審核 Markdown）。
     """
     deps = _get_deps()
     logger.info(f"📄 [Assistant.get_review_record] review_card_id={review_id}")
@@ -979,7 +979,7 @@ def get_review_record(review_id: int) -> Dict[str, Any]:
         row = deps.session.get(Card, review_id)
         review_card_type = deps.session.query(CardType).filter(CardType.name == REVIEW_RESULT_CARD_TYPE_NAME).first()
         if not row or row.project_id != deps.project_id or not review_card_type or row.card_type_id != review_card_type.id:
-            return {"success": False, "error": f"审核结果卡片 #{review_id} 不存在"}
+            return {"success": False, "error": f"審核結果卡片 #{review_id} 不存在"}
         content = dict(row.content or {})
         return {
             "success": True,
@@ -1001,8 +1001,8 @@ def get_review_record(review_id: int) -> Dict[str, Any]:
             },
         }
     except Exception as e:
-        logger.error(f"❌ [Assistant.get_review_record] 失败: {e}")
-        return {"success": False, "error": f"读取审核记录失败: {str(e)}"}
+        logger.error(f"❌ [Assistant.get_review_record] 失敗: {e}")
+        return {"success": False, "error": f"讀取審核記錄失敗: {str(e)}"}
 
 
 @tool
@@ -1011,42 +1011,42 @@ def delete_card(
     skip_confirmation: bool = False
 ) -> Dict[str, Any]:
     """
-    删除卡片（危险操作）
+    刪除卡片（危險操作）
     
-    ⚠️ **确认规则：**
-    - **用户明确指令**（如"删除角色卡张三"）：可以直接执行，设置 skip_confirmation=True
-    - **模糊指令或你自主判断**：必须先获取用户确认，设置 skip_confirmation=False
+    ⚠️ **確認規則：**
+    - **用戶明確指令**（如"刪除角色卡張三"）：可以直接執行，設置 skip_confirmation=True
+    - **模糊指令或你自主判斷**：必須先獲取用戶確認，設置 skip_confirmation=False
     
-    **判断标准：**
-    - 用户消息中明确指定了要删除的卡片（通过标题、ID等唯一标识） → 可直接执行
-    - 用户说"删除那个卡片"、"删掉测试的"等模糊表述 → 需要确认
-    - 你自己判断某个卡片需要删除（用户没有明说） → 需要确认
+    **判斷標準：**
+    - 用戶消息中明確指定了要刪除的卡片（通過標題、ID等唯一標識） → 可直接執行
+    - 用戶說"刪除那個卡片"、"刪掉測試的"等模糊表述 → 需要確認
+    - 你自己判斷某個卡片需要刪除（用戶沒有明說） → 需要確認
     
-    **确认流程：**
-    1. 首先以 skip_confirmation=False 调用，获取确认请求
+    **確認流程：**
+    1. 首先以 skip_confirmation=False 調用，獲取確認請求
     2. 工具返回 status="confirmation_required" 和卡片信息
-    3. 向用户说明要删除的卡片详情，询问"是否确认删除？"
-    4. 用户明确回复"确认"、"确认删除"后，以 skip_confirmation=True 再次调用
+    3. 向用戶說明要刪除的卡片詳情，詢問"是否確認刪除？"
+    4. 用戶明確回覆"確認"、"確認刪除"後，以 skip_confirmation=True 再次調用
     
     Args:
-        card_id: 要删除的卡片ID
-        skip_confirmation: 是否跳过确认（默认 False，需要确认）
+        card_id: 要刪除的卡片ID
+        skip_confirmation: 是否跳過確認（默認 False，需要確認）
     
     Returns:
         Dict 包含:
-        - 如果需要确认：{"status": "confirmation_required", "message": "...", "data": {...}}
-        - 如果已确认：{"success": true, "message": "卡片已删除", ...}
+        - 如果需要確認：{"status": "confirmation_required", "message": "...", "data": {...}}
+        - 如果已確認：{"success": true, "message": "卡片已刪除", ...}
     
     Examples:
-        # 示例1：用户明确指令 "删除角色卡张三"
-        delete_card(card_id=123, skip_confirmation=True)  # 直接执行
+        # 示例1：用戶明確指令 "刪除角色卡張三"
+        delete_card(card_id=123, skip_confirmation=True)  # 直接執行
         
-        # 示例2：用户模糊指令 "删除测试卡片" 或你自主判断需要删除
-        # 第一步：获取确认
+        # 示例2：用戶模糊指令 "刪除測試卡片" 或你自主判斷需要刪除
+        # 第一步：獲取確認
         result = delete_card(card_id=123, skip_confirmation=False)
-        # 你："我需要删除卡片《测试》，此操作不可撤销。是否确认？"
-        # 用户："确认删除"
-        # 第二步：执行删除
+        # 你："我需要刪除卡片《測試》，此操作不可撤銷。是否確認？"
+        # 用戶："確認刪除"
+        # 第二步：執行刪除
         result = delete_card(card_id=123, skip_confirmation=True)
     """
     deps = _get_deps()
@@ -1054,33 +1054,33 @@ def delete_card(
     logger.info(f"🗑️ [Assistant.delete_card] card_id={card_id}, skip_confirmation={skip_confirmation}")
     
     try:
-        # 获取卡片信息
+        # 獲取卡片信息
         card = _get_card_by_id(deps.session, card_id, deps.project_id)
         if not card:
             result = CardOperationResult(
                 success=False,
                 status=ToolResultStatus.FAILED,
-                message=f"卡片 ID={card_id} 不存在或不属于当前项目",
+                message=f"卡片 ID={card_id} 不存在或不屬於當前項目",
                 error=f"卡片 ID={card_id} 不存在"
             )
             return to_dict(result)
         
-        # 检查是否有子卡片
+        # 檢查是否有子卡片
         child_count = deps.session.query(Card).filter(
             Card.parent_id == card_id
         ).count()
         
-        # 如果需要确认，返回确认请求
+        # 如果需要確認，返回確認請求
         if not skip_confirmation:
             warning = None
             if child_count > 0:
-                warning = f"此卡片有 {child_count} 个子卡片，删除后子卡片也会被删除"
+                warning = f"此卡片有 {child_count} 個子卡片，刪除後子卡片也會被刪除"
             
             result = ConfirmationRequest(
                 confirmation_id=str(uuid.uuid4()),
                 action="delete_card",
                 action_params={"card_id": card_id},
-                message=f"❓ 确认要删除卡片《{card.title}》吗？请用户明确说\"确认删除\"或\"取消\"",
+                message=f"❓ 確認要刪除卡片《{card.title}》嗎？請用戶明確說\"確認刪除\"或\"取消\"",
                 warning=warning,
                 data={
                     "card_id": card_id,
@@ -1089,18 +1089,18 @@ def delete_card(
                     "child_count": child_count
                 }
             )
-            logger.info(f"⚠️ [Assistant.delete_card] 等待用户确认")
+            logger.info(f"⚠️ [Assistant.delete_card] 等待用戶確認")
             return to_dict(result)
         
-        # 用户已确认，执行删除
-        logger.info(f"✅ [Assistant.delete_card] 用户已确认，开始删除")
+        # 用戶已確認，執行刪除
+        logger.info(f"✅ [Assistant.delete_card] 用戶已確認，開始刪除")
         
-        # 删除子卡片（如果有）
+        # 刪除子卡片（如果有）
         if child_count > 0:
             deps.session.query(Card).filter(Card.parent_id == card_id).delete()
-            logger.info(f"  已删除 {child_count} 个子卡片")
+            logger.info(f"  已刪除 {child_count} 個子卡片")
         
-        # 删除卡片本身
+        # 刪除卡片本身
         card_title = card.title
         deps.session.delete(card)
         deps.session.commit()
@@ -1108,20 +1108,20 @@ def delete_card(
         result = CardOperationResult(
             success=True,
             status=ToolResultStatus.SUCCESS,
-            message=f"✅ 卡片《{card_title}》已成功删除" + (f"（包括 {child_count} 个子卡片）" if child_count > 0 else ""),
+            message=f"✅ 卡片《{card_title}》已成功刪除" + (f"（包括 {child_count} 個子卡片）" if child_count > 0 else ""),
             card_id=card_id,
             card_title=card_title,
             data={"deleted_children": child_count}
         )
-        logger.info(f"✅ [Assistant.delete_card] 删除成功")
+        logger.info(f"✅ [Assistant.delete_card] 刪除成功")
         return to_dict(result)
     
     except Exception as e:
-        logger.error(f"❌ [Assistant.delete_card] 失败: {e}", exc_info=True)
+        logger.error(f"❌ [Assistant.delete_card] 失敗: {e}", exc_info=True)
         result = CardOperationResult(
             success=False,
             status=ToolResultStatus.FAILED,
-            message=f"删除失败: {str(e)}",
+            message=f"刪除失敗: {str(e)}",
             error=str(e)
         )
         return to_dict(result)
@@ -1134,43 +1134,43 @@ def move_card(
     skip_confirmation: bool = False
 ) -> Dict[str, Any]:
     """
-    移动卡片到新的父卡片下（危险操作）
+    移動卡片到新的父卡片下（危險操作）
     
-    ⚠️ **确认规则：**
-    - **用户明确指令**（如"把角色卡清风移动到核心蓝图下面"）：可以直接执行，设置 skip_confirmation=True
-    - **模糊指令或你自主判断**：必须先获取用户确认，设置 skip_confirmation=False
+    ⚠️ **確認規則：**
+    - **用戶明確指令**（如"把角色卡清風移動到核心藍圖下面"）：可以直接執行，設置 skip_confirmation=True
+    - **模糊指令或你自主判斷**：必須先獲取用戶確認，設置 skip_confirmation=False
     
-    **判断标准：**
-    - 用户明确说了要移动哪个卡片到哪里 → 可直接执行
-    - 用户说"移动那个卡片"、"把它放到别处"等模糊表述 → 需要确认
-    - 你自己判断某个卡片需要移动（用户没有明说） → 需要确认
+    **判斷標準：**
+    - 用戶明確說了要移動哪個卡片到哪裏 → 可直接執行
+    - 用戶說"移動那個卡片"、"把它放到別處"等模糊表述 → 需要確認
+    - 你自己判斷某個卡片需要移動（用戶沒有明說） → 需要確認
     
-    **确认流程：**
-    1. 首先以 skip_confirmation=False 调用，获取确认请求
-    2. 工具返回 status="confirmation_required" 和移动详情
-    3. 向用户说明移动操作："将卡片《X》从 Y 移动到 Z，是否确认？"
-    4. 用户明确回复"确认"、"确认移动"后，以 skip_confirmation=True 再次调用
+    **確認流程：**
+    1. 首先以 skip_confirmation=False 調用，獲取確認請求
+    2. 工具返回 status="confirmation_required" 和移動詳情
+    3. 向用戶說明移動操作："將卡片《X》從 Y 移動到 Z，是否確認？"
+    4. 用戶明確回覆"確認"、"確認移動"後，以 skip_confirmation=True 再次調用
     
     Args:
-        card_id: 要移动的卡片ID
-        new_parent_id: 新的父卡片ID（None 表示移动到根级别）
-        skip_confirmation: 是否跳过确认（默认 False，需要确认）
+        card_id: 要移動的卡片ID
+        new_parent_id: 新的父卡片ID（None 表示移動到根級別）
+        skip_confirmation: 是否跳過確認（默認 False，需要確認）
     
     Returns:
         Dict 包含:
-        - 如果需要确认：{"status": "confirmation_required", "message": "...", "data": {...}}
-        - 如果已确认：{"success": true, "message": "卡片已移动", ...}
+        - 如果需要確認：{"status": "confirmation_required", "message": "...", "data": {...}}
+        - 如果已確認：{"success": true, "message": "卡片已移動", ...}
     
     Examples:
-        # 示例1：用户明确指令 "把清风移动到核心蓝图下面"
-        move_card(card_id=123, new_parent_id=456, skip_confirmation=True)  # 直接执行
+        # 示例1：用戶明確指令 "把清風移動到核心藍圖下面"
+        move_card(card_id=123, new_parent_id=456, skip_confirmation=True)  # 直接執行
         
-        # 示例2：用户模糊指令或你自主判断
-        # 第一步：获取确认
+        # 示例2：用戶模糊指令或你自主判斷
+        # 第一步：獲取確認
         result = move_card(card_id=123, new_parent_id=456, skip_confirmation=False)
-        # 你："将卡片《清风》从根级别移动到《核心蓝图》下，是否确认？"
-        # 用户："确认移动"
-        # 第二步：执行移动
+        # 你："將卡片《清風》從根級別移動到《核心藍圖》下，是否確認？"
+        # 用戶："確認移動"
+        # 第二步：執行移動
         result = move_card(card_id=123, new_parent_id=456, skip_confirmation=True)
     """
     deps = _get_deps()
@@ -1178,18 +1178,18 @@ def move_card(
     logger.info(f"📦 [Assistant.move_card] card_id={card_id}, new_parent={new_parent_id}, skip_confirmation={skip_confirmation}")
     
     try:
-        # 1. 获取要移动的卡片
+        # 1. 獲取要移動的卡片
         card = _get_card_by_id(deps.session, card_id, deps.project_id)
         if not card:
             result = CardOperationResult(
                 success=False,
                 status=ToolResultStatus.FAILED,
-                message=f"卡片 ID={card_id} 不存在或不属于当前项目",
+                message=f"卡片 ID={card_id} 不存在或不屬於當前項目",
                 error=f"卡片 ID={card_id} 不存在"
             )
             return to_dict(result)
         
-        # 2. 验证新父卡片
+        # 2. 驗證新父卡片
         new_parent = None
         if new_parent_id is not None:
             new_parent = _get_card_by_id(deps.session, new_parent_id, deps.project_id)
@@ -1197,34 +1197,34 @@ def move_card(
                 result = CardOperationResult(
                     success=False,
                     status=ToolResultStatus.FAILED,
-                    message=f"目标父卡片 ID={new_parent_id} 不存在或不属于当前项目",
-                    error=f"目标父卡片不存在"
+                    message=f"目標父卡片 ID={new_parent_id} 不存在或不屬於當前項目",
+                    error=f"目標父卡片不存在"
                 )
                 return to_dict(result)
             
-            # 防止循环引用：不能将卡片移动到自己或自己的子卡片下
+            # 防止循環引用：不能將卡片移動到自己或自己的子卡片下
             if new_parent_id == card_id:
                 result = CardOperationResult(
                     success=False,
                     status=ToolResultStatus.FAILED,
-                    message="不能将卡片移动到自己下面",
-                    error="循环引用错误"
+                    message="不能將卡片移動到自己下面",
+                    error="循環引用錯誤"
                 )
                 return to_dict(result)
             
-            # TODO: 检查是否是子孙卡片（需要递归检查）
+            # TODO: 檢查是否是子孫卡片（需要遞歸檢查）
         
-        # 3. 获取当前父卡片信息
+        # 3. 獲取當前父卡片信息
         old_parent = None
-        old_parent_title = "根级别"
+        old_parent_title = "根級別"
         if card.parent_id:
             old_parent = deps.session.get(Card, card.parent_id)
             if old_parent:
                 old_parent_title = f"《{old_parent.title}》"
         
-        new_parent_title = "根级别" if not new_parent else f"《{new_parent.title}》"
+        new_parent_title = "根級別" if not new_parent else f"《{new_parent.title}》"
         
-        # 4. 如果需要确认，返回确认请求
+        # 4. 如果需要確認，返回確認請求
         if not skip_confirmation:
             result = ConfirmationRequest(
                 confirmation_id=str(uuid.uuid4()),
@@ -1233,7 +1233,7 @@ def move_card(
                     "card_id": card_id,
                     "new_parent_id": new_parent_id
                 },
-                message=f"❓ 确认要将卡片《{card.title}》从 {old_parent_title} 移动到 {new_parent_title} 吗？请用户明确说\"确认移动\"或\"取消\"",
+                message=f"❓ 確認要將卡片《{card.title}》從 {old_parent_title} 移動到 {new_parent_title} 嗎？請用戶明確說\"確認移動\"或\"取消\"",
                 data={
                     "card_id": card_id,
                     "card_title": card.title,
@@ -1241,11 +1241,11 @@ def move_card(
                     "to_parent": new_parent_title
                 }
             )
-            logger.info(f"⚠️ [Assistant.move_card] 等待用户确认")
+            logger.info(f"⚠️ [Assistant.move_card] 等待用戶確認")
             return to_dict(result)
         
-        # 5. 用户已确认，执行移动
-        logger.info(f"✅ [Assistant.move_card] 用户已确认，开始移动")
+        # 5. 用戶已確認，執行移動
+        logger.info(f"✅ [Assistant.move_card] 用戶已確認，開始移動")
         
         card.parent_id = new_parent_id
         deps.session.commit()
@@ -1253,7 +1253,7 @@ def move_card(
         result = CardOperationResult(
             success=True,
             status=ToolResultStatus.SUCCESS,
-            message=f"✅ 卡片《{card.title}》已从 {old_parent_title} 移动到 {new_parent_title}",
+            message=f"✅ 卡片《{card.title}》已從 {old_parent_title} 移動到 {new_parent_title}",
             card_id=card_id,
             card_title=card.title,
             data={
@@ -1261,21 +1261,21 @@ def move_card(
                 "to_parent": new_parent_title
             }
         )
-        logger.info(f"✅ [Assistant.move_card] 移动成功")
+        logger.info(f"✅ [Assistant.move_card] 移動成功")
         return to_dict(result)
     
     except Exception as e:
-        logger.error(f"❌ [Assistant.move_card] 失败: {e}", exc_info=True)
+        logger.error(f"❌ [Assistant.move_card] 失敗: {e}", exc_info=True)
         result = CardOperationResult(
             success=False,
             status=ToolResultStatus.FAILED,
-            message=f"移动失败: {str(e)}",
+            message=f"移動失敗: {str(e)}",
             error=str(e)
         )
         return to_dict(result)
 
 
-# 导出所有 LangChain 工具（已通过 @tool 装饰）
+# 導出所有 LangChain 工具（已通過 @tool 裝飾）
 ASSISTANT_TOOLS = [
     search_cards,
     create_card,

@@ -1,4 +1,4 @@
-from typing import Any, Dict, AsyncIterator
+﻿from typing import Any, Dict, AsyncIterator
 from pydantic import Field, BaseModel
 from loguru import logger
 
@@ -8,54 +8,54 @@ from ...expressions import evaluate_expression
 
 
 class LogicAssertInput(BaseModel):
-    """断言节点输入"""
-    condition: str = Field(..., description="断言条件表达式")
-    message: str = Field("断言失败", description="失败时的错误消息")
+    """斷言節點輸入"""
+    condition: str = Field(..., description="斷言條件表達式")
+    message: str = Field("斷言失敗", description="失敗時的錯誤消息")
 
 
 class LogicAssertOutput(BaseModel):
-    """断言节点输出（空）"""
+    """斷言節點輸出（空）"""
     pass
 
 
 @register_node
 class LogicAssertNode(BaseNode[LogicAssertInput, LogicAssertOutput]):
-    """断言节点
+    """斷言節點
     
-    验证条件是否为真，如果为假则停止工作流执行。
-    用于替代 Logic.End 节点，实现条件验证和提前退出。
+    驗證條件是否爲真，如果爲假則停止工作流執行。
+    用於替代 Logic.End 節點，實現條件驗證和提前退出。
     """
     node_type = "Logic.Assert"
     category = "logic"
-    label = "断言"
-    description = "验证条件，失败则停止工作流"
+    label = "斷言"
+    description = "驗證條件，失敗則停止工作流"
     
     input_model = LogicAssertInput
     output_model = LogicAssertOutput
 
     async def execute(self, inputs: LogicAssertInput) -> AsyncIterator[LogicAssertOutput]:
-        """执行断言验证"""
+        """執行斷言驗證"""
         try:
-            # 准备求值环境
+            # 準備求值環境
             eval_context = {
                 **self.context.variables
             }
             
-            # 评估条件表达式
+            # 評估條件表達式
             result = evaluate_expression(inputs.condition, eval_context)
             is_true = bool(result)
             
             if not is_true:
-                # 断言失败，抛出异常
-                logger.error(f"[Assert] 断言失败: {inputs.condition} - {inputs.message}")
-                raise AssertionError(f"断言失败: {inputs.message}")
+                # 斷言失敗，拋出異常
+                logger.error(f"[Assert] 斷言失敗: {inputs.condition} - {inputs.message}")
+                raise AssertionError(f"斷言失敗: {inputs.message}")
             
-            # 断言成功，继续执行
-            logger.info(f"[Assert] 断言通过: {inputs.condition}")
+            # 斷言成功，繼續執行
+            logger.info(f"[Assert] 斷言通過: {inputs.condition}")
             yield LogicAssertOutput()
         
         except Exception as e:
             if isinstance(e, AssertionError):
                 raise
-            logger.error(f"[Assert] 条件求值失败: {e}")
-            raise ValueError(f"断言条件求值失败: {str(e)}")
+            logger.error(f"[Assert] 條件求值失敗: {e}")
+            raise ValueError(f"斷言條件求值失敗: {str(e)}")

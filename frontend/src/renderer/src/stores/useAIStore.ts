@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+﻿import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { generateAIContent } from '@renderer/api/ai'
 import { useCardStore } from './useCardStore'
@@ -23,7 +23,7 @@ export const useAIStore = defineStore('ai', () => {
       currentAbort = new AbortController()
       showInterruptOverlay('AI生成中…', () => { try { currentAbort?.abort() } catch {} })
       const cardStore = useCardStore()
-      const allowed = new Set(['角色卡','场景卡','组织卡','物品卡','概念卡'])
+      const allowed = new Set(['角色卡','場景卡','組織卡','物品卡','概念卡'])
       const typeIdToName = new Map<number, string>()
       ;(cardStore.cardTypes || []).forEach((t:any) => { if (t?.id) typeIdToName.set(t.id, (t as any).name || '') })
       const names = Array.from(new Set((cardStore.cards || []).map((c:any) => {
@@ -70,7 +70,7 @@ export const useAIStore = defineStore('ai', () => {
       currentAbort = new AbortController()
       showInterruptOverlay('AI生成中…', () => { try { currentAbort?.abort() } catch {} })
       const cardStore = useCardStore()
-      const allowed = new Set(['角色卡','场景卡','组织卡','物品卡','概念卡'])
+      const allowed = new Set(['角色卡','場景卡','組織卡','物品卡','概念卡'])
       const typeIdToName = new Map<number, string>()
       ;(cardStore.cardTypes || []).forEach((t:any) => { if (t?.id) typeIdToName.set(t.id, (t as any).name || '') })
       const names = Array.from(new Set((cardStore.cards || []).map((c:any) => {

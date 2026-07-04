@@ -1,4 +1,4 @@
-import { defineStore, storeToRefs } from 'pinia'
+﻿import { defineStore, storeToRefs } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import {
   getCardTypes,
@@ -17,11 +17,11 @@ import { ElMessage } from 'element-plus'
 import { BASE_URL } from '@renderer/api/request'
 
 // Helper function to build a tree from a flat list of cards
-// 为了避免直接在 CardRead 上添加 children 属性，这里定义本地扩展类型
+// 爲了避免直接在 CardRead 上添加 children 屬性，這裏定義本地擴展類型
 type CardNode = CardRead & { children: CardNode[] }
 const buildCardTree = (cards: CardRead[]): CardNode[] => {
   const cardMap = new Map<number, CardNode>()
-  // 将后端返回的扁平列表转换为节点列表，并附加 children 数组
+  // 將後端返回的扁平列表轉換爲節點列表，並附加 children 數組
   const nodes: CardNode[] = cards.map((c) => ({ ...(c as CardRead), children: [] as CardNode[] }))
   nodes.forEach((node) => {
     cardMap.set(node.id, node)
@@ -36,7 +36,7 @@ const buildCardTree = (cards: CardRead[]): CardNode[] => {
     }
   })
 
-  // 按 display_order 对每一层的节点排序
+  // 按 display_order 對每一層的節點排序
   const sortNodes = (nodes: CardNode[]) => {
     nodes.sort((a, b) => a.display_order - b.display_order)
     nodes.forEach((n) => sortNodes(n.children))
@@ -75,13 +75,13 @@ export const useCardStore = defineStore('card', () => {
     }
   }, { immediate: true });
 
-  // --- 内部工具：根据卡片类型名称拿到ID ---
+  // --- 內部工具：根據卡片類型名稱拿到ID ---
   function getCardTypeIdByName(name: string): number | null {
     const ct = cardTypes.value.find(t => t.name === name)
     return ct ? ct.id : null
   }
 
-  // --- 内部工具：正则解析“第N卷”的标题 ---
+  // --- 內部工具：正則解析“第N卷”的標題 ---
   function parseVolumeIndexFromTitle(title: string): number | null {
     const m = title.match(/^第(\d+)卷$/)
     if (!m) return null
@@ -115,13 +115,13 @@ export const useCardStore = defineStore('card', () => {
     }
   }
 
-  // 新增：addCard 支持 options.silent，静默模式下不全量刷新、不弹 Toast，直接本地插入并返回新卡
+  // 新增：addCard 支持 options.silent，靜默模式下不全量刷新、不彈 Toast，直接本地插入並返回新卡
   async function addCard(cardData: CardCreate, options?: { silent?: boolean }) {
     if (!currentProject.value?.id) return
     try {
       const newCard = await createCard(currentProject.value.id, cardData)
       if (options?.silent) {
-        // 直接插入本地状态，避免频繁全量刷新导致的 "加载中" 卡住
+        // 直接插入本地狀態，避免頻繁全量刷新導致的 "加載中" 卡住
         cards.value = [...cards.value, newCard as unknown as CardRead]
       } else {
         await fetchCards(currentProject.value.id)
@@ -135,10 +135,10 @@ export const useCardStore = defineStore('card', () => {
     }
   }
 
-  // 增加可选参数：skipHooks 用于内部更新时跳过“保存后钩子”
+  // 增加可選參數：skipHooks 用於內部更新時跳過“保存後鉤子”
   async function modifyCard(cardId: number, cardData: { content: Record<string, any> | null } | CardUpdate, options?: { skipHooks?: boolean }) {
     try {
-      // 使用原始响应以读取头部 X-Workflows-Started
+      // 使用原始響應以讀取頭部 X-Workflows-Started
       const axiosResp: any = await (await import('@renderer/api/cards')).updateCardRaw(cardId, cardData as CardUpdate)
       const updatedCard: CardRead = axiosResp.data
 
@@ -155,14 +155,14 @@ export const useCardStore = defineStore('card', () => {
       }
       ElMessage.success(`Card "${updatedCard.title}" updated.`)
 
-      // 读取工作流运行回执并订阅事件，完成后刷新
+      // 讀取工作流運行回執並訂閱事件，完成後刷新
       const hdr = axiosResp.headers || {}
       const runHeader: string | undefined = hdr['x-workflows-started'] || hdr['X-Workflows-Started'] || hdr['x-workflows-started'.toLowerCase()]
       const runIds: number[] = typeof runHeader === 'string' && runHeader.trim()
         ? runHeader.split(',').map((s: string) => Number(s.trim())).filter((n: number) => Number.isFinite(n))
         : []
 
-      // 兜底轮询函数
+      // 兜底輪詢函數
       const pollUntilDone = async (runId: number, maxSecs = 30) => {
         const start = Date.now()
         while (Date.now() - start < maxSecs * 1000) {
@@ -175,7 +175,7 @@ export const useCardStore = defineStore('card', () => {
               return
             }
           } catch (e) { 
-            console.error('[Workflow] 轮询异常:', e)
+            console.error('[Workflow] 輪詢異常:', e)
           }
           await new Promise(r => setTimeout(r, 1000))
         }
@@ -192,7 +192,7 @@ export const useCardStore = defineStore('card', () => {
                 const payload = (() => { try { return JSON.parse(String(evt.data || '{}')) } catch { return {} } })()
                 const affected: number[] = Array.isArray(payload?.affected_card_ids) ? payload.affected_card_ids.filter((n: any) => Number.isFinite(Number(n))).map((n: any) => Number(n)) : []
                 if (affected.length > 0) {
-                  // 精准刷新：按受影响卡片拉取详情并合并到本地
+                  // 精準刷新：按受影響卡片拉取詳情併合併到本地
                   for (const cid of affected) {
                     try {
                       const resp = await fetch(`${BASE_URL}/api/cards/${cid}`, { method: 'GET' })
@@ -203,16 +203,16 @@ export const useCardStore = defineStore('card', () => {
                           const prev = cards.value[i]
                           cards.value[i] = { ...prev, ...updated, content: updated?.content ?? prev.content }
                         } else {
-                          // 若本地列表没有该卡，退化为全量刷新
+                          // 若本地列表沒有該卡，退化爲全量刷新
                           if (currentProject.value?.id) await fetchCards(currentProject.value.id)
                         }
                       }
                     } catch (e) { 
-                      console.error('[Workflow] 刷新受影响卡片失败:', cid, e)
+                      console.error('[Workflow] 刷新受影響卡片失敗:', cid, e)
                     }
                   }
                 } else {
-                  // 没有携带受影响集合，回退为全量刷新
+                  // 沒有攜帶受影響集合，回退爲全量刷新
                   if (currentProject.value?.id) await fetchCards(currentProject.value.id)
                 }
               } finally { es.close() }
@@ -222,12 +222,12 @@ export const useCardStore = defineStore('card', () => {
                 es.close()
                 return
               }
-              console.error('[Workflow] SSE 连接错误:', err)
+              console.error('[Workflow] SSE 連接錯誤:', err)
               es.close()
               await pollUntilDone(rid)
             }
           } catch (e) {
-            console.error('[Workflow] 打开 SSE 失败:', e)
+            console.error('[Workflow] 打開 SSE 失敗:', e)
             await pollUntilDone(rid)
           }
         }
@@ -240,7 +240,7 @@ export const useCardStore = defineStore('card', () => {
 
   async function removeCard(cardId: number) {
     await deleteCard(cardId)
-    // 后端已做递归删除，这里仅刷新
+    // 後端已做遞歸刪除，這裏僅刷新
     if (currentProject.value?.id) await fetchCards(currentProject.value.id)
   }
 

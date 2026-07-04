@@ -1,10 +1,10 @@
-from sqlmodel import create_engine, Session
+﻿from sqlmodel import create_engine, Session
 from app.core.config import settings
 
-# 从配置获取数据库URL
+# 從配置獲取數據庫URL
 DATABASE_URL = settings.database.get_database_url()
 
-# 创建数据库引擎（SQLite 需要此参数以允许多线程访问）
+# 創建數據庫引擎（SQLite 需要此參數以允許多線程訪問）
 engine = create_engine(
     DATABASE_URL,
     echo=settings.database.echo,

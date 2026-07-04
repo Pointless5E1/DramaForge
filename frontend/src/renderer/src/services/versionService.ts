@@ -1,4 +1,4 @@
-export interface CardVersionSnapshot {
+﻿export interface CardVersionSnapshot {
   id: string
   cardId: number
   projectId: number
@@ -33,7 +33,7 @@ export function addVersion(projectId: number, snapshot: Omit<CardVersionSnapshot
     createdAt: new Date().toISOString(),
   }
   list.unshift(item)
-  // 限制每卡片最多20条
+  // 限制每卡片最多20條
   db[snapshot.cardId] = list.slice(0, 20)
   save(projectId, db)
 }

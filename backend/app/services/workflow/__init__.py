@@ -1,15 +1,15 @@
-"""工作流服务模块
+﻿"""工作流服務模塊
 
-新一代代码式工作流系统，支持：
-- 代码式 DSL 编辑
-- 异步并发执行
-- 节点类型系统
-- 实时状态推送（SSE）
-- Agent 编排
+新一代代碼式工作流系統，支持：
+- 代碼式 DSL 編輯
+- 異步併發執行
+- 節點類型系統
+- 實時狀態推送（SSE）
+- Agent 編排
 
 ## 使用方式
 
-### 定义节点
+### 定義節點
 ```python
 from app.services.workflow import register_node
 from app.services.workflow.nodes.base import BaseNode
@@ -26,17 +26,17 @@ class MyNodeOutput(BaseModel):
 class MyNode(BaseNode):
     node_type = "My.Node"
     category = "custom"
-    label = "我的节点"
-    description = "节点描述"
+    label = "我的節點"
+    description = "節點描述"
     input_model = MyNodeInput
     output_model = MyNodeOutput
     
     async def execute(self, input_data: MyNodeInput) -> AsyncIterator[MyNodeOutput]:
-        # 节点处理逻辑
-        yield MyNodeOutput(result=f"处理: {input_data.value}")
+        # 節點處理邏輯
+        yield MyNodeOutput(result=f"處理: {input_data.value}")
 ```
 
-### 自动发现（在启动时调用）
+### 自動發現（在啓動時調用）
 ```python
 from app.services.workflow import discover_workflow_nodes
 discover_workflow_nodes()
@@ -60,14 +60,14 @@ from .engine import (
     AsyncExecutor
 )
 
-# 导入所有工作流节点模块以触发装饰器注册
+# 導入所有工作流節點模塊以觸發裝飾器註冊
 from . import nodes  # noqa: F401
 
-# 导入触发器模块以触发事件处理器注册
+# 導入觸發器模塊以觸發事件處理器註冊
 from . import triggers  # noqa: F401
 
 __all__ = [
-    # 注册相关
+    # 註冊相關
     'get_registered_nodes',
     'get_node_types',
     'get_node_metadata',
@@ -75,7 +75,7 @@ __all__ = [
     'get_nodes_by_category',
     'discover_workflow_nodes',
     'register_node',
-    # 引擎相关
+    # 引擎相關
     'WorkflowScheduler',
     'StateManager',
     'RunManager',

@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { Setting, Sunny, Moon, Document } from '@element-plus/icons-vue'
@@ -34,12 +34,12 @@ function handleLogoClick() {
 const isLogoClickable = computed(() => currentView.value !== 'dashboard')
 
 function openIdeasWorkbench() {
-  // 直接调用主进程打开新窗口，避免当前窗口路由或状态变化引起的闪烁
+  // 直接調用主進程打開新窗口，避免當前窗口路由或狀態變化引起的閃爍
   // @ts-ignore
   window.api?.openIdeasHome?.()
 }
 
-// 知识库抽屉
+// 知識庫抽屜
 // const kbVisible = ref(false)
 </script>
 
@@ -49,14 +49,14 @@ function openIdeasWorkbench() {
       <span class="logo-text">Novel Forge</span>
     </div>
     <div class="actions-container">
-      <el-button type="primary" title="灵感工作台" @click="openIdeasWorkbench">
+      <el-button type="primary" title="靈感工作臺" @click="openIdeasWorkbench">
         <el-icon><Document /></el-icon>
-        <span style="margin-left:6px;">灵感</span>
+        <span style="margin-left:6px;">靈感</span>
       </el-button>
       <el-button type="primary" plain title="工作流" @click="openWorkflowManager">工作流</el-button>
-      <el-button :icon="isDarkMode ? Moon : Sunny" @click="toggleTheme" circle title="切换主题" />
+      <el-button :icon="isDarkMode ? Moon : Sunny" @click="toggleTheme" circle title="切換主題" />
       <el-badge :is-dot="updateStore.hasUpdate" type="warning">
-        <el-button :icon="Setting" @click="openSettingsDialog" circle title="设置" />
+        <el-button :icon="Setting" @click="openSettingsDialog" circle title="設置" />
       </el-badge>
     </div>
   </header>

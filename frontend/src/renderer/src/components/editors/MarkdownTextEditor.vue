@@ -1,11 +1,11 @@
-<template>
+﻿<template>
   <div class="markdown-text-editor">
     <div class="editor-toolbar">
       <div class="toolbar-left">
         <el-segmented v-model="mode" :options="modeOptions" size="small" />
       </div>
       <div class="toolbar-right">
-        <span class="char-count">字数：{{ charCount }}</span>
+        <span class="char-count">字數：{{ charCount }}</span>
       </div>
     </div>
 
@@ -15,14 +15,14 @@
         type="textarea"
         :rows="24"
         resize="none"
-        placeholder="输入 Markdown 文本..."
+        placeholder="輸入 Markdown 文本..."
         class="markdown-textarea"
       />
     </div>
 
     <div class="preview-body" v-else>
       <XMarkdown
-        :markdown="textContent || '（暂无内容）'"
+        :markdown="textContent || '（暫無內容）'"
         :default-theme-mode="isDarkMode ? 'dark' : 'light'"
         class="markdown-preview"
       />
@@ -51,8 +51,8 @@ const isDarkMode = computed(() => appStore.isDarkMode)
 
 const mode = ref<'edit' | 'preview'>('preview')
 const modeOptions = [
-  { label: '编辑', value: 'edit' },
-  { label: '预览', value: 'preview' },
+  { label: '編輯', value: 'edit' },
+  { label: '預覽', value: 'preview' },
 ]
 
 const textContent = ref('')

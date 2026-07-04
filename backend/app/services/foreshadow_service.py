@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 import re
@@ -14,10 +14,10 @@ class ForeshadowService:
 
     def suggest(self, text: str) -> Dict[str, Any]:
         """
-        极简启发式：
-        - 捕捉“将要/准备/打算/誓要/必须”等后接短语作为待完成目标
-        - 捕捉以『剑/刀/戒/符/印/丹/阵/甲/鼎/珠/镜』为后缀的名词作为可疑道具
-        - 粗略抽取2-4字的人名候选（排除常见功能词）
+        極簡啓發式：
+        - 捕捉“將要/準備/打算/誓要/必須”等後接短語作爲待完成目標
+        - 捕捉以『劍/刀/戒/符/印/丹/陣/甲/鼎/珠/鏡』爲後綴的名詞作爲可疑道具
+        - 粗略抽取2-4字的人名候選（排除常見功能詞）
         """
         if not isinstance(text, str):
             text = str(text or "")
@@ -25,20 +25,20 @@ class ForeshadowService:
         items: List[str] = []
         persons: List[str] = []
 
-        # 目标
-        for m in re.findall(r"(将要|准备|打算|誓要|必须)([^。？！\n]{2,20})", text):
+        # 目標
+        for m in re.findall(r"(將要|準備|打算|誓要|必須)([^。？！\n]{2,20})", text):
             frag = (m[0] + m[1]).strip()
             if frag and frag not in goals:
                 goals.append(frag)
 
         # 道具
-        for m in re.findall(r"([\u4e00-\u9fa5]{1,8})(剑|刀|戒|符|印|丹|阵|甲|鼎|珠|镜)", text):
+        for m in re.findall(r"([\u4e00-\u9fa5]{1,8})(劍|刀|戒|符|印|丹|陣|甲|鼎|珠|鏡)", text):
             frag = (m[0] + m[1]).strip()
             if frag and frag not in items:
                 items.append(frag)
 
         # 人名（粗略）
-        stopwords = {"什么", "但是", "因为", "然后", "虽然", "可是", "不会", "看看", "我们", "你们", "他们", "以及"}
+        stopwords = {"什麼", "但是", "因爲", "然後", "雖然", "可是", "不會", "看看", "我們", "你們", "他們", "以及"}
         for m in re.findall(r"([\u4e00-\u9fa5]{2,4})", text):
             if m and 2 <= len(m) <= 4 and m not in stopwords:
                 if m not in persons:

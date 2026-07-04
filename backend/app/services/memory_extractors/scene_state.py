@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from typing import Any
 
@@ -29,7 +29,7 @@ def _load_existing_scene_card(card: Card) -> SceneCard:
     payload = dict(card.content or {})
     payload.setdefault("name", card.title)
     payload.setdefault("entity_type", "scene")
-    payload.setdefault("life_span", "长期")
+    payload.setdefault("life_span", "長期")
     payload["description"] = payload.get("description") or ""
     payload["function_in_story"] = payload.get("function_in_story") or ""
     if not isinstance(payload.get("dynamic_state"), list):
@@ -39,16 +39,16 @@ def _load_existing_scene_card(card: Card) -> SceneCard:
 
 _SPEC = StructuredCardExtractorSpec(
     code="scene_state",
-    name="场景状态提取",
-    prompt_name="场景状态提取",
-    card_type_name="场景卡",
+    name="場景狀態提取",
+    prompt_name="場景狀態提取",
+    card_type_name="場景卡",
     output_model=SceneStateExtraction,
     list_field_name="scenes",
     target_participant_types=("scene",),
     related_participant_types=("organization", "character", "item", "concept"),
     target_participant_key="scene_names",
     related_participant_key="related_entities",
-    reference_title="已有场景卡参考",
+    reference_title="已有場景卡參考",
 )
 
 
@@ -65,7 +65,7 @@ class SceneStateExtractor(StructuredCardMemoryExtractor):
     def build_reference_lines(self, model: SceneCard) -> list[str]:
         return [
             f"- {model.name}",
-            f"  简介: {model.description or '未填写'}",
-            f"  剧情作用: {model.function_in_story or '未填写'}",
-            f"  当前状态: {'；'.join(model.dynamic_state or []) or '暂无'}",
+            f"  簡介: {model.description or '未填寫'}",
+            f"  劇情作用: {model.function_in_story or '未填寫'}",
+            f"  當前狀態: {'；'.join(model.dynamic_state or []) or '暫無'}",
         ]

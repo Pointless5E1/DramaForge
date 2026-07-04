@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, session, ipcMain } from 'electron'
+﻿import { app, shell, BrowserWindow, session, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -15,8 +15,8 @@ function createWindow(): void {
     height: 670,
     show: false,
     autoHideMenuBar: true,
-    title: 'Novel Forge', // 设置窗口标题
-    icon: icon, // 为所有平台设置图标
+    title: 'Novel Forge', // 設置窗口標題
+    icon: icon, // 爲所有平臺設置圖標
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
@@ -39,7 +39,7 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
-  // Modify Content Security Policy（允许访问后端和 GitHub API）
+  // Modify Content Security Policy（允許訪問後端和 GitHub API）
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     callback({
       responseHeaders: {
@@ -63,7 +63,7 @@ function openIdeasHome() {
     width: 1100,
     height: 760,
     show: true,
-    title: 'Novel Forge - 灵感工作台',
+    title: 'Novel Forge - 靈感工作臺',
     autoHideMenuBar: true,
     icon: icon,
     webPreferences: { preload: join(__dirname, '../preload/index.js'), sandbox: false }

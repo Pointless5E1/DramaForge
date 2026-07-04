@@ -1,4 +1,4 @@
-"""项目创建触发器节点"""
+﻿"""項目創建觸發器節點"""
 from typing import Optional
 from pydantic import BaseModel, Field
 
@@ -7,62 +7,62 @@ from ...registry import register_node
 
 
 class TriggerProjectCreatedInput(BaseModel):
-    """项目创建触发器输入"""
+    """項目創建觸發器輸入"""
     template: Optional[str] = Field(
         None,
-        description="模板名称（可选）。只触发指定模板的项目创建，如 'snowflake'。留空则匹配所有模板"
+        description="模板名稱（可選）。只觸發指定模板的項目創建，如 'snowflake'。留空則匹配所有模板"
     )
 
 
 class TriggerProjectCreatedOutput(BaseModel):
-    """项目创建触发器输出"""
-    project_id: int = Field(..., description="项目ID")
-    template: Optional[str] = Field(None, description="模板名称（如 'snowflake'）")
+    """項目創建觸發器輸出"""
+    project_id: int = Field(..., description="項目ID")
+    template: Optional[str] = Field(None, description="模板名稱（如 'snowflake'）")
 
 
 @register_node
 class TriggerProjectCreatedNode(BaseNode):
-    """项目创建触发器
+    """項目創建觸發器
     
-    当新项目创建时触发工作流。
+    當新項目創建時觸發工作流。
     
-    输出字段：
-        - project_id: 项目ID
-        - template: 模板名称（如果指定了模板）
+    輸出字段：
+        - project_id: 項目ID
+        - template: 模板名稱（如果指定了模板）
     
-    过滤条件：
-        - template: 只触发指定模板的项目创建（可选）
+    過濾條件：
+        - template: 只觸發指定模板的項目創建（可選）
     
     示例:
-        # 监听所有项目创建
+        # 監聽所有項目創建
         trigger = Trigger.ProjectCreated()
         
-        # 只监听雪花创作法模板
+        # 只監聽雪花創作法模板
         trigger = Trigger.ProjectCreated(template="snowflake")
         
-        # 使用触发器输出
+        # 使用觸發器輸出
         card = Card.Create(
             project_id=trigger.project_id,
-            card_type="核心蓝图",
-            title="核心蓝图"
+            card_type="核心藍圖",
+            title="核心藍圖"
         )
     """
     
     node_type = "Trigger.ProjectCreated"
     category = "trigger"
-    label = "项目创建触发器"
-    description = "当新项目创建时触发"
+    label = "項目創建觸發器"
+    description = "當新項目創建時觸發"
     
     input_model = TriggerProjectCreatedInput
     output_model = TriggerProjectCreatedOutput
     
     async def execute(self, inputs: TriggerProjectCreatedInput):
-        """从上下文中读取触发器数据并输出
+        """從上下文中讀取觸發器數據並輸出
         
-        触发器数据在工作流启动时通过 initial_context["__trigger_data__"] 注入，
-        可以通过 self.context.variables 访问。
+        觸發器數據在工作流啓動時通過 initial_context["__trigger_data__"] 注入，
+        可以通過 self.context.variables 訪問。
         """
-        # 从上下文的 variables 中获取触发器数据
+        # 從上下文的 variables 中獲取觸發器數據
         trigger_data = self.context.variables.get("__trigger_data__", {})
         
         yield TriggerProjectCreatedOutput(

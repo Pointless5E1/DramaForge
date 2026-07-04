@@ -1,6 +1,6 @@
-"""Schema 服务层
+﻿"""Schema 服務層
 
-负责 Schema 的组装、引用解析、$defs 补全等业务逻辑。
+負責 Schema 的組裝、引用解析、$defs 補全等業務邏輯。
 """
 
 import re
@@ -16,34 +16,34 @@ from loguru import logger
 # --- Schema 引用收集 ---
 
 FIELD_TITLE_ZH_MAP: Dict[str, str] = {
-    "content": "内容",
-    "theme": "主题",
-    "audience": "目标读者",
-    "narrative_person": "叙事人称",
-    "story_tags": "故事标签",
-    "affection": "情感关系",
-    "name": "名称",
+    "content": "內容",
+    "theme": "主題",
+    "audience": "目標讀者",
+    "narrative_person": "敘事人稱",
+    "story_tags": "故事標籤",
+    "affection": "情感關係",
+    "name": "名稱",
     "description": "描述",
-    "special_abilities_thinking": "金手指设计思考",
+    "special_abilities_thinking": "金手指設計思考",
     "special_abilities": "金手指",
-    "one_sentence_thinking": "一句话梗概思考",
-    "one_sentence": "一句话梗概",
-    "overview_thinking": "大纲扩展思考",
+    "one_sentence_thinking": "一句話梗概思考",
+    "one_sentence": "一句話梗概",
+    "overview_thinking": "大綱擴展思考",
     "overview": "概述",
-    "world_view_thinking": "世界观设计思考",
-    "world_view": "世界观",
-    "title": "标题",
-    "entity_type": "实体类型",
+    "world_view_thinking": "世界觀設計思考",
+    "world_view": "世界觀",
+    "title": "標題",
+    "entity_type": "實體類型",
     "life_span": "生命跨度",
-    "role_type": "角色类型",
-    "born_scene": "出生场景",
+    "role_type": "角色類型",
+    "born_scene": "出生場景",
     "personality": "性格",
-    "core_drive": "核心驱动力",
+    "core_drive": "核心驅動力",
     "character_arc": "角色弧光",
-    "influence": "影响力",
-    "relationship": "关系",
-    "dynamic_info": "动态信息",
-    "last_appearance": "最后出场时间",
+    "influence": "影響力",
+    "relationship": "關係",
+    "dynamic_info": "動態信息",
+    "last_appearance": "最後出場時間",
 }
 
 _CJK_RE = re.compile(r"[\u4e00-\u9fff]")
@@ -69,7 +69,7 @@ def _derive_title_from_description(description: Any) -> str | None:
 
 
 def localize_schema_titles(schema: Any) -> Any:
-    """将 schema 字段标题本地化为中文（不修改字段 key）。"""
+    """將 schema 字段標題本地化爲中文（不修改字段 key）。"""
     if not isinstance(schema, (dict, list)):
         return schema
 
@@ -120,13 +120,13 @@ def localize_schema_titles(schema: Any) -> Any:
     return schema
 
 def collect_ref_names(node: Any) -> Set[str]:
-    """递归收集 Schema 中的所有 $ref 引用名称
+    """遞歸收集 Schema 中的所有 $ref 引用名稱
     
     Args:
-        node: Schema 节点（dict/list/其他）
+        node: Schema 節點（dict/list/其他）
         
     Returns:
-        引用名称集合
+        引用名稱集合
     """
     names: Set[str] = set()
     if isinstance(node, dict):
@@ -140,21 +140,21 @@ def collect_ref_names(node: Any) -> Set[str]:
     return names
 
 
-# --- 内置模型 $defs 缓存 ---
+# --- 內置模型 $defs 緩存 ---
 
 _BUILTIN_DEFS_CACHE: Dict[str, Any] | None = None
 
 def get_builtin_defs() -> Dict[str, Any]:
-    """获取所有内置 Pydantic 模型的 $defs（带缓存）
+    """獲取所有內置 Pydantic 模型的 $defs（帶緩存）
     
     Returns:
-        合并后的 $defs 字典
+        合併後的 $defs 字典
     """
     global _BUILTIN_DEFS_CACHE
     if _BUILTIN_DEFS_CACHE is not None:
         return _BUILTIN_DEFS_CACHE
     
-    # 导入响应模型映射
+    # 導入響應模型映射
     from app.schemas.response_registry import RESPONSE_MODEL_MAP
     
     merged: Dict[str, Any] = {}
@@ -169,13 +169,13 @@ def get_builtin_defs() -> Dict[str, Any]:
 
 
 def augment_schema_with_builtin_defs(schema: Dict[str, Any]) -> Dict[str, Any]:
-    """将内置模型的 $defs 注入到自定义 Schema 中
+    """將內置模型的 $defs 注入到自定義 Schema 中
     
     Args:
         schema: 原始 Schema
         
     Returns:
-        增强后的 Schema（深拷贝）
+        增強後的 Schema（深拷貝）
     """
     sch = deepcopy(schema) if schema is not None else {}
     if not isinstance(sch, dict):
@@ -186,14 +186,14 @@ def augment_schema_with_builtin_defs(schema: Dict[str, Any]) -> Dict[str, Any]:
     if not ref_names:
         return localize_schema_titles(sch)
     
-    # 获取内置 defs
+    # 獲取內置 defs
     builtin_defs = get_builtin_defs()
     
-    # 确保有 $defs
+    # 確保有 $defs
     if '$defs' not in sch:
         sch['$defs'] = {}
     
-    # 注入被引用的内置定义
+    # 注入被引用的內置定義
     for name in ref_names:
         if name in builtin_defs and name not in sch['$defs']:
             sch['$defs'][name] = builtin_defs[name]
@@ -201,23 +201,23 @@ def augment_schema_with_builtin_defs(schema: Dict[str, Any]) -> Dict[str, Any]:
     return localize_schema_titles(sch)
 
 
-# --- CardType Schema 组装 ---
+# --- CardType Schema 組裝 ---
 
 def compose_schema_with_card_types(session: Session, schema: Dict[str, Any]) -> Dict[str, Any]:
-    """将 CardType 的 Schema 注入到 $defs 中
+    """將 CardType 的 Schema 注入到 $defs 中
     
     Args:
-        session: 数据库会话
+        session: 數據庫會話
         schema: 原始 Schema
         
     Returns:
-        增强后的 Schema（深拷贝）
+        增強後的 Schema（深拷貝）
     """
     sch = deepcopy(schema) if isinstance(schema, dict) else {}
     if not isinstance(sch, dict):
         return sch
     
-    # 确保有 $defs
+    # 確保有 $defs
     if '$defs' not in sch:
         sch['$defs'] = {}
     
@@ -226,7 +226,7 @@ def compose_schema_with_card_types(session: Session, schema: Dict[str, Any]) -> 
     if not ref_names:
         return localize_schema_titles(sch)
     
-    # 查询所有 CardType，建立映射
+    # 查詢所有 CardType，建立映射
     all_types = session.query(CardType).all()
     by_model: Dict[str, Any] = {}
     
@@ -246,16 +246,16 @@ def compose_schema_with_card_types(session: Session, schema: Dict[str, Any]) -> 
 
 
 def compose_full_schema(session: Session, schema: Dict[str, Any]) -> Dict[str, Any]:
-    """完整的 Schema 组装：内置 defs + CardType defs
+    """完整的 Schema 組裝：內置 defs + CardType defs
     
     Args:
-        session: 数据库会话
+        session: 數據庫會話
         schema: 原始 Schema
         
     Returns:
-        完全增强后的 Schema
+        完全增強後的 Schema
     """
-    # 先注入内置 defs
+    # 先注入內置 defs
     sch = augment_schema_with_builtin_defs(schema)
     # 再注入 CardType defs
     sch = compose_schema_with_card_types(session, sch)

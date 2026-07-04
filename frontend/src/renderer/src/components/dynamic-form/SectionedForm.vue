@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="sectioned-form">
     <el-collapse v-model="activeNames">
       <el-collapse-item v-for="(sec, idx) in sections" :key="idx" :name="String(idx)">
@@ -32,17 +32,17 @@ watch(proxy, v => emit('update:modelValue', v), { deep: true })
 
 const activeNames = ref<string[]>([])
 
-// 在首次接收 sections 时，初始化展开状态；后续更新时尽量保留当前展开项
+// 在首次接收 sections 時，初始化展開狀態；後續更新時儘量保留當前展開項
 let initialized = false
 watch(() => props.sections, (secs) => {
   const namesAll = secs.map((_, i) => String(i))
   if (!initialized) {
-    // 展开未标记 collapsed 的分区
+    // 展開未標記 collapsed 的分區
     activeNames.value = secs.map((s, i) => (!s.collapsed ? String(i) : '')).filter(Boolean) as string[]
     initialized = true
     return
   }
-  // 保留仍然存在的已展开项，并自动展开新出现且未 collapsed 的分区
+  // 保留仍然存在的已展開項，並自動展開新出現且未 collapsed 的分區
   const preserved = activeNames.value.filter(n => namesAll.includes(n))
   const newlyOpen = secs
     .map((s, i) => ({ i, s }))

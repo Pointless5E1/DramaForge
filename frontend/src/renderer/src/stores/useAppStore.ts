@@ -1,21 +1,21 @@
-import { defineStore } from 'pinia'
+﻿import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
 export const useAppStore = defineStore('app', () => {
-  // 当前视图
+  // 當前視圖
   const currentView = ref<'dashboard' | 'editor' | 'ideas' | 'workflows' | 'code-workflows' | 'triggers'>('dashboard')
 
-  // 主题状态
+  // 主題狀態
   const isDarkMode = ref(false)
 
-  // 设置对话框状态
+  // 設置對話框狀態
   const settingsDialogVisible = ref(false)
   const settingsInitialTab = ref<string>('llm')
 
-  // 全局加载状态
+  // 全局加載狀態
   const globalLoading = ref(false)
 
-  // 全局错误状态
+  // 全局錯誤狀態
   const globalError = ref<string | null>(null)
 
   // Computed

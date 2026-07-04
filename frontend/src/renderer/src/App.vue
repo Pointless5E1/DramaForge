@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref, computed, defineAsyncComponent } from 'vue'
 import { storeToRefs } from 'pinia'
 import Dashboard from './views/Dashboard.vue'
@@ -63,28 +63,28 @@ async function syncViewFromHash() {
   }
 }
 
-// 初始化主题和加载全局资源
+// 初始化主題和加載全局資源
 onMounted(async () => {
   appStore.initTheme()
   schemaService.loadSchemas() // Load all schemas on app startup
   syncViewFromHash()
   window.addEventListener('hashchange', syncViewFromHash)
   
-  // 设置工作流监听器（监听响应头中的 X-Workflows-Started）
+  // 設置工作流監聽器（監聽響應頭中的 X-Workflows-Started）
   const cleanupWorkflowListener = workflowStore.setupWorkflowListener()
   
-  // 在组件卸载时清理
+  // 在組件卸載時清理
   onBeforeUnmount(() => {
     cleanupWorkflowListener()
   })
   
-  // 自动检测更新（如果开启）
+  // 自動檢測更新（如果開啓）
   if (updateStore.autoCheckEnabled) {
     try {
       await updateStore.autoCheck()
     } catch (error) {
-      // 静默失败，不打扰用户
-      console.warn('自动检测更新失败:', error)
+      // 靜默失敗，不打擾用戶
+      console.warn('自動檢測更新失敗:', error)
     }
   }
 })

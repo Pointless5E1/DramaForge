@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from app.db.models import Card
 from app.schemas.entity import OrganizationCard, OrganizationCardMemory
@@ -28,7 +28,7 @@ def _load_existing_organization_card(card: Card) -> OrganizationCard:
     payload = dict(card.content or {})
     payload.setdefault("name", card.title)
     payload.setdefault("entity_type", "organization")
-    payload.setdefault("life_span", "长期")
+    payload.setdefault("life_span", "長期")
     payload["description"] = payload.get("description") or ""
     if payload.get("influence") == "":
         payload["influence"] = None
@@ -41,16 +41,16 @@ def _load_existing_organization_card(card: Card) -> OrganizationCard:
 
 _SPEC = StructuredCardExtractorSpec(
     code="organization_state",
-    name="组织状态提取",
-    prompt_name="组织状态提取",
-    card_type_name="组织卡",
+    name="組織狀態提取",
+    prompt_name="組織狀態提取",
+    card_type_name="組織卡",
     output_model=OrganizationStateExtraction,
     list_field_name="organizations",
     target_participant_types=("organization",),
     related_participant_types=("character", "organization", "scene", "item", "concept"),
     target_participant_key="organization_names",
     related_participant_key="related_entities",
-    reference_title="已有组织卡参考",
+    reference_title="已有組織卡參考",
 )
 
 
@@ -67,8 +67,8 @@ class OrganizationStateExtractor(StructuredCardMemoryExtractor):
     def build_reference_lines(self, model: OrganizationCard) -> list[str]:
         return [
             f"- {model.name}",
-            f"  简介: {model.description or '未填写'}",
-            f"  当前影响力: {model.influence or '未填写'}",
-            f"  对外关系: {'；'.join(model.relationship or []) or '暂无'}",
-            f"  当前状态: {'；'.join(model.dynamic_state or []) or '暂无'}",
+            f"  簡介: {model.description or '未填寫'}",
+            f"  當前影響力: {model.influence or '未填寫'}",
+            f"  對外關係: {'；'.join(model.relationship or []) or '暫無'}",
+            f"  當前狀態: {'；'.join(model.dynamic_state or []) or '暫無'}",
         ]

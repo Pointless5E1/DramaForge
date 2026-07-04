@@ -1,8 +1,8 @@
-import request from './request'
+﻿import request from './request'
 import { ref } from 'vue'
 
-// --- 类型定义 ---
-// 基础的 JSON Schema 类型定义。可以根据需要进行扩展。
+// --- 類型定義 ---
+// 基礎的 JSON Schema 類型定義。可以根據需要進行擴展。
 export interface JSONSchema {
   // Common properties
   type?: string | string[]
@@ -18,52 +18,52 @@ export interface JSONSchema {
   // Object properties
   properties?: { [key: string]: JSONSchema }
   required?: string[]
-  // 用于数组
+  // 用於數組
   items?: JSONSchema
-  // 用于 Pydantic v2+ 的元组（Tuple）
+  // 用於 Pydantic v2+ 的元組（Tuple）
   prefixItems?: JSONSchema[]
-  // 用于 Pydantic v1 的元组（Tuple）或联合类型（Union）
+  // 用於 Pydantic v1 的元組（Tuple）或聯合類型（Union）
   anyOf?: JSONSchema[]
-  // 用于 Literal 转换来的枚举
-  // 用于对象引用
+  // 用於 Literal 轉換來的枚舉
+  // 用於對象引用
   $ref?: string
 }
 
-// --- 状态 ---
+// --- 狀態 ---
 const schemas = ref<Map<string, JSONSchema>>(new Map())
 const isLoading = ref(false)
 const error = ref<any>(null)
 
-// --- 逻辑 ---
+// --- 邏輯 ---
 
 /**
- * 解析 $ref 引用，找到其对应的 schema 定义。
- * @param refPath 引用路径 (例如, '#/components/schemas/MyModel')
- * @param openapiSpec 完整的 OpenAPI 规范对象。
- * @returns 解析后的 JSONSchema，如果未找到则返回 null。
+ * 解析 $ref 引用，找到其對應的 schema 定義。
+ * @param refPath 引用路徑 (例如, '#/components/schemas/MyModel')
+ * @param openapiSpec 完整的 OpenAPI 規範對象。
+ * @returns 解析後的 JSONSchema，如果未找到則返回 null。
  */
 function resolveRef(refPath: string, allSchemas: Map<string, JSONSchema>): JSONSchema | null {
-  // 我们只处理指向 allSchemas 中其他定义的引用
-  // 假设格式为 '#/$defs/MyModel' or 'MyModel'
+  // 我們只處理指向 allSchemas 中其他定義的引用
+  // 假設格式爲 '#/$defs/MyModel' or 'MyModel'
   const refName = refPath.split('/').pop()
   if (!refName) {
-    console.error('无效的 $ref 路径:', refPath)
+    console.error('無效的 $ref 路徑:', refPath)
     return null
   }
   const resolved = allSchemas.get(refName)
   if (!resolved) {
-    console.error(`无法在 allSchemas 中解析 $ref: ${refName}`)
+    console.error(`無法在 allSchemas 中解析 $ref: ${refName}`)
         return null
       }
   return resolved
 }
 
 /**
- * 递归地解析 schema 中的所有 $ref 引用。
+ * 遞歸地解析 schema 中的所有 $ref 引用。
  * @param schema 要解析的 JSONSchema。
- * @param allSchemas 包含所有可用 schema 定义的 Map。
- * @param visited 已访问的引用路径，用于防止循环引用。
- * @returns 解析后的 JSONSchema。
+ * @param allSchemas 包含所有可用 schema 定義的 Map。
+ * @param visited 已訪問的引用路徑，用於防止循環引用。
+ * @returns 解析後的 JSONSchema。
  */
 function dereferenceSchema(
   schema: JSONSchema,
@@ -76,13 +76,13 @@ function dereferenceSchema(
 
   if (schema.$ref) {
     if (visited.has(schema.$ref)) {
-      console.warn('检测到循环引用:', schema.$ref)
+      console.warn('檢測到循環引用:', schema.$ref)
       return { type: 'object', title: 'Circular Reference' }
     }
     visited.add(schema.$ref)
     const resolved = resolveRef(schema.$ref, allSchemas)
     if (resolved) {
-      // 递归地解析解析后的 schema
+      // 遞歸地解析解析後的 schema
       return dereferenceSchema(resolved, allSchemas, visited)
     } else {
       return { type: 'string', title: `Unresolved Reference: ${schema.$ref}` }
@@ -120,8 +120,8 @@ function dereferenceSchema(
 
 
 /**
- * 获取完整的 OpenAPI 规范并填充 schemas Map。
- * 这个函数应该在应用启动时被调用一次。
+ * 獲取完整的 OpenAPI 規範並填充 schemas Map。
+ * 這個函數應該在應用啓動時被調用一次。
  */
 async function loadSchemas() {
   if (schemas.value.size > 0 || isLoading.value) {
@@ -130,12 +130,12 @@ async function loadSchemas() {
   isLoading.value = true
   error.value = null
   try {
-    // 改为从专用端点获取所有 schema, 并使用默认的 /api 前缀
+    // 改爲從專用端點獲取所有 schema, 並使用默認的 /api 前綴
     const allSchemas = await request.get<Record<string, JSONSchema>>('/ai/schemas')
     if (allSchemas) {
       const schemaMap = new Map<string, JSONSchema>(Object.entries(allSchemas))
       
-      // 创建一个新的 Map 用于存储解引用后的 schema
+      // 創建一個新的 Map 用於存儲解引用後的 schema
       const dereferencedSchemaMap = new Map<string, JSONSchema>()
 
       // 第一步：先填充所有 schema 到 Map 中
@@ -143,7 +143,7 @@ async function loadSchemas() {
         dereferencedSchemaMap.set(name, schema);
       }
       
-      // 第二步：遍历并解引用每一个 schema
+      // 第二步：遍歷並解引用每一個 schema
       for (const [name, schema] of dereferencedSchemaMap.entries()) {
         dereferencedSchemaMap.set(name, dereferenceSchema(schema, dereferencedSchemaMap));
       }
@@ -161,7 +161,7 @@ async function loadSchemas() {
   }
 }
 
-// 强制刷新（清空缓存并重新加载）
+// 強制刷新（清空緩存並重新加載）
 async function refreshSchemas() {
   try {
     schemas.value = new Map()
@@ -173,16 +173,16 @@ async function refreshSchemas() {
 }
 
 /**
- * 获取 schema 的名称。
- * @param name schema 的名称 (例如, 'VolumeOutline').
- * @returns 如果找到则返回 JSONSchema，否则返回 undefined。
+ * 獲取 schema 的名稱。
+ * @param name schema 的名稱 (例如, 'VolumeOutline').
+ * @returns 如果找到則返回 JSONSchema，否則返回 undefined。
  */
 function getSchema(name: string): JSONSchema | undefined {
   return schemas.value.get(name)
 }
 
-// --- 导出 ---
-// 导出一个单例对象用于与 schema 交互。
+// --- 導出 ---
+// 導出一個單例對象用於與 schema 交互。
 export const schemaService = {
   schemas,
   isLoading,

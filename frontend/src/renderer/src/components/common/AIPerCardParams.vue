@@ -1,4 +1,4 @@
-<template>
+﻿<template>
 	<div class="ai-param-inline">
 		<el-popover placement="bottom" trigger="manual" v-model:visible="visible" width="360">
 			<template #reference>
@@ -7,39 +7,39 @@
 						<el-icon><Setting /></el-icon>
 					</template>
 					<span class="model-label">模型：</span>
-					<span class="model-name">{{ selectedModelName || '未设置' }}</span>
+					<span class="model-name">{{ selectedModelName || '未設置' }}</span>
 				</el-button>
 			</template>
 			<div class="ai-config-form">
 				<el-form label-width="92px" size="small">
 					<el-form-item label="模型ID">
-						<el-select v-model="editing.llm_config_id" placeholder="选择模型" style="width: 240px;" :teleported="false">
+						<el-select v-model="editing.llm_config_id" placeholder="選擇模型" style="width: 240px;" :teleported="false">
 							<el-option v-for="m in (aiOptions?.llm_configs || [])" :key="m.id" :label="m.display_name || String(m.id)" :value="Number(m.id)" />
 						</el-select>
 					</el-form-item>
-					<el-form-item label="提示词">
-						<el-select v-model="editing.prompt_name" placeholder="选择提示词" filterable style="width: 240px;" :teleported="false">
+					<el-form-item label="提示詞">
+						<el-select v-model="editing.prompt_name" placeholder="選擇提示詞" filterable style="width: 240px;" :teleported="false">
 							<el-option v-for="p in (aiOptions?.prompts || [])" :key="p.id" :label="p.name" :value="p.name" />
 						</el-select>
 					</el-form-item>
-					<el-form-item label="温度">
+					<el-form-item label="溫度">
 						<el-input-number v-model="editing.temperature" :min="0" :max="2" :step="0.1" />
 					</el-form-item>
 					<el-form-item label="最大tokens">
 						<el-input-number v-model="editing.max_tokens" :min="1" :step="256" />
 					</el-form-item>
-					<el-form-item label="超时(秒)">
+					<el-form-item label="超時(秒)">
 						<el-input-number v-model="editing.timeout" :min="1" :step="5" />
 					</el-form-item>
 					<el-form-item>
 						<div class="ai-actions">
 							<div class="left">
 								<el-button type="primary" size="small" @click="saveLocal">保存</el-button>
-								<el-button size="small" @click="resetToPreset">重置为预设</el-button>
+								<el-button size="small" @click="resetToPreset">重置爲預設</el-button>
 							</div>
 							<div class="right">
-								<el-button size="small" type="warning" plain @click="restoreFollowType">恢复跟随类型</el-button>
-								<el-button size="small" type="primary" plain @click="applyToType">应用到类型</el-button>
+								<el-button size="small" type="warning" plain @click="restoreFollowType">恢復跟隨類型</el-button>
+								<el-button size="small" type="primary" plain @click="applyToType">應用到類型</el-button>
 							</div>
 						</div>
 					</el-form-item>
@@ -107,14 +107,14 @@ watch(() => props.cardId, async (id) => {
 function getPresetForType(typeName?: string): PerCardAIParams {
 	const map: Record<string, PerCardAIParams> = {
 		'金手指': { prompt_name: '金手指生成', temperature: 0.6, max_tokens: 1024, timeout: 60 },
-		'一句话梗概': { prompt_name: '一句话梗概', temperature: 0.6, max_tokens: 1024, timeout: 60 },
-		'世界观设定': { prompt_name: '世界观设定', temperature: 0.6, max_tokens: 8192, timeout: 120 },
-		'核心蓝图': { prompt_name: '核心蓝图', temperature: 0.6, max_tokens: 8192, timeout: 120 },
-		'分卷大纲': { prompt_name: '分卷大纲', temperature: 0.6, max_tokens: 8192, timeout: 120 },
-		'阶段大纲': { prompt_name: '阶段大纲', temperature: 0.6, max_tokens: 8192, timeout: 120 },
-		'章节大纲': { prompt_name: '章节大纲', temperature: 0.6, max_tokens: 4096, timeout: 60 },
-		'写作指南': { prompt_name: '写作指南', temperature: 0.7, max_tokens: 8192, timeout: 60 },
-		'章节正文': { prompt_name: '内容生成', temperature: 0.7, max_tokens: 8192, timeout: 60 },
+		'一句話梗概': { prompt_name: '一句話梗概', temperature: 0.6, max_tokens: 1024, timeout: 60 },
+		'世界觀設定': { prompt_name: '世界觀設定', temperature: 0.6, max_tokens: 8192, timeout: 120 },
+		'核心藍圖': { prompt_name: '核心藍圖', temperature: 0.6, max_tokens: 8192, timeout: 120 },
+		'分卷大綱': { prompt_name: '分卷大綱', temperature: 0.6, max_tokens: 8192, timeout: 120 },
+		'階段大綱': { prompt_name: '階段大綱', temperature: 0.6, max_tokens: 8192, timeout: 120 },
+		'章節大綱': { prompt_name: '章節大綱', temperature: 0.6, max_tokens: 4096, timeout: 60 },
+		'寫作指南': { prompt_name: '寫作指南', temperature: 0.7, max_tokens: 8192, timeout: 60 },
+		'章節正文': { prompt_name: '內容生成', temperature: 0.7, max_tokens: 8192, timeout: 60 },
 	}
 	return map[typeName || ''] || {}
 }
@@ -122,15 +122,15 @@ function getPresetForType(typeName?: string): PerCardAIParams {
 function saveLocal() {
 	try {
 		const payload = { ...editing.value, llm_config_id: editing.value.llm_config_id == null ? editing.value.llm_config_id : Number(editing.value.llm_config_id) }
-		// 先写入后端数据库
+		// 先寫入後端數據庫
 		updateCardAIParams(props.cardId, payload)
 			.then(() => {
 				store.setForCard(props.cardId, { ...payload })
 				ElMessage.success('已保存')
 				visible.value = false
 			})
-			.catch(() => { ElMessage.error('保存到后端失败') })
-	} catch { ElMessage.error('保存失败') }
+			.catch(() => { ElMessage.error('保存到後端失敗') })
+	} catch { ElMessage.error('保存失敗') }
 }
 function resetToPreset() {
 	const preset = getPresetForType(props.cardTypeName)
@@ -138,7 +138,7 @@ function resetToPreset() {
 	store.setForCard(props.cardId, editing.value)
 }
 async function restoreFollowType() {
-	try { await updateCardAIParams(props.cardId, null); ElMessage.success('已恢复跟随类型'); const resp = await getCardAIParams(props.cardId); const eff = (resp as any)?.effective_params; if (eff) { editing.value = { ...eff }; store.setForCard(props.cardId, { ...eff }) } } catch { ElMessage.error('操作失败') }
+	try { await updateCardAIParams(props.cardId, null); ElMessage.success('已恢復跟隨類型'); const resp = await getCardAIParams(props.cardId); const eff = (resp as any)?.effective_params; if (eff) { editing.value = { ...eff }; store.setForCard(props.cardId, { ...eff }) } } catch { ElMessage.error('操作失敗') }
 }
 async function applyToType() {
 	try {
@@ -149,8 +149,8 @@ async function applyToType() {
 		const resp = await getCardAIParams(props.cardId)
 		const eff = (resp as any)?.effective_params
 		if (eff) { editing.value = { ...eff }; store.setForCard(props.cardId, { ...eff }) }
-		ElMessage.success('已应用到类型，并恢复本卡片跟随类型')
-	} catch { ElMessage.error('应用失败') }
+		ElMessage.success('已應用到類型，並恢復本卡片跟隨類型')
+	} catch { ElMessage.error('應用失敗') }
 }
 
 </script>
@@ -167,7 +167,7 @@ async function applyToType() {
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
-  overflow: hidden; /* 确保按钮本身不超出 */
+  overflow: hidden; /* 確保按鈕本身不超出 */
 }
 
 .model-trigger :deep(.el-button__content) {

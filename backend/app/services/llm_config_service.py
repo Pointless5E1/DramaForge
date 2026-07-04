@@ -1,4 +1,4 @@
-from urllib.parse import urljoin
+﻿from urllib.parse import urljoin
 
 from sqlmodel import Session, select
 
@@ -188,7 +188,7 @@ def can_consume(
             return False, "已超出 Token 上限"
     if cfg.call_limit is not None and cfg.call_limit >= 0:
         if (cfg.used_calls + need_calls) > cfg.call_limit:
-            return False, "已超出调用次数上限"
+            return False, "已超出調用次數上限"
     return True, "OK"
 
 

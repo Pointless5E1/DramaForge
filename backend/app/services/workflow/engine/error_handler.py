@@ -1,9 +1,9 @@
-"""统一的错误处理器
+﻿"""統一的錯誤處理器
 
-职责：
-- 统一处理节点执行错误
-- 处理任务取消
-- 保存错误信息到状态
+職責：
+- 統一處理節點執行錯誤
+- 處理任務取消
+- 保存錯誤信息到狀態
 """
 
 import asyncio
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 class ExecutionError(Exception):
-    """执行错误基类"""
+    """執行錯誤基類"""
     def __init__(self, node_id: str, message: str, details: dict = None):
         self.node_id = node_id
         self.message = message
@@ -27,17 +27,17 @@ class ExecutionError(Exception):
 
 
 class NodeExecutionError(ExecutionError):
-    """节点执行错误"""
+    """節點執行錯誤"""
     pass
 
 
 class CheckpointError(ExecutionError):
-    """检查点错误"""
+    """檢查點錯誤"""
     pass
 
 
 class ErrorHandler:
-    """统一的错误处理器"""
+    """統一的錯誤處理器"""
     
     @staticmethod
     async def handle_node_error(
@@ -46,22 +46,22 @@ class ErrorHandler:
         execution_state: 'ExecutionState',
         session: Session
     ) -> 'ProgressEvent':
-        """处理节点执行错误
+        """處理節點執行錯誤
         
         Args:
-            error: 异常对象
-            stmt: 语句对象
-            execution_state: 执行状态
-            session: 数据库会话
+            error: 異常對象
+            stmt: 語句對象
+            execution_state: 執行狀態
+            session: 數據庫會話
             
         Returns:
-            错误事件
+            錯誤事件
         """
         from .async_executor import ProgressEvent
         
-        logger.error(f"[ErrorHandler] 节点执行失败: {stmt.variable}, 错误: {error}")
+        logger.error(f"[ErrorHandler] 節點執行失敗: {stmt.variable}, 錯誤: {error}")
         
-        # 更新节点状态
+        # 更新節點狀態
         execution_state.update_node_state(
             node_id=stmt.variable,
             node_type=stmt.node_type or "unknown",
@@ -69,10 +69,10 @@ class ErrorHandler:
             error=str(error)
         )
         
-        # 保存状态
+        # 保存狀態
         execution_state.save(session)
         
-        # 返回错误事件
+        # 返回錯誤事件
         return ProgressEvent(
             statement=stmt,
             type='error',
@@ -85,22 +85,22 @@ class ErrorHandler:
         execution_state: 'ExecutionState',
         session: Session
     ):
-        """处理任务取消
+        """處理任務取消
         
-        当异步任务被取消时调用，保存当前进度。
+        當異步任務被取消時調用，保存當前進度。
         
         Args:
-            stmt: 语句对象
-            execution_state: 执行状态
-            session: 数据库会话
+            stmt: 語句對象
+            execution_state: 執行狀態
+            session: 數據庫會話
         """
-        logger.info(f"[ErrorHandler] 任务被取消: {stmt.variable}")
+        logger.info(f"[ErrorHandler] 任務被取消: {stmt.variable}")
         
-        # 获取当前进度
+        # 獲取當前進度
         node_state = execution_state.get_node_state(stmt.variable)
         current_progress = node_state.progress if node_state else 0.0
         
-        # 标记为暂停状态
+        # 標記爲暫停狀態
         execution_state.update_node_state(
             node_id=stmt.variable,
             node_type=stmt.node_type or "unknown",
@@ -108,7 +108,7 @@ class ErrorHandler:
             progress=current_progress
         )
         
-        # 保存状态
+        # 保存狀態
         execution_state.save(session)
         
-        logger.info(f"[ErrorHandler] 任务取消已处理: {stmt.variable}, 进度={current_progress}%")
+        logger.info(f"[ErrorHandler] 任務取消已處理: {stmt.variable}, 進度={current_progress}%")

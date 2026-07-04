@@ -1,6 +1,6 @@
-/**
- * GitHub Release 更新检测服务
- * 跨平台支持（Electron + Web）
+﻿/**
+ * GitHub Release 更新檢測服務
+ * 跨平臺支持（Electron + Web）
  */
 
 export interface ReleaseInfo {
@@ -21,23 +21,23 @@ export interface UpdateCheckResult {
 
 const GITHUB_REPO = 'RhythmicWave/NovelForge'
 const GITHUB_API_BASE = 'https://api.github.com'
-const REQUEST_TIMEOUT = 10000 // 10秒超时
+const REQUEST_TIMEOUT = 10000 // 10秒超時
 
 /**
- * 从 package.json 获取当前版本号
+ * 從 package.json 獲取當前版本號
  */
 export function getCurrentVersion(): string {
-  // 在构建时，版本号会被注入到 import.meta.env
-  // 如果没有，则使用默认值
+  // 在構建時，版本號會被注入到 import.meta.env
+  // 如果沒有，則使用默認值
   return import.meta.env.VITE_APP_VERSION || '0.8.5'
 }
 
 /**
- * 比较版本号，支持诸如 0.8.5-fix2 这一类带后缀的 tag。
- * 规则：
- *   1) 先比较数字主版本（按 x.y.z 拆分）；
- *   2) 若主版本相同，带后缀的视为高于无后缀（0.8.5-fix2 > 0.8.5）；
- *   3) 若双方都有后缀，则尝试解析尾部数字进行比较（fix2 > fix1），否则按字符串比较。
+ * 比較版本號，支持諸如 0.8.5-fix2 這一類帶後綴的 tag。
+ * 規則：
+ *   1) 先比較數字主版本（按 x.y.z 拆分）；
+ *   2) 若主版本相同，帶後綴的視爲高於無後綴（0.8.5-fix2 > 0.8.5）；
+ *   3) 若雙方都有後綴，則嘗試解析尾部數字進行比較（fix2 > fix1），否則按字符串比較。
  * @returns 1 if v1 > v2, -1 if v1 < v2, 0 if equal
  */
 function compareVersions(v1: string, v2: string): number {
@@ -54,7 +54,7 @@ function compareVersions(v1: string, v2: string): number {
   const a = parseVersion(v1)
   const b = parseVersion(v2)
 
-  // 1) 比较主版本号
+  // 1) 比較主版本號
   const maxLen = Math.max(a.coreParts.length, b.coreParts.length)
   for (let i = 0; i < maxLen; i++) {
     const num1 = a.coreParts[i] ?? 0
@@ -63,12 +63,12 @@ function compareVersions(v1: string, v2: string): number {
     if (num1 < num2) return -1
   }
 
-  // 2) 主版本相等时比较后缀
+  // 2) 主版本相等時比較後綴
   if (a.suffix === b.suffix) return 0
   if (a.suffix && !b.suffix) return 1
   if (!a.suffix && b.suffix) return -1
 
-  // 3) 双方都有后缀，优先比较尾部数字
+  // 3) 雙方都有後綴，優先比較尾部數字
   const re = /^([a-zA-Z\-]*)(\d*)$/
   const ma = a.suffix.match(re)
   const mb = b.suffix.match(re)
@@ -82,14 +82,14 @@ function compareVersions(v1: string, v2: string): number {
     }
   }
 
-  // 4) 回退到纯字符串比较
+  // 4) 回退到純字符串比較
   if (a.suffix > b.suffix) return 1
   if (a.suffix < b.suffix) return -1
   return 0
 }
 
 /**
- * 带超时的 fetch
+ * 帶超時的 fetch
  */
 async function fetchWithTimeout(url: string, timeout: number): Promise<Response> {
   const controller = new AbortController()
@@ -112,7 +112,7 @@ async function fetchWithTimeout(url: string, timeout: number): Promise<Response>
 }
 
 /**
- * 获取最新的 GitHub Release
+ * 獲取最新的 GitHub Release
  */
 async function fetchLatestRelease(timeout: number = REQUEST_TIMEOUT): Promise<ReleaseInfo | null> {
   const url = `${GITHUB_API_BASE}/repos/${GITHUB_REPO}/releases/latest`
@@ -121,12 +121,12 @@ async function fetchLatestRelease(timeout: number = REQUEST_TIMEOUT): Promise<Re
     const response = await fetchWithTimeout(url, timeout)
     
     if (!response.ok) {
-      // 对于 HTTP 错误，抛出异常而不是当成「没有更新」，
-      // 这样上层可以给出明确的错误提示（例如 403 速率限制）。
+      // 對於 HTTP 錯誤，拋出異常而不是當成「沒有更新」，
+      // 這樣上層可以給出明確的錯誤提示（例如 403 速率限制）。
       if (response.status === 403) {
-        throw new Error('GitHub API 访问受限 (403)，可能已达到未登录用户的速率限制，请稍后重试')
+        throw new Error('GitHub API 訪問受限 (403)，可能已達到未登錄用戶的速率限制，請稍後重試')
       }
-      throw new Error(`GitHub API 返回错误: ${response.status}`)
+      throw new Error(`GitHub API 返回錯誤: ${response.status}`)
     }
     
     const data = await response.json()
@@ -141,15 +141,15 @@ async function fetchLatestRelease(timeout: number = REQUEST_TIMEOUT): Promise<Re
     }
   } catch (error: any) {
     if (error.name === 'AbortError') {
-      throw new Error('请求超时')
+      throw new Error('請求超時')
     }
     throw error
   }
 }
 
 /**
- * 检查更新（带重试机制）
- * @param maxRetries 最大重试次数（0 表示不重试）
+ * 檢查更新（帶重試機制）
+ * @param maxRetries 最大重試次數（0 表示不重試）
  */
 export async function checkForUpdates(maxRetries: number = 0): Promise<UpdateCheckResult> {
   const currentVersion = getCurrentVersion()
@@ -176,28 +176,28 @@ export async function checkForUpdates(maxRetries: number = 0): Promise<UpdateChe
       }
     } catch (error: any) {
       lastError = error
-      console.warn(`更新检测失败 (尝试 ${attempt + 1}/${maxRetries + 1}):`, error.message)
+      console.warn(`更新檢測失敗 (嘗試 ${attempt + 1}/${maxRetries + 1}):`, error.message)
       
-      // 如果还有重试机会，等待一段时间后重试
+      // 如果還有重試機會，等待一段時間後重試
       if (attempt < maxRetries) {
         await new Promise(resolve => setTimeout(resolve, 2000 * (attempt + 1)))
       }
     }
   }
   
-  // 所有重试都失败
-  throw lastError || new Error('更新检测失败')
+  // 所有重試都失敗
+  throw lastError || new Error('更新檢測失敗')
 }
 
 /**
- * 自动检查更新（带1次重试）
+ * 自動檢查更新（帶1次重試）
  */
 export async function autoCheckForUpdates(): Promise<UpdateCheckResult> {
   return checkForUpdates(1)
 }
 
 /**
- * 手动检查更新（不重试）
+ * 手動檢查更新（不重試）
  */
 export async function manualCheckForUpdates(): Promise<UpdateCheckResult> {
   return checkForUpdates(0)

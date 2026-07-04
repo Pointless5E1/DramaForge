@@ -1,7 +1,7 @@
-"""灵感助手服务
+﻿"""靈感助手服務
 
-提供基于 LangChain 的工具调用与流式对话能力。
-React 文本协议模式与 Workflow Agent 共享核心实现。
+提供基於 LangChain 的工具調用與流式對話能力。
+React 文本協議模式與 Workflow Agent 共享核心實現。
 """
 
 from __future__ import annotations
@@ -34,30 +34,30 @@ MAX_REACT_STEPS = 100
 
 
 ASSISTANT_REACT_PROTOCOL_INSTRUCTIONS = """
-你处于写作助手 React-Tool 模式。
+你處於寫作助手 React-Tool 模式。
 
-工具调用格式（严格）：
-<Action>{"tool":"工具名","args":{"参数名":参数值}}</Action>
+工具調用格式（嚴格）：
+<Action>{"tool":"工具名","args":{"參數名":參數值}}</Action>
 
-执行规则：
-1) 只能调用“可用工具列表”里的工具，禁止调用任何 wf_* 工具。
-2) 用户要求创建/修改卡片内容时，必须通过工具执行（如 create_card / update_card / modify_card_field / replace_field_text / propose_card_text_patches）。
-3) 每一轮最多输出一个 Action 块；工具执行结果会以 Observation 返回，再决定下一步。
-4) 若参数中包含长文本，必须输出合法 JSON（换行与引号要正确转义）。
-5) 不要输出伪调用文本（例如 tool(...)）。
-6) 当用户要求对正文提出多条可审阅修改建议时，必须调用 propose_card_text_patches，不要调用 update_card、modify_card_field、replace_field_text 或 replace_card_text_by_lines 直接改正文。
-7) propose_card_text_patches 的每条 patches 项必须包含 old_text 和 new_text；可以同时提供 start_line/end_line、context_before/context_after 辅助前端重新定位。
-8) 多条正文建议必须作为一个批次返回，让前端逐条显示“建议 #当前 / 共 N”，由用户接受或拒绝。
+執行規則：
+1) 只能調用“可用工具列表”裏的工具，禁止調用任何 wf_* 工具。
+2) 用戶要求創建/修改卡片內容時，必須通過工具執行（如 create_card / update_card / modify_card_field / replace_field_text / propose_card_text_patches）。
+3) 每一輪最多輸出一個 Action 塊；工具執行結果會以 Observation 返回，再決定下一步。
+4) 若參數中包含長文本，必須輸出合法 JSON（換行與引號要正確轉義）。
+5) 不要輸出僞調用文本（例如 tool(...)）。
+6) 當用戶要求對正文提出多條可審閱修改建議時，必須調用 propose_card_text_patches，不要調用 update_card、modify_card_field、replace_field_text 或 replace_card_text_by_lines 直接改正文。
+7) propose_card_text_patches 的每條 patches 項必須包含 old_text 和 new_text；可以同時提供 start_line/end_line、context_before/context_after 輔助前端重新定位。
+8) 多條正文建議必須作爲一個批次返回，讓前端逐條顯示“建議 #當前 / 共 N”，由用戶接受或拒絕。
 """.strip()
 
 
 ASSISTANT_TEXT_PATCH_TOOL_INSTRUCTIONS = """
-正文批量修改建议规则：
-- 当用户要求灵感助手提出正文修改建议，尤其是多条建议、逐条确认、复用右键润色/扩写预览机制时，必须使用 propose_card_text_patches。
-- propose_card_text_patches 只提交建议给当前正文编辑器预览，不直接写数据库，也不直接改正文。
-- 不要为这类正文建议使用 update_card、modify_card_field、replace_field_text 或 replace_card_text_by_lines。
-- 每条建议必须包含 old_text 和 new_text；old_text 应尽量是当前正文中的精确原文片段。
-- 建议同时提供 start_line/end_line、context_before/context_after，方便用户接受前后重新定位，避免前面建议被接受后造成后续错位。
+正文批量修改建議規則：
+- 當用戶要求靈感助手提出正文修改建議，尤其是多條建議、逐條確認、複用右鍵潤色/擴寫預覽機制時，必須使用 propose_card_text_patches。
+- propose_card_text_patches 只提交建議給當前正文編輯器預覽，不直接寫數據庫，也不直接改正文。
+- 不要爲這類正文建議使用 update_card、modify_card_field、replace_field_text 或 replace_card_text_by_lines。
+- 每條建議必須包含 old_text 和 new_text；old_text 應儘量是當前正文中的精確原文片段。
+- 建議同時提供 start_line/end_line、context_before/context_after，方便用戶接受前後重新定位，避免前面建議被接受後造成後續錯位。
 """.strip()
 
 
@@ -100,7 +100,7 @@ async def stream_chat_plain(
         need_calls=1,
     )
     if not ok:
-        raise ValueError(f"LLM配额不足: {reason}")
+        raise ValueError(f"LLM配額不足: {reason}")
 
     model = build_chat_model(
         session=session,
@@ -201,7 +201,7 @@ async def stream_chat_with_tools(
     request: AssistantChatRequest,
     system_prompt: str,
 ) -> AsyncGenerator[dict, None]:
-    """标准模式：复用共享 Tool Agent 流式核心。"""
+    """標準模式：複用共享 Tool Agent 流式核心。"""
     parts: list[str] = []
     if request.context_info:
         parts.append(request.context_info)
@@ -243,7 +243,7 @@ async def generate_assistant_chat_streaming(
     system_prompt: str,
     track_stats: bool = True,
 ) -> AsyncGenerator[str, None]:
-    """灵感助手专用流式对话生成（结构化事件流协议）。"""
+    """靈感助手專用流式對話生成（結構化事件流協議）。"""
     _ = track_stats
     manual_react_mode = getattr(request, "react_mode_enabled", None)
     cfg = llm_config_service.get_llm_config(session, request.llm_config_id)
@@ -258,7 +258,7 @@ async def generate_assistant_chat_streaming(
     plain_chat_enabled = fallback_plain_chat or recommended_plain_chat
     logger.info(
         "[LangChain] generate_assistant_chat_streaming: 使用{}模式，模型id:{}",
-        "纯对话" if plain_chat_enabled else ("React" if react_enabled else "标准"),
+        "純對話" if plain_chat_enabled else ("React" if react_enabled else "標準"),
         request.llm_config_id
     )
 
@@ -291,9 +291,9 @@ async def generate_assistant_chat_streaming(
 
         if not has_visible_output:
             fallback_text = (
-                "已执行工具调用，请查看工具结果。"
+                "已執行工具調用，請查看工具結果。"
                 if has_tool_events
-                else "本轮未产生可见回复文本，请重试或调整提问。"
+                else "本輪未產生可見回覆文本，請重試或調整提問。"
             )
             yield json.dumps(
                 {
@@ -303,10 +303,10 @@ async def generate_assistant_chat_streaming(
                 ensure_ascii=False,
             )
     except asyncio.CancelledError:
-        logger.info("[LangChain] 助手调用被取消（CancelledError）")
+        logger.info("[LangChain] 助手調用被取消（CancelledError）")
         return
     except Exception as exc:
-        logger.error("[LangChain] 灵感助手生成失败: {}", exc)
+        logger.error("[LangChain] 靈感助手生成失敗: {}", exc)
         error_event = {
             "type": "error",
             "data": {"error": str(exc)},

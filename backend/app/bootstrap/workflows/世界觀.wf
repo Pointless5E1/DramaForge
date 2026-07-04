@@ -1,0 +1,44 @@
+﻿# 工作流：世界觀
+# 功能：世界觀設定卡片保存時，自動提取組織列表並批量創建組織卡片
+# 觸發器：世界觀設定卡片保存時自動觸發
+
+#@node(description="觸發器：監聽世界觀設定卡片保存")
+trigger = Trigger.CardSaved(card_type="世界觀設定")
+#</node>
+
+
+#@node(description="讀取當前卡片")
+card = Card.Read(card_id=trigger.card_id)
+#</node>
+
+
+#@node(description="使用表達式節點提取組織列表")
+organizations = Logic.Expression(
+    expression="card.content.world_view.social_system.major_power_camps or []"
+  )
+#</node>
+
+
+#@node(description="批量創建組織卡片（父卡片爲當前世界觀卡片）")
+org_cards = Card.BatchUpsert(
+    project_id=trigger.project_id,
+    parent_id=trigger.card_id,
+    card_type="組織卡",
+    title_template="{item.name}",
+    items=organizations.result
+  )
+#</node>
+
+
+#@node(description="清空來源列表（避免重複創建）")
+update_result = Card.Update(
+    card_id=trigger.card_id,
+    content_merge={
+      "world_view": {
+        "social_system": {
+          "major_power_camps": []
+        }
+      }
+    }
+  )
+#</node>

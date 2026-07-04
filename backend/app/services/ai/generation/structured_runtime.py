@@ -1,8 +1,8 @@
-"""指令流结构化生成运行时。
+﻿"""指令流結構化生成運行時。
 
-对外仅暴露与 `llm_service.generate_structured` 对齐的模型入口：
-- 输入 `output_type: Type[BaseModel]`
-- 输出 `BaseModel`（可选附带 logs）
+對外僅暴露與 `llm_service.generate_structured` 對齊的模型入口：
+- 輸入 `output_type: Type[BaseModel]`
+- 輸出 `BaseModel`（可選附帶 logs）
 """
 
 from __future__ import annotations
@@ -37,7 +37,7 @@ async def _run_instruction_flow_with_schema(
     max_retry: int = 3,
     fail_soft: bool = False,
 ) -> Dict[str, Any]:
-    """按 schema 运行指令流并聚合最终结果（内部函数）。
+    """按 schema 運行指令流並聚合最終結果（內部函數）。
 
     Returns:
         {
@@ -46,7 +46,7 @@ async def _run_instruction_flow_with_schema(
         }
     """
     if not isinstance(schema, dict) or not schema:
-        raise ValueError("schema 不能为空")
+        raise ValueError("schema 不能爲空")
 
     final_card_prompt = card_prompt if card_prompt is not None else system_prompt
     final_system_prompt = build_instruction_system_prompt(
@@ -86,7 +86,7 @@ async def _run_instruction_flow_with_schema(
                     validate_instruction(instruction, schema)
                     apply_instruction(assembled_data, instruction)
                 except Exception as apply_error:
-                    logger.debug(f"[InstructionFlowRuntime] 本地应用指令失败: {apply_error}")
+                    logger.debug(f"[InstructionFlowRuntime] 本地應用指令失敗: {apply_error}")
 
         if event_type == "done":
             if not event.get("success"):
@@ -101,11 +101,11 @@ async def _run_instruction_flow_with_schema(
 
     if final_data is None:
         if not fail_soft:
-            raise ValueError("指令流未返回可用结果")
+            raise ValueError("指令流未返回可用結果")
         logs.append(
             {
                 "type": "warning",
-                "text": "指令流未完整结束，已按 fail_soft 返回部分结果",
+                "text": "指令流未完整結束，已按 fail_soft 返回部分結果",
             }
         )
         final_data = assembled_data
@@ -136,7 +136,7 @@ async def generate_structured_via_instruction_flow_model(
     fail_soft: bool = False,
     return_logs: bool = False,
 ) -> BaseModel | Dict[str, Any]:
-    """指令流结构化生成（对齐 `generate_structured` 签名）。"""
+    """指令流結構化生成（對齊 `generate_structured` 簽名）。"""
     del deps
 
     schema = output_type.model_json_schema(ref_template="#/$defs/{model}")
@@ -156,7 +156,7 @@ async def generate_structured_via_instruction_flow_model(
             need_calls=1,
         )
         if not ok:
-            raise ValueError(f"LLM配额不足: {reason}")
+            raise ValueError(f"LLM配額不足: {reason}")
 
     generated = await _run_instruction_flow_with_schema(
         session=session,
@@ -182,8 +182,8 @@ async def generate_structured_via_instruction_flow_model(
         model_result = output_type.model_validate(data)
     except ValidationError as error:
         if not fail_soft:
-            raise ValueError(f"输出模型校验失败: {error}") from error
-        logger.warning(f"[InstructionFlowRuntime] fail_soft=1，输出模型未完全通过校验: {error}")
+            raise ValueError(f"輸出模型校驗失敗: {error}") from error
+        logger.warning(f"[InstructionFlowRuntime] fail_soft=1，輸出模型未完全通過校驗: {error}")
         model_result = output_type.model_construct(**(data if isinstance(data, dict) else {}))
 
     if track_stats:

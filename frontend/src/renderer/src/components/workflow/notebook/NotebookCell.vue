@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="notebook-cell" :class="cellStatusClass">
     <div class="cell-header">
       <div class="cell-info">
@@ -8,7 +8,7 @@
       <div class="cell-progress" v-if="cell.status === 'progress'">
         <el-progress
           :percentage="cell.progress || 0"
-          :format="() => cell.message || '处理中...'"
+          :format="() => cell.message || '處理中...'"
           :stroke-width="6"
         />
       </div>
@@ -24,32 +24,32 @@
       </div>
 
       <div class="cell-output" v-if="hasOutput">
-        <!-- 成功输出 -->
+        <!-- 成功輸出 -->
         <div v-if="cell.status === 'completed'" class="output-success">
           <div class="output-header">
             <el-icon><SuccessFilled /></el-icon>
-            <span>执行成功</span>
+            <span>執行成功</span>
           </div>
           <div class="output-content">
             <pre>{{ formatOutput(cell.outputs) }}</pre>
           </div>
         </div>
 
-        <!-- 错误输出 -->
+        <!-- 錯誤輸出 -->
         <div v-if="cell.status === 'error'" class="output-error">
           <div class="output-header">
             <el-icon><CircleCloseFilled /></el-icon>
-            <span>执行失败</span>
+            <span>執行失敗</span>
           </div>
           <div class="output-content">
             <pre>{{ cell.error }}</pre>
           </div>
         </div>
 
-        <!-- 进度信息 -->
+        <!-- 進度信息 -->
         <div v-if="cell.status === 'progress'" class="output-progress">
           <el-icon class="is-loading"><Loading /></el-icon>
-          <span>{{ cell.message || '处理中...' }}</span>
+          <span>{{ cell.message || '處理中...' }}</span>
         </div>
       </div>
     </div>
@@ -69,12 +69,12 @@ const props = defineProps({
 
 const emit = defineEmits(['output'])
 
-// 单元格状态样式类
+// 單元格狀態樣式類
 const cellStatusClass = computed(() => {
   return `cell-status-${props.cell.status}`
 })
 
-// 状态标签类型
+// 狀態標籤類型
 const statusTagType = computed(() => {
   const typeMap = {
     running: 'info',
@@ -85,25 +85,25 @@ const statusTagType = computed(() => {
   return typeMap[props.cell.status] || 'info'
 })
 
-// 状态文本
+// 狀態文本
 const statusText = computed(() => {
   const textMap = {
-    running: '运行中',
-    progress: '处理中',
+    running: '運行中',
+    progress: '處理中',
     completed: '已完成',
-    error: '失败'
+    error: '失敗'
   }
   return textMap[props.cell.status] || '未知'
 })
 
-// 是否有输出
+// 是否有輸出
 const hasOutput = computed(() => {
   return props.cell.status === 'completed' ||
          props.cell.status === 'error' ||
          props.cell.status === 'progress'
 })
 
-// 格式化输出
+// 格式化輸出
 const formatOutput = (outputs) => {
   if (!outputs || outputs.length === 0) return ''
 

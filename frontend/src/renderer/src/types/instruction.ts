@@ -1,50 +1,50 @@
-/**
- * 指令流生成相关的类型定义
+﻿/**
+ * 指令流生成相關的類型定義
  * 
- * 与后端的 Pydantic 模型保持一致
+ * 與後端的 Pydantic 模型保持一致
  */
 
-// ==================== 指令格式定义 ====================
+// ==================== 指令格式定義 ====================
 
 /**
- * 指令操作类型
+ * 指令操作類型
  */
 export type InstructionOp = 'set' | 'append' | 'done'
 
 /**
- * 基础指令接口
+ * 基礎指令接口
  */
 export interface InstructionBase {
   op: InstructionOp
 }
 
 /**
- * 设置字段值指令
+ * 設置字段值指令
  */
 export interface SetInstruction extends InstructionBase {
   op: 'set'
   path: string  // JSON Pointer 格式，如 /name 或 /config/theme
-  value: any    // 要设置的值
+  value: any    // 要設置的值
 }
 
 /**
- * 向数组追加元素指令
+ * 向數組追加元素指令
  */
 export interface AppendInstruction extends InstructionBase {
   op: 'append'
-  path: string  // JSON Pointer 格式的数组路径
+  path: string  // JSON Pointer 格式的數組路徑
   value: any    // 要追加的元素
 }
 
 /**
- * 生成完成标志指令
+ * 生成完成標誌指令
  */
 export interface DoneInstruction extends InstructionBase {
   op: 'done'
 }
 
 /**
- * 指令联合类型
+ * 指令聯合類型
  */
 export type Instruction = SetInstruction | AppendInstruction | DoneInstruction
 
@@ -61,10 +61,10 @@ export interface GenerationConfig {
   custom?: Record<string, any>
 }
 
-// ==================== API 请求/响应模型 ====================
+// ==================== API 請求/響應模型 ====================
 
 /**
- * 对话消息
+ * 對話消息
  */
 export interface ConversationMessage {
   role: 'system' | 'user' | 'assistant'
@@ -72,7 +72,7 @@ export interface ConversationMessage {
 }
 
 /**
- * 指令流生成请求
+ * 指令流生成請求
  */
 export interface InstructionGenerateRequest {
   llm_config_id: number
@@ -89,10 +89,10 @@ export interface InstructionGenerateRequest {
   deps?: string
 }
 
-// ==================== SSE 事件类型 ====================
+// ==================== SSE 事件類型 ====================
 
 /**
- * 思考事件（AI 的自然语言输出）
+ * 思考事件（AI 的自然語言輸出）
  */
 export interface ThinkingEvent {
   type: 'thinking'
@@ -100,7 +100,7 @@ export interface ThinkingEvent {
 }
 
 /**
- * 指令事件（已校验的指令）
+ * 指令事件（已校驗的指令）
  */
 export interface InstructionEvent {
   type: 'instruction'
@@ -108,7 +108,7 @@ export interface InstructionEvent {
 }
 
 /**
- * 警告事件（非致命错误）
+ * 警告事件（非致命錯誤）
  */
 export interface WarningEvent {
   type: 'warning'
@@ -116,7 +116,7 @@ export interface WarningEvent {
 }
 
 /**
- * 错误事件（致命错误）
+ * 錯誤事件（致命錯誤）
  */
 export interface ErrorEvent {
   type: 'error'
@@ -133,14 +133,14 @@ export interface DoneEvent {
 }
 
 /**
- * 流事件联合类型
+ * 流事件聯合類型
  */
 export type StreamEvent = ThinkingEvent | InstructionEvent | WarningEvent | ErrorEvent | DoneEvent
 
-// ==================== 生成面板消息类型 ====================
+// ==================== 生成面板消息類型 ====================
 
 /**
- * 生成面板消息类型
+ * 生成面板消息類型
  */
 export type GenerationMessageType = 'thinking' | 'action' | 'system' | 'user' | 'warning' | 'error'
 

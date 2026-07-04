@@ -1,4 +1,4 @@
-"""表达式上下文包装器（简化版）"""
+﻿"""表達式上下文包裝器（簡化版）"""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ PRIMITIVE_TYPES = (
 
 
 class AttrDict(dict):
-    """支持点号访问的字典（缺失字段返回 None）"""
+    """支持點號訪問的字典（缺失字段返回 None）"""
 
     def __getattr__(self, item: str) -> Any:
         if item.startswith("__"):
@@ -36,7 +36,7 @@ class AttrDict(dict):
 
 
 def wrap_value(value: Any) -> Any:
-    """递归包装值，仅保留必要兼容能力（dict 点号访问）"""
+    """遞歸包裝值，僅保留必要兼容能力（dict 點號訪問）"""
     if value is None:
         return None
     if isinstance(value, AttrDict):
@@ -58,7 +58,7 @@ def wrap_value(value: Any) -> Any:
 
 
 def unwrap_value(value: Any) -> Any:
-    """递归反包装值，输出标准 Python 数据结构"""
+    """遞歸反包裝值，輸出標準 Python 數據結構"""
     if isinstance(value, AttrDict):
         return {
             key: unwrap_value(item)
@@ -74,7 +74,7 @@ def unwrap_value(value: Any) -> Any:
 
 
 def wrap_context(context: Dict[str, Any] | None) -> Dict[str, Any]:
-    """包装表达式上下文"""
+    """包裝表達式上下文"""
     if not context:
         return {}
     return {

@@ -1,0 +1,61 @@
+﻿# 工作流：項目創建·雪花創作法
+# 功能：當新項目創建時，自動創建一系列初始卡片，幫助用戶快速開始創作
+# 觸發器：項目創建時自動觸發
+
+#@node(description="觸發器：監聽項目創建事件")
+trigger = Trigger.ProjectCreated(template="snowflake")
+#</node>
+
+
+#@node(description="按順序創建初始卡片")
+tags = Card.Create(
+    project_id=trigger.project_id,
+    card_type="作品標籤",
+    title="作品標籤"
+  )
+#</node>
+
+
+#@node()
+power = Card.Create(
+    project_id=trigger.project_id,
+    card_type="金手指",
+    title="金手指"
+  )
+#</node>
+
+
+#@node()
+one_sentence = Card.Create(
+    project_id=trigger.project_id,
+    card_type="一句話梗概",
+    title="一句話梗概"
+  )
+#</node>
+
+
+#@node()
+outline = Card.Create(
+    project_id=trigger.project_id,
+    card_type="故事大綱",
+    title="故事大綱"
+  )
+#</node>
+
+
+#@node()
+world = Card.Create(
+    project_id=trigger.project_id,
+    card_type="世界觀設定",
+    title="世界觀設定"
+  )
+#</node>
+
+
+#@node()
+blueprint = Card.Create(
+    project_id=trigger.project_id,
+    card_type="核心藍圖",
+    title="核心藍圖"
+  )
+#</node>

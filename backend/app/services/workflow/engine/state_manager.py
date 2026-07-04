@@ -1,4 +1,4 @@
-"""状态管理器 - 管理工作流运行时状态"""
+﻿"""狀態管理器 - 管理工作流運行時狀態"""
 
 from typing import Dict, Any, Optional
 from datetime import datetime
@@ -10,19 +10,19 @@ from ..types import NodeStatus, RunStatus
 
 
 class StateManager:
-    """工作流状态管理器
+    """工作流狀態管理器
     
-    职责：
-    - 持久化运行状态
-    - 管理节点执行状态
-    - 支持暂停/恢复
-    - 提供状态查询接口
+    職責：
+    - 持久化運行狀態
+    - 管理節點執行狀態
+    - 支持暫停/恢復
+    - 提供狀態查詢接口
     """
     
     def __init__(self, session: Session):
         self.session = session
     
-    # ==================== Run 状态管理 ====================
+    # ==================== Run 狀態管理 ====================
     
     def update_run_status(
         self, 
@@ -30,24 +30,24 @@ class StateManager:
         status: RunStatus,
         **kwargs
     ) -> WorkflowRun:
-        """更新运行状态
+        """更新運行狀態
         
         Args:
-            run_id: 运行ID
-            status: 新状态
+            run_id: 運行ID
+            status: 新狀態
             **kwargs: 其他要更新的字段
         """
         run = self.session.get(WorkflowRun, run_id)
         if not run:
-            raise ValueError(f"运行不存在: {run_id}")
+            raise ValueError(f"運行不存在: {run_id}")
         
         run.status = status
         
-        # 更新时间戳
+        # 更新時間戳
         if status == "running" and not run.started_at:
-            run.started_at = datetime.now()  # 使用本地时间
+            run.started_at = datetime.now()  # 使用本地時間
         elif status in ("succeeded", "failed", "cancelled", "timeout"):
-            run.finished_at = datetime.now()  # 使用本地时间
+            run.finished_at = datetime.now()  # 使用本地時間
         
         # 更新其他字段
         for key, value in kwargs.items():
@@ -58,7 +58,7 @@ class StateManager:
         self.session.commit()
         self.session.refresh(run)
         
-        # logger.debug(f"[StateManager] 运行状态更新: run_id={run_id}, status={status}")
+        # logger.debug(f"[StateManager] 運行狀態更新: run_id={run_id}, status={status}")
         return run
     
     def save_run_state(
@@ -66,12 +66,12 @@ class StateManager:
         run_id: int, 
         state: Dict[str, Any]
     ) -> None:
-        """保存运行时状态（变量、节点输出等）"""
+        """保存運行時狀態（變量、節點輸出等）"""
         run = self.session.get(WorkflowRun, run_id)
         if not run:
-            raise ValueError(f"运行不存在: {run_id}")
+            raise ValueError(f"運行不存在: {run_id}")
         
-        # 转换状态使其可JSON序列化（例如将set转为list）
+        # 轉換狀態使其可JSON序列化（例如將set轉爲list）
         serializable_state = self._make_json_serializable(state)
         
         run.state_json = serializable_state
@@ -79,11 +79,11 @@ class StateManager:
         self.session.commit()
     
     def _make_json_serializable(self, obj: Any) -> Any:
-        """递归转换对象为JSON可序列化的格式
+        """遞歸轉換對象爲JSON可序列化的格式
         
-        主要处理：
+        主要處理：
         - set -> list
-        - 其他不可序列化类型根据需要添加
+        - 其他不可序列化類型根據需要添加
         """
         if isinstance(obj, set):
             return list(obj)
@@ -95,7 +95,7 @@ class StateManager:
             return obj
     
     def get_run_state(self, run_id: int) -> Optional[Dict[str, Any]]:
-        """获取运行时状态"""
+        """獲取運行時狀態"""
         run = self.session.get(WorkflowRun, run_id)
         if not run:
             return None
@@ -107,7 +107,7 @@ class StateManager:
         error_message: str,
         error_details: Optional[Dict[str, Any]] = None
     ) -> None:
-        """保存错误信息"""
+        """保存錯誤信息"""
         run = self.session.get(WorkflowRun, run_id)
         if not run:
             return
@@ -120,7 +120,7 @@ class StateManager:
         self.session.add(run)
         self.session.commit()
     
-    # ==================== Node 状态管理 ====================
+    # ==================== Node 狀態管理 ====================
     
     def create_node_state(
         self,
@@ -128,8 +128,8 @@ class StateManager:
         node_id: str,
         node_type: str
     ) -> NodeExecutionState:
-        """创建或获取节点执行状态记录（upsert）"""
-        # 先尝试查找现有记录
+        """創建或獲取節點執行狀態記錄（upsert）"""
+        # 先嚐試查找現有記錄
         stmt = select(NodeExecutionState).where(
             NodeExecutionState.run_id == run_id,
             NodeExecutionState.node_id == node_id
@@ -137,7 +137,7 @@ class StateManager:
         state = self.session.exec(stmt).first()
 
         if state:
-            # 如果已存在，重置状态（用于重新执行）
+            # 如果已存在，重置狀態（用於重新執行）
             state.node_type = node_type
             state.status = "idle"
             state.start_time = None
@@ -148,16 +148,16 @@ class StateManager:
             state.outputs_json = None
             state.logs_json = None
             state.updated_at = datetime.utcnow()
-            logger.info(f"[StateManager] 重置节点状态: run_id={run_id}, node_id={node_id}")
+            logger.info(f"[StateManager] 重置節點狀態: run_id={run_id}, node_id={node_id}")
         else:
-            # 不存在则创建新记录
+            # 不存在則創建新記錄
             state = NodeExecutionState(
                 run_id=run_id,
                 node_id=node_id,
                 node_type=node_type,
                 status="idle"
             )
-            logger.info(f"[StateManager] 创建节点状态: run_id={run_id}, node_id={node_id}")
+            logger.info(f"[StateManager] 創建節點狀態: run_id={run_id}, node_id={node_id}")
 
         self.session.add(state)
         self.session.commit()
@@ -171,15 +171,15 @@ class StateManager:
         status: NodeStatus,
         **kwargs
     ) -> Optional[NodeExecutionState]:
-        """更新节点状态
+        """更新節點狀態
         
         Args:
-            run_id: 运行ID
-            node_id: 节点ID
-            status: 新状态
+            run_id: 運行ID
+            node_id: 節點ID
+            status: 新狀態
             **kwargs: 其他要更新的字段（如 progress, error_message 等）
         """
-        # 查找节点状态记录
+        # 查找節點狀態記錄
         stmt = select(NodeExecutionState).where(
             NodeExecutionState.run_id == run_id,
             NodeExecutionState.node_id == node_id
@@ -188,14 +188,14 @@ class StateManager:
         
         if not state:
             logger.warning(
-                f"[StateManager] 节点状态记录不存在: run_id={run_id}, node_id={node_id}"
+                f"[StateManager] 節點狀態記錄不存在: run_id={run_id}, node_id={node_id}"
             )
             return None
         
         state.status = status
         state.updated_at = datetime.utcnow()
         
-        # 更新时间戳
+        # 更新時間戳
         if status == "running" and not state.start_time:
             state.start_time = datetime.utcnow()
         elif status in ("success", "error", "skipped"):
@@ -218,7 +218,7 @@ class StateManager:
         node_id: str,
         inputs: Dict[str, Any]
     ) -> None:
-        """保存节点输入"""
+        """保存節點輸入"""
         stmt = select(NodeExecutionState).where(
             NodeExecutionState.run_id == run_id,
             NodeExecutionState.node_id == node_id
@@ -236,7 +236,7 @@ class StateManager:
         node_id: str,
         outputs: Dict[str, Any]
     ) -> None:
-        """保存节点输出"""
+        """保存節點輸出"""
         stmt = select(NodeExecutionState).where(
             NodeExecutionState.run_id == run_id,
             NodeExecutionState.node_id == node_id
@@ -256,7 +256,7 @@ class StateManager:
         message: str,
         **kwargs
     ) -> None:
-        """添加节点日志"""
+        """添加節點日誌"""
         stmt = select(NodeExecutionState).where(
             NodeExecutionState.run_id == run_id,
             NodeExecutionState.node_id == node_id
@@ -280,7 +280,7 @@ class StateManager:
         run_id: int,
         node_id: str
     ) -> Optional[NodeExecutionState]:
-        """获取节点状态"""
+        """獲取節點狀態"""
         stmt = select(NodeExecutionState).where(
             NodeExecutionState.run_id == run_id,
             NodeExecutionState.node_id == node_id
@@ -288,16 +288,16 @@ class StateManager:
         return self.session.exec(stmt).first()
     
     def get_all_node_states(self, run_id: int) -> list[NodeExecutionState]:
-        """获取运行的所有节点状态"""
+        """獲取運行的所有節點狀態"""
         stmt = select(NodeExecutionState).where(
             NodeExecutionState.run_id == run_id
         )
         return list(self.session.exec(stmt).all())
     
     def clear_node_states(self, run_id: int) -> None:
-        """清理运行的所有节点状态
+        """清理運行的所有節點狀態
         
-        在开始新的运行前调用，确保没有旧数据干扰
+        在開始新的運行前調用，確保沒有舊數據幹擾
         """
         stmt = select(NodeExecutionState).where(
             NodeExecutionState.run_id == run_id
@@ -309,9 +309,9 @@ class StateManager:
         
         if old_states:
             self.session.commit()
-            logger.info(f"[StateManager] 清理了 {len(old_states)} 个旧节点状态: run_id={run_id}")
+            logger.info(f"[StateManager] 清理了 {len(old_states)} 箇舊節點狀態: run_id={run_id}")
 
-    # ==================== 检查点管理 ====================
+    # ==================== 檢查點管理 ====================
     
     def save_checkpoint(
         self,
@@ -321,31 +321,31 @@ class StateManager:
         message: str = "",
         data: Optional[Dict[str, Any]] = None
     ) -> None:
-        """保存节点检查点
+        """保存節點檢查點
         
         Args:
-            run_id: 运行 ID
-            node_id: 节点 ID（变量名）
-            percent: 进度百分比（0-100）
-            message: 进度消息
-            data: 检查点数据（轻量级元数据，< 10KB）
+            run_id: 運行 ID
+            node_id: 節點 ID（變量名）
+            percent: 進度百分比（0-100）
+            message: 進度消息
+            data: 檢查點數據（輕量級元數據，< 10KB）
         
         注意：
-        - data 只保存位置信息（索引、计数器、ID等）
-        - 不保存业务数据（卡片内容、处理结果等）
+        - data 只保存位置信息（索引、計數器、ID等）
+        - 不保存業務數據（卡片內容、處理結果等）
         - 大小限制：< 10KB
         """
-        # 验证数据大小
+        # 驗證數據大小
         if data:
             import json
             data_size = len(json.dumps(data))
             if data_size > 10 * 1024:  # 10KB
                 logger.warning(
-                    f"[Checkpoint] 检查点数据过大: {node_id}, "
-                    f"大小={data_size} bytes, 建议 < 10KB"
+                    f"[Checkpoint] 檢查點數據過大: {node_id}, "
+                    f"大小={data_size} bytes, 建議 < 10KB"
                 )
         
-        # 构造检查点 JSON
+        # 構造檢查點 JSON
         checkpoint_json = {
             "percent": percent,
             "message": message,
@@ -353,7 +353,7 @@ class StateManager:
             "timestamp": datetime.utcnow().isoformat()
         }
         
-        # 查找或创建 NodeExecutionState
+        # 查找或創建 NodeExecutionState
         stmt = select(NodeExecutionState).where(
             NodeExecutionState.run_id == run_id,
             NodeExecutionState.node_id == node_id
@@ -361,9 +361,9 @@ class StateManager:
         state = self.session.exec(stmt).first()
         
         if not state:
-            # 创建新状态（通常不应该发生，但为了健壮性）
+            # 創建新狀態（通常不應該發生，但爲了健壯性）
             logger.warning(
-                f"[Checkpoint] 节点状态不存在，创建新状态: run_id={run_id}, node_id={node_id}"
+                f"[Checkpoint] 節點狀態不存在，創建新狀態: run_id={run_id}, node_id={node_id}"
             )
             state = NodeExecutionState(
                 run_id=run_id,
@@ -375,7 +375,7 @@ class StateManager:
             )
             self.session.add(state)
         else:
-            # 更新现有状态
+            # 更新現有狀態
             state.progress = percent
             state.checkpoint_json = checkpoint_json
             state.updated_at = datetime.utcnow()
@@ -383,7 +383,7 @@ class StateManager:
         self.session.commit()
         logger.debug(
             f"[Checkpoint] 保存: {node_id}, "
-            f"进度={percent}%, 消息={message}"
+            f"進度={percent}%, 消息={message}"
         )
     
     def load_checkpoint(
@@ -391,21 +391,21 @@ class StateManager:
         run_id: int,
         node_id: str
     ) -> Optional[Dict[str, Any]]:
-        """加载节点检查点
+        """加載節點檢查點
         
         Args:
-            run_id: 运行 ID
-            node_id: 节点 ID（变量名）
+            run_id: 運行 ID
+            node_id: 節點 ID（變量名）
             
         Returns:
-            检查点数据，格式：
+            檢查點數據，格式：
             {
                 "percent": 50.0,
-                "message": "已处理 30/60",
+                "message": "已處理 30/60",
                 "data": {"processed_count": 30},
                 "timestamp": "2026-02-04T10:30:00"
             }
-            如果不存在则返回 None
+            如果不存在則返回 None
         """
         stmt = select(NodeExecutionState).where(
             NodeExecutionState.run_id == run_id,
@@ -415,8 +415,8 @@ class StateManager:
         
         if state and state.checkpoint_json:
             logger.debug(
-                f"[Checkpoint] 加载: {node_id}, "
-                f"进度={state.checkpoint_json.get('percent')}%"
+                f"[Checkpoint] 加載: {node_id}, "
+                f"進度={state.checkpoint_json.get('percent')}%"
             )
             return state.checkpoint_json
         

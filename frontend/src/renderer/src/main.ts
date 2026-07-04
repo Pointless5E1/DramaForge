@@ -1,4 +1,4 @@
-import './assets/main.css'
+﻿import './assets/main.css'
 
 import { setupWebMock } from './web-mock'
 setupWebMock()
@@ -18,7 +18,7 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(ElementPlus)
 
-// 初始化主题（必须在挂载前）
+// 初始化主題（必須在掛載前）
 const appStore = useAppStore()
 appStore.initTheme()
 

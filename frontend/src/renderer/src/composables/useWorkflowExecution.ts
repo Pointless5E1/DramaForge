@@ -1,17 +1,17 @@
-/**
- * 工作流执行状态机
+﻿/**
+ * 工作流執行狀態機
  * 
- * 管理工作流执行的状态转换，防止非法操作
+ * 管理工作流執行的狀態轉換，防止非法操作
  */
 
 import { reactive, readonly, computed } from 'vue'
 
 export enum WorkflowState {
-  IDLE = 'idle',           // 空闲状态
-  RUNNING = 'running',     // 运行中
-  PAUSED = 'paused',       // 已暂停
+  IDLE = 'idle',           // 空閒狀態
+  RUNNING = 'running',     // 運行中
+  PAUSED = 'paused',       // 已暫停
   COMPLETED = 'completed', // 已完成
-  FAILED = 'failed'        // 失败
+  FAILED = 'failed'        // 失敗
 }
 
 export interface WorkflowExecution {
@@ -22,10 +22,10 @@ export interface WorkflowExecution {
 }
 
 /**
- * 工作流执行状态机
+ * 工作流執行狀態機
  */
 export function useWorkflowExecution() {
-  // 内部状态
+  // 內部狀態
   const execution = reactive<WorkflowExecution>({
     state: WorkflowState.IDLE,
     runId: null,
@@ -33,16 +33,16 @@ export function useWorkflowExecution() {
     error: null
   })
 
-  // 状态转换规则
+  // 狀態轉換規則
   const validTransitions: Record<WorkflowState, WorkflowState[]> = {
     [WorkflowState.IDLE]: [WorkflowState.RUNNING],
     [WorkflowState.RUNNING]: [WorkflowState.PAUSED, WorkflowState.COMPLETED, WorkflowState.FAILED],
     [WorkflowState.PAUSED]: [WorkflowState.RUNNING, WorkflowState.FAILED],
-    [WorkflowState.COMPLETED]: [WorkflowState.IDLE, WorkflowState.RUNNING],  // 允许从完成状态直接开始新执行
-    [WorkflowState.FAILED]: [WorkflowState.IDLE, WorkflowState.RUNNING]      // 允许从失败状态直接开始新执行
+    [WorkflowState.COMPLETED]: [WorkflowState.IDLE, WorkflowState.RUNNING],  // 允許從完成狀態直接開始新執行
+    [WorkflowState.FAILED]: [WorkflowState.IDLE, WorkflowState.RUNNING]      // 允許從失敗狀態直接開始新執行
   }
 
-  // 计算属性
+  // 計算屬性
   const isRunning = computed(() => execution.state === WorkflowState.RUNNING)
   const isPaused = computed(() => execution.state === WorkflowState.PAUSED)
   const isIdle = computed(() => execution.state === WorkflowState.IDLE)
@@ -57,9 +57,9 @@ export function useWorkflowExecution() {
   )
 
   /**
-   * 状态转换
-   * @param newState 新状态
-   * @throws Error 如果状态转换非法
+   * 狀態轉換
+   * @param newState 新狀態
+   * @throws Error 如果狀態轉換非法
    */
   function transitionTo(newState: WorkflowState) {
     const currentState = execution.state
@@ -67,24 +67,24 @@ export function useWorkflowExecution() {
 
     if (!allowedStates.includes(newState)) {
       throw new Error(
-        `非法状态转换: ${currentState} -> ${newState}. ` +
-        `允许的转换: ${allowedStates.join(', ')}`
+        `非法狀態轉換: ${currentState} -> ${newState}. ` +
+        `允許的轉換: ${allowedStates.join(', ')}`
       )
     }
 
-    console.log(`[WorkflowExecution] 状态转换: ${currentState} -> ${newState}`)
+    console.log(`[WorkflowExecution] 狀態轉換: ${currentState} -> ${newState}`)
     execution.state = newState
   }
 
   /**
-   * 开始执行
+   * 開始執行
    * @param workflowId 工作流ID
-   * @param runId 运行ID
+   * @param runId 運行ID
    */
   function start(workflowId: number, runId: number) {
-    // 如果当前是完成或失败状态，先重置再开始（自动清空之前的结果）
+    // 如果當前是完成或失敗狀態，先重置再開始（自動清空之前的結果）
     if (execution.state === WorkflowState.COMPLETED || execution.state === WorkflowState.FAILED) {
-      console.log(`[WorkflowExecution] 从 ${execution.state} 状态重新开始，自动清空结果`)
+      console.log(`[WorkflowExecution] 從 ${execution.state} 狀態重新開始，自動清空結果`)
     }
     
     transitionTo(WorkflowState.RUNNING)
@@ -94,8 +94,8 @@ export function useWorkflowExecution() {
   }
 
   /**
-   * 更新运行ID（不改变状态）
-   * @param runId 新的运行ID
+   * 更新運行ID（不改變狀態）
+   * @param runId 新的運行ID
    */
   function updateRunId(runId: number) {
     console.log(`[WorkflowExecution] 更新 runId: ${execution.runId} -> ${runId}`)
@@ -103,29 +103,29 @@ export function useWorkflowExecution() {
   }
 
   /**
-   * 暂停执行
+   * 暫停執行
    */
   function pause() {
     transitionTo(WorkflowState.PAUSED)
   }
 
   /**
-   * 恢复执行
+   * 恢復執行
    */
   function resume() {
     transitionTo(WorkflowState.RUNNING)
   }
 
   /**
-   * 完成执行
+   * 完成執行
    */
   function complete() {
     transitionTo(WorkflowState.COMPLETED)
   }
 
   /**
-   * 执行失败
-   * @param error 错误信息
+   * 執行失敗
+   * @param error 錯誤信息
    */
   function fail(error: string) {
     transitionTo(WorkflowState.FAILED)
@@ -133,7 +133,7 @@ export function useWorkflowExecution() {
   }
 
   /**
-   * 重置状态
+   * 重置狀態
    */
   function reset() {
     transitionTo(WorkflowState.IDLE)
@@ -143,10 +143,10 @@ export function useWorkflowExecution() {
   }
 
   return {
-    // 只读状态
+    // 只讀狀態
     execution: readonly(execution),
     
-    // 计算属性
+    // 計算屬性
     isRunning,
     isPaused,
     isIdle,
@@ -156,7 +156,7 @@ export function useWorkflowExecution() {
     canResume,
     canStart,
     
-    // 状态转换方法
+    // 狀態轉換方法
     start,
     updateRunId,
     pause,

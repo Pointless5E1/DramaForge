@@ -1,6 +1,6 @@
-"""应用启动初始化
+﻿"""應用啓動初始化
 
-统一的启动初始化流程。
+統一的啓動初始化流程。
 """
 
 from loguru import logger
@@ -16,16 +16,16 @@ from app.services.workflow.registry import discover_workflow_nodes
 
 
 def init_database():
-    """初始化数据库表结构
+    """初始化數據庫表結構
 
-    开发阶段可用；生产环境建议通过 Alembic 迁移。
+    開發階段可用；生產環境建議通過 Alembic 遷移。
     """
-    logger.info("[启动] 初始化数据库表结构...")
+    logger.info("[啓動] 初始化數據庫表結構...")
     SQLModel.metadata.create_all(engine)
-    # 对已有数据库执行轻量补齐：自动发现模型新增的安全追加列并补齐。
-    # 仅处理“加列”场景；复杂变更仍建议使用 Alembic 迁移。
+    # 對已有數據庫執行輕量補齊：自動發現模型新增的安全追加列並補齊。
+    # 僅處理“加列”場景；複雜變更仍建議使用 Alembic 遷移。
     _ensure_safe_additive_columns()
-    logger.info("[启动] 数据库表结构初始化完成")
+    logger.info("[啓動] 數據庫表結構初始化完成")
 
 
 def _column_has_table_level_unique_constraint(column) -> bool:
@@ -37,7 +37,7 @@ def _column_has_table_level_unique_constraint(column) -> bool:
 
 
 def _can_auto_add_column(column) -> tuple[bool, str]:
-    """检查列是否适合自动补齐（仅处理安全的追加场景）。"""
+    """檢查列是否適合自動補齊（僅處理安全的追加場景）。"""
     if column.primary_key:
         return False, "primary key"
     if column.unique or _column_has_table_level_unique_constraint(column):
@@ -52,14 +52,14 @@ def _can_auto_add_column(column) -> tuple[bool, str]:
 
 
 def _ensure_safe_additive_columns():
-    """自动发现模型与现有表结构差异，并补齐可安全追加的缺失列。
+    """自動發現模型與現有表結構差異，並補齊可安全追加的缺失列。
 
-    职责边界：
-    - 处理已存在数据表上的“新增列”场景
-    - 仅补齐安全追加的列
-    - 不处理删列、改列类型、改约束、索引补建、数据回填等复杂迁移
+    職責邊界：
+    - 處理已存在數據表上的“新增列”場景
+    - 僅補齊安全追加的列
+    - 不處理刪列、改列類型、改約束、索引補建、數據回填等複雜遷移
 
-    新表的创建仍由 `SQLModel.metadata.create_all(engine)` 负责。
+    新表的創建仍由 `SQLModel.metadata.create_all(engine)` 負責。
     """
     added_columns: list[str] = []
     skipped_columns: list[str] = []
@@ -76,7 +76,7 @@ def _ensure_safe_additive_columns():
             try:
                 db_columns = {item["name"] for item in inspector.get_columns(table.name)}
             except Exception:
-                logger.exception(f"[启动] 读取现有表结构失败: {table.name}")
+                logger.exception(f"[啓動] 讀取現有表結構失敗: {table.name}")
                 continue
 
             missing_columns = [column for column in table.columns if column.name not in db_columns]
@@ -96,116 +96,116 @@ def _ensure_safe_additive_columns():
                     added_columns.append(display_name)
                 except Exception as exc:
                     skipped_columns.append(f"{display_name} (add failed: {exc})")
-                    logger.exception(f"[启动] 自动补齐列失败: {display_name}")
+                    logger.exception(f"[啓動] 自動補齊列失敗: {display_name}")
 
     if added_columns:
-        logger.info(f"[启动] 已自动补齐缺失列: {', '.join(added_columns)}")
+        logger.info(f"[啓動] 已自動補齊缺失列: {', '.join(added_columns)}")
     else:
-        logger.info("[启动] 表结构检查完成，无需补齐缺失列")
+        logger.info("[啓動] 表結構檢查完成，無需補齊缺失列")
 
     if skipped_columns:
-        logger.warning(f"[启动] 检测到不安全或失败列，已跳过自动补齐: {', '.join(skipped_columns)}")
+        logger.warning(f"[啓動] 檢測到不安全或失敗列，已跳過自動補齊: {', '.join(skipped_columns)}")
 
 
 def init_application_data():
-    """初始化应用数据
+    """初始化應用數據
 
-    自动发现并执行所有已注册的初始化器。
-    初始化器通过 @initializer 装饰器注册，按 order 顺序执行。
+    自動發現並執行所有已註冊的初始化器。
+    初始化器通過 @initializer 裝飾器註冊，按 order 順序執行。
     """
-    logger.info("[启动] 初始化应用数据...")
+    logger.info("[啓動] 初始化應用數據...")
     with Session(engine) as session:
-        # 自动发现并执行所有初始化器
+        # 自動發現並執行所有初始化器
         discover_and_run_initializers(session)
-    logger.info("[启动] 应用数据初始化完成")
+    logger.info("[啓動] 應用數據初始化完成")
 
 
 def register_event_handlers():
-    """注册事件处理器
+    """註冊事件處理器
 
-    自动发现并导入所有事件处理器模块以触发 @on_event 装饰器。
+    自動發現並導入所有事件處理器模塊以觸發 @on_event 裝飾器。
     """
-    logger.info("[启动] 注册事件处理器...")
-    # 导入事件处理器模块以触发装饰器注册
+    logger.info("[啓動] 註冊事件處理器...")
+    # 導入事件處理器模塊以觸發裝飾器註冊
     import app.services  # noqa: F401
 
     discover_event_handlers()
-    logger.info("[启动] 事件处理器注册完成")
+    logger.info("[啓動] 事件處理器註冊完成")
 
 
 def register_workflow_nodes():
-    """注册工作流节点
+    """註冊工作流節點
 
-    自动发现并导入所有工作流节点模块以触发 @register_node 装饰器。
+    自動發現並導入所有工作流節點模塊以觸發 @register_node 裝飾器。
     """
-    logger.info("[启动] 注册工作流节点...")
+    logger.info("[啓動] 註冊工作流節點...")
     discover_workflow_nodes()
-    logger.info("[启动] 工作流节点注册完成")
+    logger.info("[啓動] 工作流節點註冊完成")
 
 
 def cleanup_zombie_runs():
-    """清理死机运行
+    """清理死機運行
 
-    将所有状态为 "running" 的运行标记为 "failed"。
-    这些运行可能是因为服务器崩溃或重启而中断的。
+    將所有狀態爲 "running" 的運行標記爲 "failed"。
+    這些運行可能是因爲服務器崩潰或重啓而中斷的。
     """
-    logger.info("[启动] 清理死机运行...")
+    logger.info("[啓動] 清理死機運行...")
 
     from sqlmodel import select
 
     from app.db.models import WorkflowRun
 
     with Session(engine) as session:
-        # 查找所有运行中的任务
+        # 查找所有運行中的任務
         stmt = select(WorkflowRun).where(WorkflowRun.status == "running")
         zombie_runs = session.exec(stmt).all()
 
         if zombie_runs:
-            logger.warning(f"[启动] 发现 {len(zombie_runs)} 个死机工作流运行，正在清理...")
+            logger.warning(f"[啓動] 發現 {len(zombie_runs)} 個死機工作流運行，正在清理...")
             for run in zombie_runs:
                 run.status = "failed"
                 if not run.error_json:
-                    run.error_json = {"error": "服务器重启，运行中断"}
+                    run.error_json = {"error": "服務器重啓，運行中斷"}
                 session.add(run)
-                logger.info(f"[启动] 清理死机运行: run_id={run.id}, workflow_id={run.workflow_id}")
+                logger.info(f"[啓動] 清理死機運行: run_id={run.id}, workflow_id={run.workflow_id}")
             session.commit()
-            logger.info(f"[启动] 已清理 {len(zombie_runs)} 个死机工作流运行")
+            logger.info(f"[啓動] 已清理 {len(zombie_runs)} 個死機工作流運行")
         else:
-            logger.info("[启动] 没有发现死机工作流运行")
+            logger.info("[啓動] 沒有發現死機工作流運行")
 
-    logger.info("[启动] 死机工作流运行清理完成")
+    logger.info("[啓動] 死機工作流運行清理完成")
 
 
 def startup():
-    """应用启动入口
+    """應用啓動入口
 
-    执行所有启动初始化任务。
+    執行所有啓動初始化任務。
     """
     logger.info("=" * 50)
-    logger.info("NovelForge 后端启动中...")
+    logger.info("NovelForge 後端啓動中...")
     logger.info("=" * 50)
 
-    # 1. 初始化数据库
+    # 1. 初始化數據庫
     init_database()
-    # 2. 初始化应用数据
+    # 2. 初始化應用數據
     init_application_data()
-    # 3. 注册事件处理器
+    # 3. 註冊事件處理器
     register_event_handlers()
-    # 4. 注册工作流节点
+    # 4. 註冊工作流節點
     register_workflow_nodes()
-    # 5. 清理死机运行
+    # 5. 清理死機運行
     cleanup_zombie_runs()
 
     logger.info("=" * 50)
-    logger.info("NovelForge 后端启动完成！")
+    logger.info("NovelForge 後端啓動完成！")
     logger.info("=" * 50)
 
 
 def shutdown():
-    """应用关闭清理
+    """應用關閉清理
 
-    执行关闭时的清理任务（如有需要）。
+    執行關閉時的清理任務（如有需要）。
     """
-    logger.info("NovelForge 后端正在关闭...")
-    # 可以在这里添加清理逻辑
-    logger.info("NovelForge 后端已关闭")
+    logger.info("NovelForge 後端正在關閉...")
+    # 可以在這裏添加清理邏輯
+    logger.info("NovelForge 後端已關閉")

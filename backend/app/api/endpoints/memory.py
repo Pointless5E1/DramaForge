@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
@@ -30,13 +30,13 @@ from app.services.memory_service import MemoryService
 router = APIRouter()
 
 
-@router.get("/extractors", response_model=MemoryExtractorListResponse, summary="获取可用记忆抽取器列表")
+@router.get("/extractors", response_model=MemoryExtractorListResponse, summary="獲取可用記憶抽取器列表")
 def list_extractors(session: Session = Depends(get_session)):
 	svc = MemoryService(session)
 	return MemoryExtractorListResponse(items=svc.list_extractors())
 
 
-@router.post("/extract-preview", response_model=ExtractPreviewResponse, summary="通用记忆提取预览")
+@router.post("/extract-preview", response_model=ExtractPreviewResponse, summary="通用記憶提取預覽")
 async def extract_preview(req: ExtractPreviewRequest, session: Session = Depends(get_session)):
 	svc = MemoryService(session)
 	try:
@@ -57,10 +57,10 @@ async def extract_preview(req: ExtractPreviewRequest, session: Session = Depends
 	except KeyError:
 		raise HTTPException(status_code=404, detail=f"未知抽取器: {req.extractor_code}")
 	except Exception as e:
-		raise HTTPException(status_code=500, detail=f"记忆提取预览失败: {e}")
+		raise HTTPException(status_code=500, detail=f"記憶提取預覽失敗: {e}")
 
 
-@router.post("/apply-preview", response_model=ApplyPreviewResponse, summary="通用记忆提取确认写入")
+@router.post("/apply-preview", response_model=ApplyPreviewResponse, summary="通用記憶提取確認寫入")
 def apply_preview(req: ApplyPreviewRequest, session: Session = Depends(get_session)):
 	svc = MemoryService(session)
 	try:
@@ -77,17 +77,17 @@ def apply_preview(req: ApplyPreviewRequest, session: Session = Depends(get_sessi
 	except KeyError:
 		raise HTTPException(status_code=404, detail=f"未知抽取器: {req.extractor_code}")
 	except Exception as e:
-		raise HTTPException(status_code=500, detail=f"记忆写入失败: {e}")
+		raise HTTPException(status_code=500, detail=f"記憶寫入失敗: {e}")
 
 
-@router.post("/query", response_model=QueryResponse, summary="检索子图快照")
+@router.post("/query", response_model=QueryResponse, summary="檢索子圖快照")
 def query(req: QueryRequest, session: Session = Depends(get_session)):
 	svc = MemoryService(session)
 	data = svc.graph.query_subgraph(project_id=req.project_id, participants=req.participants, radius=req.radius)
 	return QueryResponse(**data)
 
 
-@router.post("/ingest-relations-llm", response_model=IngestRelationsLLMResponse, summary="使用 LLM 抽取关系并写入图谱")
+@router.post("/ingest-relations-llm", response_model=IngestRelationsLLMResponse, summary="使用 LLM 抽取關係並寫入圖譜")
 async def ingest_relations_llm(req: IngestRelationsLLMRequest, session: Session = Depends(get_session)):
 	svc = MemoryService(session)
 	try:
@@ -113,10 +113,10 @@ async def ingest_relations_llm(req: IngestRelationsLLMRequest, session: Session 
 		)
 		return IngestRelationsLLMResponse(written=res.get("written", 0))
 	except Exception as e:
-		raise HTTPException(status_code=500, detail=f"LLM 关系抽取或写入失败: {e}")
+		raise HTTPException(status_code=500, detail=f"LLM 關係抽取或寫入失敗: {e}")
 
 
-@router.post("/extract-relations-llm", response_model=RelationExtraction, summary="仅抽取实体关系（不入图）")
+@router.post("/extract-relations-llm", response_model=RelationExtraction, summary="僅抽取實體關係（不入圖）")
 async def extract_relations_only(req: ExtractRelationsRequest, session: Session = Depends(get_session)):
 	svc = MemoryService(session)
 	try:
@@ -134,10 +134,10 @@ async def extract_relations_only(req: ExtractRelationsRequest, session: Session 
 		)
 		return RelationExtraction.model_validate(result["preview_data"])
 	except Exception as e:
-		raise HTTPException(status_code=500, detail=f"LLM 关系抽取失败: {e}")
+		raise HTTPException(status_code=500, detail=f"LLM 關係抽取失敗: {e}")
 
 
-@router.post("/extract-dynamic-info", response_model=UpdateDynamicInfo, summary="仅提取角色动态信息（不更新）")
+@router.post("/extract-dynamic-info", response_model=UpdateDynamicInfo, summary="僅提取角色動態信息（不更新）")
 async def extract_dynamic_info_only(req: ExtractOnlyRequest, session: Session = Depends(get_session)):
 	svc = MemoryService(session)
 	try:
@@ -154,10 +154,10 @@ async def extract_dynamic_info_only(req: ExtractOnlyRequest, session: Session = 
 		)
 		return UpdateDynamicInfo.model_validate(result["preview_data"])
 	except Exception as e:
-		raise HTTPException(status_code=500, detail=f"动态信息提取失败: {e}")
+		raise HTTPException(status_code=500, detail=f"動態信息提取失敗: {e}")
 
 
-@router.post("/ingest-relations", response_model=IngestRelationsFromPreviewResponse, summary="根据 RelationExtraction 结果入图")
+@router.post("/ingest-relations", response_model=IngestRelationsFromPreviewResponse, summary="根據 RelationExtraction 結果入圖")
 def ingest_relations_from_preview(req: IngestRelationsFromPreviewRequest, session: Session = Depends(get_session)):
 	svc = MemoryService(session)
 	try:
@@ -170,10 +170,10 @@ def ingest_relations_from_preview(req: IngestRelationsFromPreviewRequest, sessio
 		)
 		return IngestRelationsFromPreviewResponse(written=res.get("written", 0))
 	except Exception as e:
-		raise HTTPException(status_code=500, detail=f"关系入图失败: {e}")
+		raise HTTPException(status_code=500, detail=f"關係入圖失敗: {e}")
 
 
-@router.post("/update-dynamic-info", response_model=UpdateDynamicInfoResponse, summary="根据预览结果写入角色动态信息")
+@router.post("/update-dynamic-info", response_model=UpdateDynamicInfoResponse, summary="根據預覽結果寫入角色動態信息")
 def update_dynamic_info(req: UpdateDynamicInfoRequest, session: Session = Depends(get_session)):
 	svc = MemoryService(session)
 	try:

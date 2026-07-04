@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from typing import Any
 
@@ -10,7 +10,7 @@ from app.schemas.memory import ParticipantTyped
 
 class CharacterDynamicExtractor:
     code = "character_dynamic"
-    name = "角色动态信息提取"
+    name = "角色動態信息提取"
     target = "card"
     preview_supported = True
     output_model = UpdateDynamicInfo

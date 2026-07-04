@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from typing import Any
 
@@ -10,7 +10,7 @@ from app.schemas.relation_extract import RelationExtraction
 
 class RelationExtractor:
     code = "relation"
-    name = "关系提取"
+    name = "關係提取"
     target = "graph"
     preview_supported = True
     output_model = RelationExtraction

@@ -1,15 +1,15 @@
-"""业务异常定义
+﻿"""業務異常定義
 
-服务层抛出这些异常，API 层负责转换为 HTTP 响应。
+服務層拋出這些異常，API 層負責轉換爲 HTTP 響應。
 """
 
 
 class BusinessException(Exception):
-    """业务异常
+    """業務異常
     
     Args:
-        message: 错误消息
-        status_code: HTTP 状态码（404/400/409等）
+        message: 錯誤消息
+        status_code: HTTP 狀態碼（404/400/409等）
     """
     def __init__(self, message: str, status_code: int = 500):
         self.message = message

@@ -1,4 +1,4 @@
-"""示例节点模块"""
+﻿"""示例節點模塊"""
 
 from .process import ExampleProcessNode, BatchProcessNode
 

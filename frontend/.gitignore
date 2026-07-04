@@ -1,4 +1,4 @@
-# 依赖和构建产物
+﻿# 依賴和構建產物
 node_modules
 build/
 dist/
@@ -10,11 +10,11 @@ scripts/*.cjs
 .vscode/
 .idea/
 
-# 系统文件
+# 系統文件
 .DS_Store
 Thumbs.db
 
-# 缓存和日志
+# 緩存和日誌
 .eslintcache
 *.log*
 *.tmp

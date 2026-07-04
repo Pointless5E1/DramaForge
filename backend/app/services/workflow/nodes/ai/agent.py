@@ -1,6 +1,6 @@
-"""Agent 节点
+﻿"""Agent 節點
 
-提供多步骤推理和工具调用能力，支持历史对话链式传递。
+提供多步驟推理和工具調用能力，支持歷史對話鏈式傳遞。
 """
 
 from typing import Any, Dict, List, Optional, AsyncIterator
@@ -23,64 +23,64 @@ from app.services.ai.assistant.tools import (
 # ============================================================
 
 class AgentInput(BaseModel):
-    """Agent 输入"""
-    instruction: str = Field(..., description="任务指令")
-    project_id: Optional[int] = Field(None, description="项目ID（使用项目相关工具时必须传递）")
+    """Agent 輸入"""
+    instruction: str = Field(..., description="任務指令")
+    project_id: Optional[int] = Field(None, description="項目ID（使用項目相關工具時必須傳遞）")
     system_prompt: Optional[str] = Field(
-        "你是一个专业的写作助手，帮助用户完成小说创作任务。",
-        description="系统提示词"
+        "你是一個專業的寫作助手，幫助用戶完成小說創作任務。",
+        description="系統提示詞"
     )
-    history: List[Dict[str, Any]] = Field(default_factory=list, description="对话历史")
+    history: List[Dict[str, Any]] = Field(default_factory=list, description="對話歷史")
     llm_config_id: int = Field(..., description="LLM 配置 ID", gt=0)
-    temperature: float = Field(0.7, description="温度参数", ge=0.0, le=2.0)
-    max_tokens: Optional[int] = Field(None, description="最大生成 token 数", gt=0)
-    timeout: int = Field(60, description="超时时间（秒）", gt=0)
-    role_name: str = Field("助手", description="Agent 角色名称")
+    temperature: float = Field(0.7, description="溫度參數", ge=0.0, le=2.0)
+    max_tokens: Optional[int] = Field(None, description="最大生成 token 數", gt=0)
+    timeout: int = Field(60, description="超時時間（秒）", gt=0)
+    role_name: str = Field("助手", description="Agent 角色名稱")
     tools: List[str] = Field(
         default_factory=list,
-        description="启用的工具列表",
+        description="啓用的工具列表",
         json_schema_extra={"x-component": "ToolMultiSelect"}
     )
-    max_steps: int = Field(10, ge=1, le=50, description="最大推理步数")
+    max_steps: int = Field(10, ge=1, le=50, description="最大推理步數")
 
 
 class AgentOutput(BaseModel):
-    """Agent 输出"""
-    response: str = Field(..., description="Agent 回复")
-    new_history: List[Dict[str, Any]] = Field(..., description="更新后的对话历史")
-    artifacts: List[Dict[str, Any]] = Field(default_factory=list, description="创建/修改的卡片列表")
+    """Agent 輸出"""
+    response: str = Field(..., description="Agent 回覆")
+    new_history: List[Dict[str, Any]] = Field(..., description="更新後的對話歷史")
+    artifacts: List[Dict[str, Any]] = Field(default_factory=list, description="創建/修改的卡片列表")
 
 
 # ============================================================
 # Node Implementation
 # ============================================================
 
-# @register_node 还没测试好，暂时不使用
+# @register_node 還沒測試好，暫時不使用
 class AgentNode(BaseNode[AgentInput, AgentOutput]):
-    """Agent 节点"""
+    """Agent 節點"""
     
     node_type = "AI.Agent"
     category = "ai"
     label = "AI Agent"
-    description = "支持工具调用的智能体，可进行多步骤推理"
+    description = "支持工具調用的智能體，可進行多步驟推理"
     
     input_model = AgentInput
     output_model = AgentOutput
 
     async def execute(self, input_data: AgentInput) -> AsyncIterator[AgentOutput]:
-        """执行 Agent"""
+        """執行 Agent"""
         
-        # 使用显式传递的项目ID（可选）
+        # 使用顯式傳遞的項目ID（可選）
         project_id = input_data.project_id or -1
         
-        # 设置 AssistantDeps
+        # 設置 AssistantDeps
         deps = AssistantDeps(
             session=self.context.session,
             project_id=project_id
         )
         set_assistant_deps(deps)
         
-        # 构建 ChatModel
+        # 構建 ChatModel
         model = build_chat_model(
             session=self.context.session,
             llm_config_id=input_data.llm_config_id,
@@ -89,7 +89,7 @@ class AgentNode(BaseNode[AgentInput, AgentOutput]):
             timeout=input_data.timeout,
         )
         
-        # 筛选工具
+        # 篩選工具
         selected_tools = []
         for tool_name in input_data.tools:
             tool = ASSISTANT_TOOL_REGISTRY.get(tool_name)
@@ -99,9 +99,9 @@ class AgentNode(BaseNode[AgentInput, AgentOutput]):
                 logger.warning(f"[AI.Agent] 未找到工具: {tool_name}")
         
         if not selected_tools:
-            logger.warning("[AI.Agent] 未选择任何工具，将使用纯文本模式")
+            logger.warning("[AI.Agent] 未選擇任何工具，將使用純文本模式")
         
-        # 构建 Agent
+        # 構建 Agent
         agent = build_agent(
             model=model,
             tools=selected_tools,
@@ -109,30 +109,30 @@ class AgentNode(BaseNode[AgentInput, AgentOutput]):
             enable_summarization=False,
         )
         
-        # 构建消息
+        # 構建消息
         messages = []
         
-        # 添加历史消息
+        # 添加歷史消息
         if input_data.history:
             messages.extend(input_data.history)
         
-        # 添加当前指令
+        # 添加當前指令
         messages.append({
             "role": "user",
             "content": input_data.instruction
         })
         
-        # 执行 Agent（非流式）
+        # 執行 Agent（非流式）
         result = await agent.ainvoke({"messages": messages})
         
-        # 提取响应
+        # 提取響應
         response_text = ""
         final_messages = []
         
         if isinstance(result, dict):
             result_messages = result.get("messages", [])
             if result_messages:
-                # 获取最后一条 AI 消息
+                # 獲取最後一條 AI 消息
                 for msg in reversed(result_messages):
                     if hasattr(msg, 'content'):
                         response_text = msg.content
@@ -141,10 +141,10 @@ class AgentNode(BaseNode[AgentInput, AgentOutput]):
                         response_text = msg.get("content", "")
                         break
                 
-                # 保存完整历史
+                # 保存完整歷史
                 final_messages = result_messages
         
-        # 转换消息格式为可序列化的字典
+        # 轉換消息格式爲可序列化的字典
         serializable_history = []
         for msg in final_messages:
             if hasattr(msg, 'dict'):
@@ -160,13 +160,13 @@ class AgentNode(BaseNode[AgentInput, AgentOutput]):
                 })
         
         logger.info(
-            f"[AI.Agent] Agent 执行成功: role={input_data.role_name}, "
+            f"[AI.Agent] Agent 執行成功: role={input_data.role_name}, "
             f"tools={len(selected_tools)}, response_length={len(response_text)}"
         )
         
         yield AgentOutput(
             response=response_text,
             new_history=serializable_history,
-            artifacts=[]  # TODO: 跟踪工具调用创建的卡片
+            artifacts=[]  # TODO: 跟蹤工具調用創建的卡片
         )
 

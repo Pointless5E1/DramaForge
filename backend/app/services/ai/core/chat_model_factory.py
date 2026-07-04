@@ -1,6 +1,6 @@
-"""ChatModel 工厂。
+﻿"""ChatModel 工廠。
 
-统一管理 LLM 配置读取与 LangChain ChatModel 构建，避免业务层重复拼装参数。
+統一管理 LLM 配置讀取與 LangChain ChatModel 構建，避免業務層重複拼裝參數。
 """
 
 from typing import Optional
@@ -35,9 +35,9 @@ def _sanitize_common_generation_kwargs(
 def _build_openai_family_transport_kwargs(transport: dict) -> dict:
     kwargs: dict = {}
     if transport["request_base"]:
-        # LangChain 这里统一接收 `base_url`。
-        # 之前传成 `openai_api_base` 会导致 `ChatQwen` 忽略自定义网关，
-        # 旧的 openai_compatible 配置就会错误落回默认供应商端点。
+        # LangChain 這裏統一接收 `base_url`。
+        # 之前傳成 `openai_api_base` 會導致 `ChatQwen` 忽略自定義網關，
+        # 舊的 openai_compatible 配置就會錯誤落回默認供應商端點。
         kwargs["base_url"] = transport["request_base"]
     if transport["default_headers"]:
         kwargs["default_headers"] = transport["default_headers"]
@@ -91,9 +91,9 @@ def build_chat_model_from_payload(
         if thinking_enabled is not None:
             model_kwargs["extra_body"] = {"enable_thinking": thinking_enabled}
 
-        # `responses` 模式下统一走 `ChatOpenAI`。
-        # 原先 openai_compatible 仍走 `ChatQwen`，会在流式 continuation 时构造出
-        # 不满足 openai-python Responses API 要求的 payload，触发
+        # `responses` 模式下統一走 `ChatOpenAI`。
+        # 原先 openai_compatible 仍走 `ChatQwen`，會在流式 continuation 時構造出
+        # 不滿足 openai-python Responses API 要求的 payload，觸發
         # “Missing required arguments; Expected either ('messages' and 'model') ...”。
         if transport["use_responses_api"]:
             return ChatOpenAI(**model_kwargs)
@@ -135,7 +135,7 @@ def _get_llm_config(session: Session, llm_config_id: int) -> LLMConfig:
     if not cfg:
         raise ValueError(f"LLM 配置不存在，ID: {llm_config_id}")
     if not cfg.api_key:
-        raise ValueError(f"未找到 LLM 配置 {cfg.display_name or cfg.model_name} 的 API 密钥")
+        raise ValueError(f"未找到 LLM 配置 {cfg.display_name or cfg.model_name} 的 API 密鑰")
     return cfg
 
 

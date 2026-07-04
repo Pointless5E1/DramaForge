@@ -1,6 +1,6 @@
-"""知识库初始化
+﻿"""知識庫初始化
 
-从文件系统加载知识库内容并初始化到数据库。
+從文件系統加載知識庫內容並初始化到數據庫。
 """
 
 import os
@@ -12,14 +12,14 @@ from app.core.config import settings
 from .registry import initializer
 
 
-@initializer(name="知识库", order=30)
+@initializer(name="知識庫", order=30)
 def init_knowledge(session: Session) -> None:
-    """初始化知识库
+    """初始化知識庫
     
-    从 bootstrap/knowledge 目录导入 *.txt 和 *.md 文件。
+    從 bootstrap/knowledge 目錄導入 *.txt 和 *.md 文件。
     
     Args:
-        session: 数据库会话
+        session: 數據庫會話
     """
     knowledge_dir = os.path.join(os.path.dirname(__file__), 'knowledge')
     if not os.path.exists(knowledge_dir):
@@ -41,9 +41,9 @@ def init_knowledge(session: Session) -> None:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read().strip()
         except Exception as e:
-            logger.warning(f"读取知识库文件失败 {file_path}: {e}")
+            logger.warning(f"讀取知識庫文件失敗 {file_path}: {e}")
             continue
-        description = f"预置知识库：{name}"
+        description = f"預置知識庫：{name}"
         if name in existing:
             if overwrite:
                 kb = existing[name]
@@ -59,6 +59,6 @@ def init_knowledge(session: Session) -> None:
 
     if created or updated:
         session.commit()
-        logger.info(f"知识库初始化完成：新增 {created}，更新 {updated}（overwrite={overwrite}，跳过 {skipped}）")
+        logger.info(f"知識庫初始化完成：新增 {created}，更新 {updated}（overwrite={overwrite}，跳過 {skipped}）")
     else:
-        logger.info(f"知识库已是最新状态（overwrite={overwrite}，跳过 {skipped}）。")
+        logger.info(f"知識庫已是最新狀態（overwrite={overwrite}，跳過 {skipped}）。")

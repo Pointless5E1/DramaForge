@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="schema-builder">
     <div class="toolbar">
       <el-button type="primary" @click="addField">新增字段</el-button>
@@ -9,21 +9,21 @@
           <div class="ops-col">
             <el-button class="ops-btn" size="small" @click="moveUp($index)" :disabled="$index===0">上移</el-button>
             <el-button class="ops-btn" size="small" @click="moveDown($index)" :disabled="$index===localFields.length-1">下移</el-button>
-            <el-button class="ops-btn" size="small" type="danger" plain @click="removeField($index)">删除</el-button>
+            <el-button class="ops-btn" size="small" type="danger" plain @click="removeField($index)">刪除</el-button>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="名称" width="150">
+      <el-table-column label="名稱" width="150">
         <template #default="{ row }">
           <el-input v-model="row.name" placeholder="字段名" />
         </template>
       </el-table-column>
-      <el-table-column label="显示名" width="150">
+      <el-table-column label="顯示名" width="150">
         <template #default="{ row }">
-          <el-input v-model="row.label" placeholder="用于表单显示的标题" />
+          <el-input v-model="row.label" placeholder="用於表單顯示的標題" />
         </template>
       </el-table-column>
-      <el-table-column label="类型" width="150">
+      <el-table-column label="類型" width="150">
         <template #default="{ row }">
           <el-select v-model="row.kind" @change="onKindChange(row)">
             <el-option v-for="t in baseKinds" :key="t" :label="t" :value="t" />
@@ -31,7 +31,7 @@
           </el-select>
         </template>
       </el-table-column>
-      <el-table-column label="数组" width="80" align="center">
+      <el-table-column label="數組" width="80" align="center">
         <template #default="{ row }">
           <el-switch v-model="row.isArray" />
         </template>
@@ -46,34 +46,34 @@
           <el-switch v-model="row.aiExclude" />
         </template>
       </el-table-column>
-      <el-table-column label="注解" min-width="240">
+      <el-table-column label="註解" min-width="240">
         <template #default="{ row }">
-          <el-input v-model="row.description" placeholder="用于 Field 描述，提升 AI 结构化准确率" />
+          <el-input v-model="row.description" placeholder="用於 Field 描述，提升 AI 結構化準確率" />
         </template>
       </el-table-column>
       <el-table-column label="示例" min-width="220">
         <template #default="{ row }">
-          <el-input v-model="row.example" placeholder="示例（兼容 pydantic 的 examples[0]/example，可填写 JSON 字符串）" />
+          <el-input v-model="row.example" placeholder="示例（兼容 pydantic 的 examples[0]/example，可填寫 JSON 字符串）" />
         </template>
       </el-table-column>
-      <el-table-column label="元组元素" min-width="260">
+      <el-table-column label="元組元素" min-width="260">
         <template #default="{ row }">
           <div v-if="row.kind==='tuple'" class="tuple-editor">
             <div v-for="(t, i) in row.tupleItems" :key="i" class="tuple-chip">
               <el-select v-model="row.tupleItems[i]" size="small" style="width:120px">
                 <el-option v-for="tk in tupleKinds" :key="tk" :label="tk" :value="tk" />
               </el-select>
-              <el-button size="small" text type="danger" @click="removeTupleItem(row, i)" :disabled="(row.tupleItems?.length||0) <= 1">删</el-button>
+              <el-button size="small" text type="danger" @click="removeTupleItem(row, i)" :disabled="(row.tupleItems?.length||0) <= 1">刪</el-button>
             </div>
             <el-button size="small" text type="primary" @click="addTupleItem(row)">+ 元素</el-button>
           </div>
           <div v-else class="rel-config muted">—</div>
         </template>
       </el-table-column>
-      <el-table-column label="关系配置" min-width="200">
+      <el-table-column label="關係配置" min-width="200">
         <template #default="{ row }">
           <div v-if="row.kind==='relation'" class="rel-config">
-            <el-select v-model="row.relation.targetModelName" filterable placeholder="选择目标输出模型" style="width:260px">
+            <el-select v-model="row.relation.targetModelName" filterable placeholder="選擇目標輸出模型" style="width:260px">
               <el-option v-for="t in targetModels" :key="t.name" :label="t.name" :value="t.name" :disabled="isEmbedSelf(row, t.name)" />
             </el-select>
           </div>

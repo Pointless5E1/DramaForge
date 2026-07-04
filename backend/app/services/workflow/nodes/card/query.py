@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, AsyncIterator
+﻿from typing import Any, Dict, List, Optional, AsyncIterator
 from loguru import logger
 from pydantic import BaseModel, Field
 from sqlmodel import select
@@ -9,15 +9,15 @@ from ..base import BaseNode, get_card_type_by_name
 
 
 class CardQueryInput(BaseModel):
-    """查询卡片输入"""
-    card_type: Optional[str] = Field(None, description="卡片类型名称（可选）")
-    parent_id: Optional[int] = Field(None, description="父卡片ID（可选）")
-    project_id: Optional[int] = Field(None, description="项目ID（可选）")
-    limit: int = Field(100, description="最大返回数量")
+    """查詢卡片輸入"""
+    card_type: Optional[str] = Field(None, description="卡片類型名稱（可選）")
+    parent_id: Optional[int] = Field(None, description="父卡片ID（可選）")
+    project_id: Optional[int] = Field(None, description="項目ID（可選）")
+    limit: int = Field(100, description="最大返回數量")
 
 
 class CardQueryOutput(BaseModel):
-    """查询卡片输出"""
+    """查詢卡片輸出"""
     cards: List[Dict[str, Any]] = Field(..., description="卡片列表")
 
 
@@ -25,18 +25,18 @@ class CardQueryOutput(BaseModel):
 class CardQueryNode(BaseNode[CardQueryInput, CardQueryOutput]):
     node_type = "Card.Query"
     category = "card"
-    label = "查询卡片"
-    description = "根据条件查询卡片列表"
+    label = "查詢卡片"
+    description = "根據條件查詢卡片列表"
     
     input_model = CardQueryInput
     output_model = CardQueryOutput
 
     async def execute(self, inputs: CardQueryInput) -> AsyncIterator[CardQueryOutput]:
-        """查询卡片节点"""
-        # 构建查询
+        """查詢卡片節點"""
+        # 構建查詢
         stmt = select(Card)
         
-        # 添加过滤条件
+        # 添加過濾條件
         if inputs.card_type:
             card_type = get_card_type_by_name(self.context.session, inputs.card_type)
             if card_type:
@@ -46,19 +46,19 @@ class CardQueryNode(BaseNode[CardQueryInput, CardQueryOutput]):
         if inputs.parent_id is not None:
             stmt = stmt.where(Card.parent_id == inputs.parent_id)
         
-        # Project ID（如果提供则过滤，否则不过滤）
+        # Project ID（如果提供則過濾，否則不過濾）
         if inputs.project_id:
             stmt = stmt.where(Card.project_id == inputs.project_id)
         
-        # 限制数量
+        # 限制數量
         stmt = stmt.limit(inputs.limit)
         
-        # 执行查询
+        # 執行查詢
         cards = list(self.context.session.exec(stmt).all())
         
         logger.info(
-            f"[Card.Query] 查询卡片: type={inputs.card_type}, "
-            f"parent_id={inputs.parent_id}, 结果数={len(cards)}"
+            f"[Card.Query] 查詢卡片: type={inputs.card_type}, "
+            f"parent_id={inputs.parent_id}, 結果數={len(cards)}"
         )
         
         yield CardQueryOutput(

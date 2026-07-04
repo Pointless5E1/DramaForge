@@ -1,4 +1,4 @@
-from typing import Optional
+﻿from typing import Optional
 
 from sqlmodel import SQLModel, Field
 
@@ -19,7 +19,7 @@ class PromptUpdate(SQLModel):
     description: Optional[str] = None
     template: Optional[str] = None
 
-# 知识库Schema
+# 知識庫Schema
 class KnowledgeBase(SQLModel):
     name: str
     description: Optional[str] = None

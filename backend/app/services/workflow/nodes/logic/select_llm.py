@@ -1,4 +1,4 @@
-from typing import Any, AsyncIterator, Dict
+﻿from typing import Any, AsyncIterator, Dict
 
 from loguru import logger
 from pydantic import BaseModel, Field
@@ -10,7 +10,7 @@ from ..base import BaseNode
 
 
 class SelectLLMInput(BaseModel):
-    """选择 LLM 配置输入"""
+    """選擇 LLM 配置輸入"""
 
     llm_config_id: int | None = Field(
         default=None,
@@ -19,24 +19,24 @@ class SelectLLMInput(BaseModel):
     )
     llm_name: str | None = Field(
         default=None,
-        description="模型显示名或 model_name（当 llm_config_id 为空时按名称解析，名称和ID提供一个即可）",
+        description="模型顯示名或 model_name（當 llm_config_id 爲空時按名稱解析，名稱和ID提供一個即可）",
         json_schema_extra={"x-component": "LLMSelect"},
     )
 
 
 class SelectLLMOutput(BaseModel):
-    """选择 LLM 配置输出"""
+    """選擇 LLM 配置輸出"""
 
     llm_config_id: int = Field(..., description="LLM 配置 ID")
-    llm_config: Dict[str, Any] = Field(..., description="LLM 配置对象")
+    llm_config: Dict[str, Any] = Field(..., description="LLM 配置對象")
 
 
 @register_node
 class SelectLLMNode(BaseNode[SelectLLMInput, SelectLLMOutput]):
     node_type = "Logic.SelectLLM"
     category = "logic"
-    label = "选择模型"
-    description = "选择并输出一个 LLM 配置，可以根据名字、ID来获取具体的LLM配置，包括LLM ID"
+    label = "選擇模型"
+    description = "選擇並輸出一個 LLM 配置，可以根據名字、ID來獲取具體的LLM配置，包括LLM ID"
 
     input_model = SelectLLMInput
     output_model = SelectLLMOutput
@@ -57,7 +57,7 @@ class SelectLLMNode(BaseNode[SelectLLMInput, SelectLLMOutput]):
             if len(exact) == 1:
                 config = exact[0]
             elif len(exact) > 1:
-                raise ValueError(f"模型名匹配到多个候选: {inputs.llm_name}")
+                raise ValueError(f"模型名匹配到多個候選: {inputs.llm_name}")
             else:
                 all_rows = session.exec(select(LLMConfig)).all()
                 lowered = inputs.llm_name.lower()
@@ -70,7 +70,7 @@ class SelectLLMNode(BaseNode[SelectLLMInput, SelectLLMOutput]):
                 if len(matches) == 1:
                     config = matches[0]
                 elif len(matches) > 1:
-                    raise ValueError(f"模型名匹配到多个候选: {inputs.llm_name}")
+                    raise ValueError(f"模型名匹配到多個候選: {inputs.llm_name}")
 
         if not config:
             raise ValueError(
@@ -78,7 +78,7 @@ class SelectLLMNode(BaseNode[SelectLLMInput, SelectLLMOutput]):
             )
 
         logger.info(
-            f"[SelectLLM] 选择模型: {config.display_name or config.model_name} "
+            f"[SelectLLM] 選擇模型: {config.display_name or config.model_name} "
             f"(id={config.id})"
         )
 

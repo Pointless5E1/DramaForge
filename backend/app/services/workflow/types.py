@@ -1,6 +1,6 @@
-"""工作流引擎类型定义
+﻿"""工作流引擎類型定義
 
-只包含新代码式工作流系统使用的类型。
+只包含新代碼式工作流系統使用的類型。
 """
 
 from typing import Literal, Any, Callable, Dict
@@ -8,58 +8,58 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 
-# 节点状态类型
+# 節點狀態類型
 NodeStatus = Literal["idle", "pending", "running", "success", "error", "skipped"]
 
-# 运行状态类型
+# 運行狀態類型
 RunStatus = Literal["queued", "running", "succeeded", "failed", "cancelled", "paused", "timeout"]
 
-# 错误处理策略
+# 錯誤處理策略
 ErrorHandling = Literal["stop", "continue"]
 
-# 日志级别
+# 日誌級別
 LogLevel = Literal["debug", "info", "warn", "error"]
 
 
 @dataclass
 class NodeMetadata:
-    """节点元数据"""
+    """節點元數據"""
     type: str
     category: str
     label: str
     description: str
-    documentation: str  # 完整的文档（从 docstring 提取）
-    input_schema: Dict[str, Any]  # 从 input_model 生成的 JSON Schema
-    output_schema: Dict[str, Any]  # 从 output_model 生成的 JSON Schema
-    executor: Callable  # 节点执行器类
+    documentation: str  # 完整的文檔（從 docstring 提取）
+    input_schema: Dict[str, Any]  # 從 input_model 生成的 JSON Schema
+    output_schema: Dict[str, Any]  # 從 output_model 生成的 JSON Schema
+    executor: Callable  # 節點執行器類
 
 
 @dataclass
 class WorkflowSettings:
-    """工作流执行设置"""
+    """工作流執行設置"""
     max_execution_time: int | None = None  # 秒
-    timeout: int = 300  # 节点默认超时时间（秒）
+    timeout: int = 300  # 節點默認超時時間（秒）
     error_handling: ErrorHandling = "stop"
-    max_concurrency: int = 5  # 最大并发节点数
+    max_concurrency: int = 5  # 最大併發節點數
     log_level: LogLevel = "info"
 
 
 @dataclass
 class ExecutionContext:
-    """节点执行上下文（简化版，用于兼容旧节点）"""
+    """節點執行上下文（簡化版，用於兼容舊節點）"""
     run_id: int
     node_id: str
     node_type: str
     config: dict[str, Any]
     inputs: dict[str, Any]
-    variables: dict[str, Any]  # 全局变量
-    node_outputs: dict[str, dict[str, Any]]  # 其他节点的输出
+    variables: dict[str, Any]  # 全局變量
+    node_outputs: dict[str, dict[str, Any]]  # 其他節點的輸出
     settings: WorkflowSettings
     session: Any  # SQLModel Session
-    checkpoint: dict[str, Any] | None = None  # 检查点数据（恢复时注入）
-    """检查点数据（恢复时由执行器注入）
+    checkpoint: dict[str, Any] | None = None  # 檢查點數據（恢復時注入）
+    """檢查點數據（恢復時由執行器注入）
     
-    节点可以通过 self.context.checkpoint 访问上次保存的检查点数据。
+    節點可以通過 self.context.checkpoint 訪問上次保存的檢查點數據。
     
     示例：
         checkpoint = getattr(self.context, 'checkpoint', None)
@@ -69,21 +69,21 @@ class ExecutionContext:
             start_index = 0
     
     注意：
-    - 只保存轻量级元数据（索引、计数器、ID等）
-    - 不保存业务数据（卡片内容、处理结果等）
+    - 只保存輕量級元數據（索引、計數器、ID等）
+    - 不保存業務數據（卡片內容、處理結果等）
     - 大小限制：< 10KB
     """
 
 
 @dataclass
 class ExecutionEvent:
-    """执行事件（用于 SSE 推送）"""
+    """執行事件（用於 SSE 推送）"""
     type: str  # run.started | node.started | node.progress | node.completed | node.error | run.completed | run.paused | run.cancelled
     data: dict
     timestamp: datetime = field(default_factory=datetime.utcnow)
     
     def to_sse(self) -> str:
-        """转换为SSE格式"""
+        """轉換爲SSE格式"""
         import json
         return f"event: {self.type}\ndata: {json.dumps(self.data, ensure_ascii=False)}\n\n"
 

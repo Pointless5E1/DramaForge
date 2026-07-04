@@ -1,4 +1,4 @@
-import { ref, watch } from 'vue'
+﻿import { ref, watch } from 'vue'
 
 const STORAGE_KEYS = {
   contextSummaryEnabled: 'nf:agent:ctx_summary_enabled',
@@ -28,7 +28,7 @@ const contextSummaryEnabled = ref(false)
 const contextSummaryThreshold = ref<number | null>(4000)
 const reactModeEnabled = ref(true)
 const agentTemperature = ref<number | null>(0.6)
-// -1 表示不限制（不向后端发送 max_tokens）
+// -1 表示不限制（不向後端發送 max_tokens）
 const agentMaxTokens = ref<number | null>(-1)
 const agentTimeout = ref<number | null>(90)
 const agentAssistantFontSize = ref<number>(16)

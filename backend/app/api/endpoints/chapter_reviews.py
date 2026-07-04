@@ -1,4 +1,4 @@
-from typing import List
+﻿from typing import List
 
 from fastapi import APIRouter, Depends
 from sqlmodel import Session
@@ -25,7 +25,7 @@ router = APIRouter()
 @router.post(
     "/cards/run",
     response_model=ApiResponse[ReviewRunResponse],
-    summary="运行卡片审核（返回审核草稿）",
+    summary="運行卡片審核（返回審核草稿）",
 )
 async def run_review_endpoint(
     request: ReviewRunRequest,
@@ -38,7 +38,7 @@ async def run_review_endpoint(
 @router.post(
     "/cards/upsert",
     response_model=ApiResponse[ReviewResultCardRead],
-    summary="创建或更新审核结果卡片",
+    summary="創建或更新審核結果卡片",
 )
 def upsert_review_card_endpoint(
     request: ReviewCardUpsertRequest,
@@ -51,7 +51,7 @@ def upsert_review_card_endpoint(
 @router.get(
     "/cards/{card_id}",
     response_model=ApiResponse[List[ReviewResultCardRead]],
-    summary="获取某张卡片绑定的审核结果卡片",
+    summary="獲取某張卡片綁定的審核結果卡片",
 )
 def list_review_cards_by_target_endpoint(
     card_id: int,
@@ -63,7 +63,7 @@ def list_review_cards_by_target_endpoint(
 @router.delete(
     "/{review_card_id}",
     response_model=ApiResponse[bool],
-    summary="删除审核结果卡片",
+    summary="刪除審核結果卡片",
 )
 def delete_review_card_endpoint(
     review_card_id: int,

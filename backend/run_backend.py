@@ -1,8 +1,8 @@
-import sys
+﻿import sys
 
-# PyInstaller 兼容性：必须在导入其他模块之前执行
+# PyInstaller 兼容性：必須在導入其他模塊之前執行
 if getattr(sys, 'frozen', False):
-    # 运行在 PyInstaller 打包环境中
+    # 運行在 PyInstaller 打包環境中
     import inspect
     
     _original_getsource = inspect.getsource

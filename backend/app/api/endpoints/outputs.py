@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+﻿from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from typing import List
 from app.db.session import get_session
@@ -12,10 +12,10 @@ def list_output_models(db: Session = Depends(get_session)):
 
 @router.post("/", response_model=OutputModel)
 def create_output_model(model: OutputModel, db: Session = Depends(get_session)):
-    # 简单唯一性校验
+    # 簡單唯一性校驗
     exists = db.exec(select(OutputModel).where(OutputModel.name == model.name)).first()
     if exists:
-        raise HTTPException(status_code=400, detail="输出模型名称已存在")
+        raise HTTPException(status_code=400, detail="輸出模型名稱已存在")
     db.add(model)
     db.commit()
     db.refresh(model)
@@ -25,8 +25,8 @@ def create_output_model(model: OutputModel, db: Session = Depends(get_session)):
 def update_output_model(model_id: int, data: OutputModel, db: Session = Depends(get_session)):
     om = db.get(OutputModel, model_id)
     if not om:
-        raise HTTPException(status_code=404, detail="未找到输出模型")
-    # 仅更新可写字段
+        raise HTTPException(status_code=404, detail="未找到輸出模型")
+    # 僅更新可寫字段
     om.description = data.description
     om.json_schema = data.json_schema
     om.version = (om.version or 1) + 1
@@ -39,9 +39,9 @@ def update_output_model(model_id: int, data: OutputModel, db: Session = Depends(
 def delete_output_model(model_id: int, db: Session = Depends(get_session)):
     om = db.get(OutputModel, model_id)
     if not om:
-        raise HTTPException(status_code=404, detail="未找到输出模型")
+        raise HTTPException(status_code=404, detail="未找到輸出模型")
     if getattr(om, 'built_in', False):
-        raise HTTPException(status_code=400, detail="系统内置输出模型不可删除")
+        raise HTTPException(status_code=400, detail="系統內置輸出模型不可刪除")
     db.delete(om)
     db.commit()
     return {"ok": True} 

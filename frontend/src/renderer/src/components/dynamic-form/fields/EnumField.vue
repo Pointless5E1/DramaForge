@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <el-form-item :label="label" :prop="prop">
     <el-select
       :model-value="modelValue"
@@ -37,8 +37,8 @@ const isLoading = ref(false)
 
 const ENTITY_TYPE_LABELS: Record<string, string> = {
   character: '角色',
-  scene: '场景',
-  organization: '组织',
+  scene: '場景',
+  organization: '組織',
   item: '物品',
   concept: '概念',
 }
@@ -76,17 +76,17 @@ const resolvedOptions = computed(() => {
 })
 
 const placeholder = computed(() => {
-  return props.schema.description || `请选择 ${props.label}`
+  return props.schema.description || `請選擇 ${props.label}`
 })
 
 const noDataText = computed(() => {
   if (isLoading.value) {
-    return '正在加载选项'
+    return '正在加載選項'
   }
   if (props.schema['x-knowledge-source']) {
-    return '未找到可用选项，请先在知识库中维护'
+    return '未找到可用選項，請先在知識庫中維護'
   }
-  return '暂无可选项'
+  return '暫無可選項'
 })
 
 function getOptionLabel(item: string | number): string {

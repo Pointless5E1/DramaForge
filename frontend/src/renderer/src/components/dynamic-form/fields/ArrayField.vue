@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <el-card shadow="never" class="array-field-card">
     <template #header>
       <div class="card-header">
@@ -7,31 +7,31 @@
     </template>
 
     <div v-if="!modelValue || modelValue.length === 0" class="empty-state">
-      <p>暂无项目</p>
+      <p>暫無項目</p>
     </div>
 
     <div v-for="(item, index) in modelValue" :key="index" class="array-item">
       <div class="array-item-content">
-        <!-- 对于简单类型，直接使用对应的字段组件 -->
+        <!-- 對於簡單類型，直接使用對應的字段組件 -->
         <component
           v-if="isSimpleTypeForIndex(index)"
           :is="getSimpleFieldComponentForIndex(index)"
-          :label="`项目 ${index + 1}`"
+          :label="`項目 ${index + 1}`"
           :prop="String(index)"
           :schema="getItemSchemaForIndex(index)"
           :model-value="item"
           @update:modelValue="updateItem(index, $event)"
         />
-        <!-- 对于元组类型（array + prefixItems/anyOf），使用 TupleField 渲染每个元素 -->
+        <!-- 對於元組類型（array + prefixItems/anyOf），使用 TupleField 渲染每個元素 -->
         <TupleField
           v-else-if="isTupleTypeForIndex(index)"
-          :label="`项目 ${index + 1}`"
+          :label="`項目 ${index + 1}`"
           :prop="String(index)"
           :schema="getItemSchemaForIndex(index)"
           :model-value="item"
           @update:modelValue="updateItem(index, $event)"
         />
-        <!-- 对于复杂对象类型，使用 ModelDrivenForm -->
+        <!-- 對於複雜對象類型，使用 ModelDrivenForm -->
         <ModelDrivenForm
           v-else
           :schema="getItemSchemaForIndex(index)"
@@ -52,7 +52,7 @@
       </div>
     </div>
     <el-button type="primary" :icon="Plus" plain @click="addItem" class="add-button">
-      添加 {{ (displayNameMap && displayNameMap[itemSchema.title || '']) || itemSchema.title || '新项目' }}
+      添加 {{ (displayNameMap && displayNameMap[itemSchema.title || '']) || itemSchema.title || '新項目' }}
     </el-button>
   </el-card>
 </template>
@@ -76,22 +76,22 @@ const props = defineProps<{
   displayNameMap?: Record<string, string>
   readonly?: boolean
   contextData?: Record<string, any>
-  ownerId?: number | null // 接收最外层传来的ID
+  ownerId?: number | null // 接收最外層傳來的ID
 }>()
 
 const emit = defineEmits(['update:modelValue'])
 
 
 /**
- * 递归地解析 schema，处理 $ref 和 anyOf (Optional)
+ * 遞歸地解析 schema，處理 $ref 和 anyOf (Optional)
  */
-// 移除重复的resolveActualSchema函数，使用公共服务
+// 移除重複的resolveActualSchema函數，使用公共服務
 
 const itemSchema = computed((): JSONSchema => {
   if (props.schema.items) {
     return resolveActualSchema(props.schema.items, props.schema)
   }
-  return { type: 'string', title: '项目' }
+  return { type: 'string', title: '項目' }
 })
 
 function getItemSchemaForIndex(index: number): JSONSchema {
@@ -104,20 +104,20 @@ function getItemSchemaForIndex(index: number): JSONSchema {
   return base
 }
 
-// 判断是否为简单类型（按索引）
+// 判斷是否爲簡單類型（按索引）
 function isSimpleTypeForIndex(index: number) {
   const actualSchema = getItemSchemaForIndex(index)
   return actualSchema.type === 'string' || actualSchema.type === 'number' || actualSchema.type === 'integer' || actualSchema.type === 'boolean'
 }
 
-// 判断数组项是否为元组类型（自身是 array 且带有 prefixItems/anyOf）
+// 判斷數組項是否爲元組類型（自身是 array 且帶有 prefixItems/anyOf）
 function isTupleTypeForIndex(index: number) {
   const actualSchema = getItemSchemaForIndex(index) as any
   if (!actualSchema || actualSchema.type !== 'array') return false
   return Array.isArray(actualSchema.prefixItems) || Array.isArray(actualSchema.anyOf)
 }
 
-// 获取简单类型对应的字段组件（按索引）
+// 獲取簡單類型對應的字段組件（按索引）
 function getSimpleFieldComponentForIndex(index: number) {
   const actualSchema = getItemSchemaForIndex(index)
   switch (actualSchema.type) {
@@ -151,7 +151,7 @@ function addItem() {
   let defaultValue: any
 
   if ((base as any).anyOf) {
-    // 默认新增为 character，可在 UI 改 entity_type 触发切换
+    // 默認新增爲 character，可在 UI 改 entity_type 觸發切換
     defaultValue = { name: '', entity_type: 'character', life_span: '短期' }
   } else {
     defaultValue = createArrayItemDefaultValue(base)
@@ -162,12 +162,12 @@ function addItem() {
 }
 
 /**
- * 智能地为任何 schema 创建一个有效的默认值，能够处理嵌套对象。
+ * 智能地爲任何 schema 創建一個有效的默認值，能夠處理嵌套對象。
  */
-// 移除重复的createDefaultValue函数，使用公共服务
+// 移除重複的createDefaultValue函數，使用公共服務
 
 /**
- * 为数组项创建默认值，确保与ModelDrivenForm兼容
+ * 爲數組項創建默認值，確保與ModelDrivenForm兼容
  */
 function createArrayItemDefaultValue(schema: JSONSchema): any {
   const actualSchema = resolveActualSchema(schema, props.schema)
@@ -190,7 +190,7 @@ function createArrayItemDefaultValue(schema: JSONSchema): any {
 function resolveAnyOfForValue(base: JSONSchema, value: any): JSONSchema | null {
   if (!base.anyOf) return null
 
-  // 简单实现：找到第一个非null的Schema
+  // 簡單實現：找到第一個非null的Schema
   const nonNullSchema = base.anyOf.find((s: any) => s && s.type !== 'null')
   return nonNullSchema ? resolveActualSchema(nonNullSchema as JSONSchema, props.schema) : null
 }

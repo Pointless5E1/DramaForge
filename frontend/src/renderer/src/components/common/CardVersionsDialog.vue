@@ -1,21 +1,21 @@
-<template>
-  <el-dialog v-model="visible" title="历史版本" width="80%">
+﻿<template>
+  <el-dialog v-model="visible" title="歷史版本" width="80%">
     <div class="toolbar">
       <el-button size="small" @click="reload">刷新</el-button>
-      <el-popconfirm title="清空该卡片的所有本地版本？" @confirm="clearAll">
+      <el-popconfirm title="清空該卡片的所有本地版本？" @confirm="clearAll">
         <template #reference>
           <el-button size="small" type="danger" plain>清空全部</el-button>
         </template>
       </el-popconfirm>
-      <span class="tip">历史版本仅保存在前端，最多保留最近20条。</span>
+      <span class="tip">歷史版本僅保存在前端，最多保留最近20條。</span>
     </div>
 
     <el-table :data="versions" style="width:100%" height="50vh" size="small" v-loading="loading">
-      <el-table-column label="时间" width="200">
+      <el-table-column label="時間" width="200">
         <template #default="{ row }">{{ format(row.createdAt) }}</template>
       </el-table-column>
-      <el-table-column prop="title" label="标题" width="240" />
-      <el-table-column label="摘要(内容)" width="320">
+      <el-table-column prop="title" label="標題" width="240" />
+      <el-table-column label="摘要(內容)" width="320">
         <template #default="{ row }">
           <span class="summary">{{ summarize(row.content) }}</span>
         </template>
@@ -27,15 +27,15 @@
       </el-table-column>
       <el-table-column label="操作" width="260">
         <template #default="{ row }">
-          <el-button size="small" @click="preview(row)">预览</el-button>
-          <el-popconfirm title="恢复该版本并覆盖当前内容？" @confirm="restore(row)">
+          <el-button size="small" @click="preview(row)">預覽</el-button>
+          <el-popconfirm title="恢復該版本並覆蓋當前內容？" @confirm="restore(row)">
             <template #reference>
-              <el-button size="small" type="primary">恢复</el-button>
+              <el-button size="small" type="primary">恢復</el-button>
             </template>
           </el-popconfirm>
-          <el-popconfirm title="删除该版本？" @confirm="remove(row)">
+          <el-popconfirm title="刪除該版本？" @confirm="remove(row)">
             <template #reference>
-              <el-button size="small" type="danger" plain>删除</el-button>
+              <el-button size="small" type="danger" plain>刪除</el-button>
             </template>
           </el-popconfirm>
         </template>
@@ -43,17 +43,17 @@
     </el-table>
 
     <template #footer>
-      <el-button @click="visible=false">关闭</el-button>
+      <el-button @click="visible=false">關閉</el-button>
     </template>
 
-    <!-- 预览抽屉：改为并排差异高亮渲染 -->
-    <el-drawer v-model="drawerVisible" title="版本预览" size="70%">
+    <!-- 預覽抽屜：改爲並排差異高亮渲染 -->
+    <el-drawer v-model="drawerVisible" title="版本預覽" size="70%">
       <div class="preview-wrap2">
         <div class="pane">
-          <h4>内容对比</h4>
+          <h4>內容對比</h4>
           <div class="diff-table">
-            <div class="diff-header">所选版本</div>
-            <div class="diff-header">当前</div>
+            <div class="diff-header">所選版本</div>
+            <div class="diff-header">當前</div>
             <template v-for="(row, idx) in contentDiffRows" :key="'c-'+idx">
               <pre class="diff-cell" :class="row.left?.type ? 'diff-' + row.left.type : 'diff-empty'">{{ row.left?.text || '' }}</pre>
               <pre class="diff-cell" :class="row.right?.type ? 'diff-' + row.right.type : 'diff-empty'">{{ row.right?.text || '' }}</pre>
@@ -61,10 +61,10 @@
           </div>
         </div>
         <div class="pane">
-          <h4>上下文模板对比</h4>
+          <h4>上下文模板對比</h4>
           <div class="diff-table">
-            <div class="diff-header">所选版本</div>
-            <div class="diff-header">当前</div>
+            <div class="diff-header">所選版本</div>
+            <div class="diff-header">當前</div>
             <template v-for="(row, idx) in contextDiffRows" :key="'x-'+idx">
               <pre class="diff-cell" :class="row.left?.type ? 'diff-' + row.left.type : 'diff-empty'">{{ row.left?.text || '' }}</pre>
               <pre class="diff-cell" :class="row.right?.type ? 'diff-' + row.right.type : 'diff-empty'">{{ row.right?.text || '' }}</pre>
@@ -116,13 +116,13 @@ function summarizeCtx(snapshot: CardVersionSnapshot) {
 function clearAll() {
   clearVersions(props.projectId, props.cardId)
   reload()
-  ElMessage.success('已清空该卡片的本地版本')
+  ElMessage.success('已清空該卡片的本地版本')
 }
 
 function remove(v: CardVersionSnapshot) {
   deleteVersion(props.projectId, props.cardId, v.id)
   reload()
-  ElMessage.success('已删除该版本')
+  ElMessage.success('已刪除該版本')
 }
 
 const drawerVisible = ref(false)
@@ -149,8 +149,8 @@ function restore(v: CardVersionSnapshot) {
   emit('restore', v)
 }
 
-// 轻量行级差异算法（LCS 对齐）
-// 输入两段文本，按行拆分后计算最短编辑路径对齐，输出左右并排渲染所需的数据结构
+// 輕量行級差異算法（LCS 對齊）
+// 輸入兩段文本，按行拆分後計算最短編輯路徑對齊，輸出左右並排渲染所需的數據結構
 interface DiffPart { text: string; type: 'equal' | 'add' | 'del' }
 interface DiffRow { left?: DiffPart; right?: DiffPart }
 
@@ -158,14 +158,14 @@ function computeDiffRows(left: string, right: string): DiffRow[] {
   const a = (left || '').split('\n')
   const b = (right || '').split('\n')
   const m = a.length, n = b.length
-  // dp[i][j] 表示 a[0..i-1] 与 b[0..j-1] 的 LCS 长度
+  // dp[i][j] 表示 a[0..i-1] 與 b[0..j-1] 的 LCS 長度
   const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0))
   for (let i = 1; i <= m; i++) {
     for (let j = 1; j <= n; j++) {
       dp[i][j] = a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1])
     }
   }
-  // 回溯获取对齐路径
+  // 回溯獲取對齊路徑
   const rows: DiffRow[] = []
   let i = m, j = n
   while (i > 0 && j > 0) {
@@ -186,7 +186,7 @@ function computeDiffRows(left: string, right: string): DiffRow[] {
   return rows
 }
 
-// 内容与上下文的并排差异结果
+// 內容與上下文的並排差異結果
 const contentDiffRows = computed<DiffRow[]>(() => computeDiffRows(selectedText.value, currentText.value))
 const contextDiffRows = computed<DiffRow[]>(() => computeDiffRows(
   [
@@ -204,7 +204,7 @@ const contextDiffRows = computed<DiffRow[]>(() => computeDiffRows(
 .pane { overflow: auto; border: 1px solid var(--el-border-color-light); border-radius: 6px; padding: 8px; }
 .summary { color: var(--el-text-color-secondary); }
 
-/* 差异渲染：两列并排，行级高亮 */
+/* 差異渲染：兩列並排，行級高亮 */
 .diff-table { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--el-border-color-light); border-radius: 4px; overflow: hidden; }
 .diff-header { background: var(--el-fill-color-light); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--el-border-color-light); }
 .diff-cell { margin: 0; white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; padding: 2px 6px; border-left: 3px solid transparent; border-bottom: 1px solid var(--el-border-color-extra-light); }

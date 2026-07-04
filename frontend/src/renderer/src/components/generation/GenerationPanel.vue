@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div
     v-show="props.visible"
     ref="panelRef"
@@ -6,7 +6,7 @@
     :class="{ minimized: isMinimized }"
     :style="panelStyle"
   >
-    <!-- 顶部标题栏-->
+    <!-- 頂部標題欄-->
     <div class="panel-header" @mousedown="handleDragStart">
       <div class="header-title">
         <el-icon class="title-icon"><MagicStick /></el-icon>
@@ -30,7 +30,7 @@
       </div>
     </div>
 
-    <!-- 消息列表（最小化时隐藏）-->
+    <!-- 消息列表（最小化時隱藏）-->
     <div v-show="!isMinimized" ref="messagesContainer" class="messages-container">
       <div
         v-for="(msg, index) in messages"
@@ -43,13 +43,13 @@
           <span class="message-text">{{ msg.content }}</span>
         </div>
 
-        <!-- 指令执行消息 -->
+        <!-- 指令執行消息 -->
         <div v-else-if="msg.type === 'action'" class="message-action">
           <el-icon class="message-icon success"><Check /></el-icon>
           <span class="message-text">{{ msg.content }}</span>
         </div>
 
-        <!-- 用户消息 -->
+        <!-- 用戶消息 -->
         <div v-else-if="msg.type === 'user'" class="message-user">
           <el-icon class="message-icon"><User /></el-icon>
           <span class="message-text">{{ msg.content }}</span>
@@ -61,13 +61,13 @@
           <span class="message-text">{{ msg.content }}</span>
         </div>
 
-        <!-- 错误消息 -->
+        <!-- 錯誤消息 -->
         <div v-else-if="msg.type === 'error'" class="message-error">
           <el-icon class="message-icon"><CircleClose /></el-icon>
           <span class="message-text">{{ msg.content }}</span>
         </div>
 
-        <!-- 系统消息 -->
+        <!-- 系統消息 -->
         <div v-else-if="msg.type === 'system'" class="message-system">
           <el-icon class="message-icon"><InfoFilled /></el-icon>
           <span class="message-text">{{ msg.content }}</span>
@@ -81,20 +81,20 @@
       </div>
     </div>
 
-    <!-- 底部控制区（最小化时隐藏）-->
+    <!-- 底部控制區（最小化時隱藏）-->
     <div v-show="!isMinimized" class="panel-footer">
-      <!-- 进度信息 -->
+      <!-- 進度信息 -->
       <div v-if="completedFields > 0" class="progress-info">
         <el-icon><Check /></el-icon>
-        <span>已生成 {{ completedFields }} 个字段</span>
+        <span>已生成 {{ completedFields }} 個字段</span>
       </div>
 
-      <!-- 用户输入框 -->
+      <!-- 用戶輸入框 -->
       <div class="input-area">
         <div class="custom-input-wrapper">
           <el-input
             v-model="userInput"
-            :placeholder="isFinished ? '输入反馈以继续生成...' : (isPaused ? '输入反馈并继续...' : '输入指导意见...')"
+            :placeholder="isFinished ? '輸入反饋以繼續生成...' : (isPaused ? '輸入反饋並繼續...' : '輸入指導意見...')"
             size="default"
             @keyup.enter="handleSendMessage"
           >
@@ -111,9 +111,9 @@
         </div>
       </div>
 
-      <!-- 控制按钮 -->
+      <!-- 控制按鈕 -->
       <div class="control-buttons">
-        <!-- 生成中/暂停中 -->
+        <!-- 生成中/暫停中 -->
         <template v-if="!isFinished">
            <el-button
             v-if="isGenerating && !isPaused"
@@ -121,7 +121,7 @@
             round
             @click="handlePause"
           >
-            暂停
+            暫停
           </el-button>
 
           <el-button
@@ -131,7 +131,7 @@
             round
             @click="handleContinue"
           >
-            继续生成
+            繼續生成
           </el-button>
 
           <el-button
@@ -142,11 +142,11 @@
             type="danger"
             @click="handleStop"
           >
-            终止
+            終止
           </el-button>
         </template>
 
-        <!-- 完成后 -->
+        <!-- 完成後 -->
         <template v-else>
            <el-button
             :icon="Check"
@@ -164,7 +164,7 @@
             round
             @click="handleRestart"
           >
-            重新开始
+            重新開始
           </el-button>
         </template>
       </div>
@@ -209,27 +209,27 @@ const emit = defineEmits<{
   finish: [] // 新增 finish 事件
 }>()
 
-// ==================== 状态管理 ====================
+// ==================== 狀態管理 ====================
 
 const isGenerating = ref(false)
 const isPaused = ref(false)
-const isFinishedState = ref(false) // 明确的完成状态
+const isFinishedState = ref(false) // 明確的完成狀態
 const messages = ref<GenerationMessage[]>([])
 const completedFields = ref(0)
 const userInput = ref('')
 const messagesContainer = ref<HTMLElement>()
 const panelRef = ref<HTMLElement>()
 
-// 悬浮窗状态
+// 懸浮窗狀態
 const isMinimized = ref(false)
 const position = ref({ x: 0, y: 0 })
 const isDragging = ref(false)
 const dragOffset = ref({ x: 0, y: 0 })
 
-// 计算属性：是否处于完成态
+// 計算屬性：是否處於完成態
 const isFinished = computed(() => isFinishedState.value)
 
-// 计算面板样式
+// 計算面板樣式
 const panelStyle = computed(() => {
   if (isMinimized.value) {
     return {
@@ -245,14 +245,14 @@ const panelStyle = computed(() => {
   }
 })
 
-// ==================== 悬浮窗控制方法 ====================
+// ==================== 懸浮窗控制方法 ====================
 
 /**
- * 初始化默认位置（右下角，留出一定边距）
+ * 初始化默認位置（右下角，留出一定邊距）
  */
 function initPosition() {
-  const width = 360 // 估计宽度
-  const height = 500 // 估计高度
+  const width = 360 // 估計寬度
+  const height = 500 // 估計高度
   const padding = 30
   
   position.value = {
@@ -266,7 +266,7 @@ function toggleMinimize() {
 }
 
 /**
- * 开始拖动
+ * 開始拖動
  */
 function handleDragStart(e: MouseEvent) {
   isDragging.value = true
@@ -281,16 +281,16 @@ function handleDragStart(e: MouseEvent) {
 }
 
 /**
- * 拖动中
+ * 拖動中
  */
 function handleDragMove(e: MouseEvent) {
   if (!isDragging.value) return
   
-  // 计算新位置
+  // 計算新位置
   let newX = e.clientX - dragOffset.value.x
   let newY = e.clientY - dragOffset.value.y
   
-  // 简单的边界检查（防止拖出屏幕太远）
+  // 簡單的邊界檢查（防止拖出屏幕太遠）
   const maxX = window.innerWidth - 50
   const maxY = window.innerHeight - 50
   
@@ -303,7 +303,7 @@ function handleDragMove(e: MouseEvent) {
 }
 
 /**
- * 结束拖动
+ * 結束拖動
  */
 function handleDragEnd() {
   isDragging.value = false
@@ -311,7 +311,7 @@ function handleDragEnd() {
   document.removeEventListener('mouseup', handleDragEnd)
 }
 
-// ==================== 生命周期 ====================
+// ==================== 生命週期 ====================
 
 onMounted(() => {
   // 初始位置
@@ -326,13 +326,13 @@ onUnmounted(() => {
 })
 
 function handleWindowResize() {
-  // 简单的自适应：如果超出屏幕则重置
+  // 簡單的自適應：如果超出屏幕則重置
   if (position.value.x > window.innerWidth - 100 || position.value.y > window.innerHeight - 100) {
     initPosition()
   }
 }
 
-// ==================== 业务逻辑方法 ====================
+// ==================== 業務邏輯方法 ====================
 
 /**
  * 添加消息
@@ -368,8 +368,8 @@ function handleClose() {
 
 function handlePause() {
   isPaused.value = true
-  isGenerating.value = false // 暂停时不视为生成中
-  addMessage('system', '已暂停')
+  isGenerating.value = false // 暫停時不視爲生成中
+  addMessage('system', '已暫停')
   emit('pause')
 }
 
@@ -384,14 +384,14 @@ function handleContinue() {
   isFinishedState.value = false
   isGenerating.value = true
   
-  emit('continue', message || '请继续')
+  emit('continue', message || '請繼續')
 }
 
 function handleStop() {
   isGenerating.value = false
   isPaused.value = false
-  isFinishedState.value = true // 终止也算一种结束状态
-  addMessage('system', '生成已终止')
+  isFinishedState.value = true // 終止也算一種結束狀態
+  addMessage('system', '生成已終止')
   emit('stop')
 }
 
@@ -404,10 +404,10 @@ function handleSendMessage() {
   if (!userInput.value.trim()) return
 
   if (isPaused.value || isFinishedState.value) {
-    // 暂停或（新增）已完成状态下，发送消息都视为继续生成
+    // 暫停或（新增）已完成狀態下，發送消息都視爲繼續生成
     handleContinue()
   } else if (isGenerating.value) {
-    // 生成中插入反馈
+    // 生成中插入反饋
     const msg = userInput.value.trim()
     addMessage('user', msg)
     userInput.value = ''
@@ -417,18 +417,18 @@ function handleSendMessage() {
 function startGeneration() {
   reset()
   isGenerating.value = true
-  addMessage('system', '开始生成...')
+  addMessage('system', '開始生成...')
 }
 
 function finishGeneration(success: boolean, message?: string) {
   isGenerating.value = false
   isPaused.value = false
-  isFinishedState.value = true // 标记为完成
+  isFinishedState.value = true // 標記爲完成
   
   if (success) {
     addMessage('system', (message || '✓ 生成完成'))
   } else {
-    addMessage('error', message || '生成失败')
+    addMessage('error', message || '生成失敗')
   }
 }
 
@@ -455,7 +455,7 @@ defineExpose({
 
 watch(() => props.visible, (val) => {
   if (val) {
-    // 每次打开检查位置
+    // 每次打開檢查位置
     if (position.value.x === 0 && position.value.y === 0) {
       initPosition()
     }
@@ -464,16 +464,16 @@ watch(() => props.visible, (val) => {
 </script>
 
 <style scoped>
-/* 悬浮窗容器 - 毛玻璃风格 */
+/* 懸浮窗容器 - 毛玻璃風格 */
 .generation-panel-float {
-  position: fixed; /* 全局悬浮 */
+  position: fixed; /* 全局懸浮 */
   width: 380px;
   max-height: 500px; /* 固定最大高度 */
   display: flex;
   flex-direction: column;
   
   /* 毛玻璃效果 */
-  background: rgba(255, 255, 255, 0.9); /* 更不透明，增加对比 */
+  background: rgba(255, 255, 255, 0.9); /* 更不透明，增加對比 */
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   
@@ -485,15 +485,15 @@ watch(() => props.visible, (val) => {
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
   
   overflow: hidden;
-  z-index: 9999; /* 确保在顶层 */
+  z-index: 9999; /* 確保在頂層 */
   transition: opacity 0.2s;
 }
 
-/* 暗色模式适配 */
+/* 暗色模式適配 */
 html.dark .generation-panel-float {
-  /* 提升背景亮度以区别于深色编辑器背景 (通常是 #1e1e1e) */
+  /* 提升背景亮度以區別於深色編輯器背景 (通常是 #1e1e1e) */
   background: rgba(45, 45, 45, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.15); /* 更明显的边框 */
+  border: 1px solid rgba(255, 255, 255, 0.15); /* 更明顯的邊框 */
   box-shadow: 
     0 20px 60px rgba(0, 0, 0, 0.6),
     0 8px 20px rgba(0, 0, 0, 0.4),
@@ -506,14 +506,14 @@ html.dark .generation-panel-float {
   overflow: hidden;
 }
 
-/* 顶部标题栏 */
+/* 頂部標題欄 */
 .panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 14px 18px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  cursor: move; /* 允许拖动 */
+  cursor: move; /* 允許拖動 */
   user-select: none;
   background: rgba(255, 255, 255, 0.5);
   flex-shrink: 0;
@@ -528,9 +528,9 @@ html.dark .panel-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 18px; /* 加大字号 */
+  font-size: 18px; /* 加大字號 */
   font-weight: 800; /* 更粗 */
-  /* 渐变文字效果 */
+  /* 漸變文字效果 */
   background: linear-gradient(120deg, var(--el-text-color-primary) 0%, var(--el-color-primary) 100%);
   -webkit-background-clip: text;
   background-clip: text;
@@ -543,7 +543,7 @@ html.dark .panel-header {
 
 .title-icon {
   font-size: 20px;
-  /* 图标也加一点动感 */
+  /* 圖標也加一點動感 */
   filter: drop-shadow(0 2px 4px rgba(64, 158, 255, 0.3));
   color: var(--el-color-primary);
 }
@@ -556,7 +556,7 @@ html.dark .panel-header {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  min-height: 120px; /* 最小内容高度 */
+  min-height: 120px; /* 最小內容高度 */
 }
 
 .message-item {
@@ -568,7 +568,7 @@ html.dark .panel-header {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* 消息气泡通用样式 */
+/* 消息氣泡通用樣式 */
 .message-thinking,
 .message-action,
 .message-user,
@@ -605,14 +605,14 @@ html.dark .panel-header {
 html.dark .message-thinking { background: rgba(255,255,255,0.05); }
 .message-thinking .message-icon { color: #909399; }
 
-/* 成功/执行 */
+/* 成功/執行 */
 .message-action {
   background: rgba(225, 243, 216, 0.4);
   color: #67C23A;
 }
 html.dark .message-action { background: rgba(103, 194, 58, 0.15); }
 
-/* 错误 */
+/* 錯誤 */
 .message-error {
   background: rgba(254, 240, 240, 0.8);
   color: #F56C6C;
@@ -634,15 +634,15 @@ html.dark .message-warning {
   border-color: rgba(230, 162, 60, 0.3);
 }
 
-/* 用户 */
+/* 用戶 */
 .message-user {
-  align-self: flex-start; /* 统一靠左 */
+  align-self: flex-start; /* 統一靠左 */
   background: rgba(236, 245, 255, 0.6);
   color: var(--el-text-color-primary);
-  /* 使用伪元素实现左侧强调条，配合 overflow: hidden 完美贴合圆角 */
+  /* 使用僞元素實現左側強調條，配合 overflow: hidden 完美貼合圓角 */
   position: relative;
   overflow: hidden;
-  padding-left: 18px; /* 增加左侧内边距，给强调条留出空间 */
+  padding-left: 18px; /* 增加左側內邊距，給強調條留出空間 */
 }
 
 .message-user::before {
@@ -657,7 +657,7 @@ html.dark .message-warning {
 
 html.dark .message-user { background: rgba(64, 158, 255, 0.15); }
 
-/* 系统 */
+/* 系統 */
 .message-system {
   background: transparent;
   justify-content: center;
@@ -677,9 +677,9 @@ html.dark .message-user { background: rgba(64, 158, 255, 0.15); }
   font-size: 13px;
 }
 
-/* 底部控制区 */
+/* 底部控制區 */
 .panel-footer {
-  flex-shrink: 0; /* 防止底部被压缩 */
+  flex-shrink: 0; /* 防止底部被壓縮 */
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -704,7 +704,7 @@ html.dark .panel-footer {
   font-weight: 500;
 }
 
-/* 输入框美化 */
+/* 輸入框美化 */
 .custom-input-wrapper {
   transition: transform 0.2s;
 }
@@ -717,10 +717,10 @@ html.dark .panel-footer {
   box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
   border: 1px solid rgba(0,0,0,0.05);
   padding-right: 8px;
-  background-color: var(--el-fill-color-blank); /* 显式设置背景色 */
+  background-color: var(--el-fill-color-blank); /* 顯式設置背景色 */
 }
 
-/* 暗色模式下输入框增强 */
+/* 暗色模式下輸入框增強 */
 html.dark :deep(.el-input__wrapper) {
   background-color: rgba(0, 0, 0, 0.3); /* 深色半透明背景 */
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -755,7 +755,7 @@ html.dark :deep(.el-input__wrapper.is-focus) {
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-/* 滚动条美化 */
+/* 滾動條美化 */
 .messages-container::-webkit-scrollbar { width: 4px; }
 .messages-container::-webkit-scrollbar-thumb {
   background: rgba(0,0,0,0.1);

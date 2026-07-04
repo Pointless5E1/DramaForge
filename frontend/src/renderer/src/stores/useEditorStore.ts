@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+﻿import { defineStore } from 'pinia'
 import { ref, reactive } from 'vue'
 
 export interface ChapterSelectionRange {
@@ -11,7 +11,7 @@ export interface ChapterSelectionRange {
   snapshotHash?: string
 }
 
-// 兼容旧路径：未显式声明 mode 的对象，仍按文本替换处理。
+// 兼容舊路徑：未顯式聲明 mode 的對象，仍按文本替換處理。
 export type ChapterReplaceTextOp = {
   mode?: 'text'
   from: string
@@ -38,23 +38,23 @@ export interface ChapterExtractRunOptions {
 }
 
 export const useEditorStore = defineStore('editor', () => {
-  // 当前激活的编辑器
+  // 當前激活的編輯器
   const activeEditor = ref<{ type: string; id: string; data?: any } | null>(null)
   
-  // 侧栏宽度
+  // 側欄寬度
   const leftSidebarWidth = ref(250)
   const rightSidebarWidth = ref(300)
   
-  // 侧栏宽度限制
+  // 側欄寬度限制
   const minLeftWidth = 180
   const maxLeftWidth = 400
   const minRightWidth = 220
   const maxRightWidth = 500
   
-  // 导航树展开状态
+  // 導航樹展開狀態
   const expandedKeys = ref<string[]>(['content-root'])
   
-  // 右键菜单状态
+  // 右鍵菜單狀態
   const contextMenu = reactive({
     visible: false,
     x: 0,
@@ -63,34 +63,34 @@ export const useEditorStore = defineStore('editor', () => {
     nodeData: null as any | null
   })
   
-  // AI配置对话框状态
+  // AI配置對話框狀態
   const aiConfigDialog = reactive({
     visible: false,
     task: '',
     input: {} as any
   })
   
-  // 拖拽调整状态
+  // 拖拽調整狀態
   const resizing = ref<'left' | 'right' | null>(null)
   let startX = 0
   let startWidth = 0
 
-  // 编辑器跨组件修订接口（由 NovelEditor 注册）
+  // 編輯器跨組件修訂接口（由 NovelEditor 註冊）
   const applyChapterReplacements = ref<null | ((pairs: ChapterReplaceOp[]) => Promise<void> | void)>(null)
   const persistActiveChapterDraftRef = ref<null | (() => Promise<boolean>)>(null)
 
-  // 用于跨组件触发“提取动态信息”的回调
+  // 用於跨組件觸發“提取動態信息”的回調
   const triggerExtractDynamicInfoRef = ref<null | ((opts: ChapterExtractRunOptions) => Promise<void>)>(null)
-  // 用于跨组件触发“提取关系入图”的回调
+  // 用於跨組件觸發“提取關係入圖”的回調
   const triggerExtractRelationsRef = ref<null | ((opts: ChapterExtractRunOptions) => Promise<void>)>(null)
-  // 用于跨组件触发“提取物品状态”的回调
+  // 用於跨組件觸發“提取物品狀態”的回調
   const triggerExtractItemStateRef = ref<null | ((opts: ChapterExtractRunOptions) => Promise<void>)>(null)
-  // 用于跨组件触发“提取概念掌握”的回调
+  // 用於跨組件觸發“提取概念掌握”的回調
   const triggerExtractConceptStateRef = ref<null | ((opts: ChapterExtractRunOptions) => Promise<void>)>(null)
   const triggerExtractSceneStateRef = ref<null | ((opts: ChapterExtractRunOptions) => Promise<void>)>(null)
   const triggerExtractOrganizationStateRef = ref<null | ((opts: ChapterExtractRunOptions) => Promise<void>)>(null)
 
-  // 写作上下文共享：卷号/章节号/标题（供其它面板使用）
+  // 寫作上下文共享：卷號/章節號/標題（供其它面板使用）
   const currentVolumeNumber = ref<number | null>(null)
   const currentChapterNumber = ref<number | null>(null)
   const currentChapterTitle = ref<string>('')

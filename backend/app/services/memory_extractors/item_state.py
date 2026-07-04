@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from app.db.models import Card
 from app.schemas.entity import ItemCard
@@ -35,8 +35,8 @@ def _load_existing_item_card(card: Card) -> ItemCard:
 
 _SPEC = StructuredCardExtractorSpec(
     code="item_state",
-    name="物品状态提取",
-    prompt_name="物品状态提取",
+    name="物品狀態提取",
+    prompt_name="物品狀態提取",
     card_type_name="物品卡",
     output_model=ItemStateExtraction,
     list_field_name="items",
@@ -44,7 +44,7 @@ _SPEC = StructuredCardExtractorSpec(
     related_participant_types=("character", "organization"),
     target_participant_key="item_names",
     related_participant_key="owner_names",
-    reference_title="已有物品卡参考",
+    reference_title="已有物品卡參考",
 )
 
 
@@ -61,7 +61,7 @@ class ItemStateExtractor(StructuredCardMemoryExtractor):
     def build_reference_lines(self, model: ItemCard) -> list[str]:
         return [
             f"- {model.name}",
-            f"  类别: {model.category or '未填写'}",
-            f"  当前状态: {model.current_state or '未填写'}",
-            f"  作用: {model.power_or_effect or '未填写'}",
+            f"  類別: {model.category or '未填寫'}",
+            f"  當前狀態: {model.current_state or '未填寫'}",
+            f"  作用: {model.power_or_effect or '未填寫'}",
         ]

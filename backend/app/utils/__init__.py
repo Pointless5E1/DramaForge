@@ -1,6 +1,6 @@
-"""工具函数模块
+﻿"""工具函數模塊
 
-纯函数工具集合，无业务依赖。
+純函數工具集合，無業務依賴。
 """
 
 from .text_utils import truncate_text

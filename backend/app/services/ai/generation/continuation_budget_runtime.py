@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from dataclasses import dataclass
 from math import ceil
@@ -9,8 +9,8 @@ from app.schemas.ai import ContinuationRequest
 
 _SENTENCE_ENDINGS = "。！？!?…\n"
 _OUTLINE_BOUNDARY_HINT = (
-    "- 大纲边界优先级高于字数目标：若本章大纲内容写完时字数未达目标，"
-    "应在本章大纲范围内适当丰富细节、动作、对话与心理描写；绝不可越入下一章内容来凑字数。"
+    "- 大綱邊界優先級高於字數目標：若本章大綱內容寫完時字數未達目標，"
+    "應在本章大綱範圍內適當豐富細節、動作、對話與心理描寫；絕不可越入下一章內容來湊字數。"
 )
 
 
@@ -134,42 +134,42 @@ def build_budget_hint_text(
     *,
     include_outline_boundary: bool = True,
 ) -> str:
-    lines: list[str] = ["【续写预算】", f"- 当前总字数：{plan.current_word_count} 字"]
+    lines: list[str] = ["【續寫預算】", f"- 當前總字數：{plan.current_word_count} 字"]
 
     if plan.target_word_count is not None:
-        lines.append(f"- 目标总字数：{plan.target_word_count} 字")
+        lines.append(f"- 目標總字數：{plan.target_word_count} 字")
     if plan.remaining_word_count is not None:
-        lines.append(f"- 剩余字数：约 {max(plan.remaining_word_count, 0)} 字")
+        lines.append(f"- 剩餘字數：約 {max(plan.remaining_word_count, 0)} 字")
     if plan.mode != "prompt_only":
         if plan.is_final_round:
-            lines.append(f"- 当前轮次：第 {plan.round_index} 轮（本轮收尾）")
+            lines.append(f"- 當前輪次：第 {plan.round_index} 輪（本輪收尾）")
         else:
-            lines.append(f"- 当前轮次：第 {plan.round_index} 轮（预计最多 {plan.max_rounds} 轮）")
+            lines.append(f"- 當前輪次：第 {plan.round_index} 輪（預計最多 {plan.max_rounds} 輪）")
     if plan.suggested_word_count is not None and plan.mode != "prompt_only":
-        lines.append(f"- 本轮建议规模：约 {plan.suggested_word_count} 字")
+        lines.append(f"- 本輪建議規模：約 {plan.suggested_word_count} 字")
     if plan.hard_word_limit is not None:
-        lines.append(f"- 本轮硬上限：约 {plan.hard_word_limit} 字（超出会提前停轮）")
+        lines.append(f"- 本輪硬上限：約 {plan.hard_word_limit} 字（超出會提前停輪）")
 
     guidance = (continuation_guidance or "").strip()
     if guidance:
-        lines.append(f"- 续写指导：{guidance}")
+        lines.append(f"- 續寫指導：{guidance}")
 
     if plan.mode == "prompt_only":
-        lines.append("- 当前为提示词约束模式：目标字数仅作参考，以文风和连贯性优先。")
+        lines.append("- 當前爲提示詞約束模式：目標字數僅作參考，以文風和連貫性優先。")
     else:
-        lines.append("- 当前为智能字数控制模式：前两轮优先推进剧情，后续逐步收束字数并完成结尾。")
+        lines.append("- 當前爲智能字數控制模式：前兩輪優先推進劇情，後續逐步收束字數並完成結尾。")
 
     if include_outline_boundary:
         lines.append(_OUTLINE_BOUNDARY_HINT)
 
     if plan.should_warn_wrap_up:
         if plan.rounds_left >= 3:
-            lines.append("- 已进入最后一千字的收尾阶段：请开始压缩支线、回收信息，并为后续 600 / 300 / 100 的收尾节奏预留空间。")
+            lines.append("- 已進入最後一千字的收尾階段：請開始壓縮支線、回收信息，併爲後續 600 / 300 / 100 的收尾節奏預留空間。")
         elif plan.rounds_left == 2:
-            lines.append("- 只剩最后两轮：请明显加快收束节奏，不要再开启新支线，并把最后一轮尽量压到约 100 字。")
+            lines.append("- 只剩最後兩輪：請明顯加快收束節奏，不要再開啓新支線，並把最後一輪儘量壓到約 100 字。")
 
     if plan.mode != "prompt_only" and plan.is_final_round:
-        lines.append("- 这是最后一轮：请只做结尾收束，严控字数，不要开启新支线，不要明显超出预算；结尾要自然，并保留余味或轻微悬念。")
+        lines.append("- 這是最後一輪：請只做結尾收束，嚴控字數，不要開啓新支線，不要明顯超出預算；結尾要自然，並保留餘味或輕微懸念。")
 
     return "\n".join(lines).strip()
 

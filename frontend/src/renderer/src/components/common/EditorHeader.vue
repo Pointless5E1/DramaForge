@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="editor-header">
     <div class="header-main">
       <div class="left">
@@ -14,7 +14,7 @@
       </div>
       <div class="right">
         <div class="context-action-combo">
-          <el-tooltip content="打开上下文抽屉（Alt+K）">
+          <el-tooltip content="打開上下文抽屜（Alt+K）">
             <el-button type="primary" plain class="context-main-button" @click="$emit('open-context')">
               上下文注入
               <el-tag size="small" class="context-slot-tag" :type="getSlotTagType(activeContextTemplateKind)">
@@ -24,7 +24,7 @@
           </el-tooltip>
           <el-popover v-model:visible="slotPickerVisible" trigger="click" width="220" popper-class="context-slot-popper">
             <template #reference>
-              <el-button type="primary" plain class="context-trigger-button" title="切换上下文槽位">
+              <el-button type="primary" plain class="context-trigger-button" title="切換上下文槽位">
                 <el-icon><ArrowDown /></el-icon>
               </el-button>
             </template>
@@ -51,14 +51,14 @@
           :class="{ 'needs-confirmation-btn': needsConfirmation }"
           @click="$emit('save')"
         >
-          {{ needsConfirmation ? '确认并保存' : '保存' }}
+          {{ needsConfirmation ? '確認並保存' : '保存' }}
         </el-button>
         <el-dropdown>
           <el-button text>更多</el-button>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item @click="$emit('open-versions')">历史版本</el-dropdown-item>
-              <el-dropdown-item divided type="danger" @click="$emit('delete')">删除</el-dropdown-item>
+              <el-dropdown-item @click="$emit('open-versions')">歷史版本</el-dropdown-item>
+              <el-dropdown-item divided type="danger" @click="$emit('delete')">刪除</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -81,11 +81,11 @@ const props = defineProps<{
   lastSavedAt?: string
   canSave?: boolean
   isChapterContent?: boolean
-  needsConfirmation?: boolean  // AI 修改需要确认
+  needsConfirmation?: boolean  // AI 修改需要確認
   activeContextTemplateKind?: ContextTemplateKind
 }>()
 
-// 计算是否可以保存：如果需要确认，即使没有修改也可以保存
+// 計算是否可以保存：如果需要確認，即使沒有修改也可以保存
 const canSaveComputed = computed(() => {
   if (props.needsConfirmation) return !props.saving
   return props.canSave
@@ -127,7 +127,7 @@ function getSlotTagType(kind: ContextTemplateKind): 'success' | 'warning' | 'inf
 
 <style scoped>
 .editor-header { 
-  flex-shrink: 0; /* 固定：防止被压缩 */
+  flex-shrink: 0; /* 固定：防止被壓縮 */
 }
 
 .header-main {

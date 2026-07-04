@@ -1,22 +1,22 @@
-"""文本处理工具
+﻿"""文本處理工具
 
-纯函数实现，无外部依赖。
+純函數實現，無外部依賴。
 """
 
 
-def truncate_text(text: str, limit: int, suffix: str = "\n...[已截断]") -> str:
-    """截断文本到指定长度
+def truncate_text(text: str, limit: int, suffix: str = "\n...[已截斷]") -> str:
+    """截斷文本到指定長度
     
     Args:
-        text: 待截断的文本
-        limit: 最大长度
-        suffix: 截断后缀
+        text: 待截斷的文本
+        limit: 最大長度
+        suffix: 截斷後綴
         
     Returns:
-        截断后的文本
+        截斷後的文本
     """
     if len(text) <= limit:
         return text
-    # 预留suffix长度，避免截断后超出limit
+    # 預留suffix長度，避免截斷後超出limit
     truncate_at = max(0, limit - len(suffix))
     return text[:truncate_at] + suffix

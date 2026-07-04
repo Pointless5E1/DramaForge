@@ -2,6 +2,6 @@
   "name": "novelforge",
   "private": true,
   "scripts": {
-    "dev": "start \"Backend\" powershell -NoExit -Command \"python backend/main.py\" && start \"Frontend\" powershell -NoExit -Command \"Start-Sleep -Seconds 5; npm --prefix frontend run dev\""
+    "dev": "start \"Backend\" powershell -NoExit -ExecutionPolicy Bypass -Command \"Set-Location '%cd%\\backend'; & '%cd%\\.venv\\Scripts\\python.exe' main.py\" && start \"Frontend\" powershell -NoExit -ExecutionPolicy Bypass -Command \"Start-Sleep -Seconds 5; Set-Location '%cd%\\frontend'; npm run dev\""
   }
 }

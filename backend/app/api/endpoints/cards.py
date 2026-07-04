@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+﻿from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 from typing import List, Dict, Any
 from urllib.parse import quote
@@ -41,7 +41,7 @@ def _resolve_card_type_name(db: Session, card: Card) -> str | None:
     return None
 
 # --- CardType Endpoints ---
-# 说明：CardTypeRead 需包含 default_ai_context_template 字段（由 Pydantic schema 定义控制）。
+# 說明：CardTypeRead 需包含 default_ai_context_template 字段（由 Pydantic schema 定義控制）。
 
 @router.post("/card-types", response_model=CardTypeRead)
 def create_card_type(card_type: CardTypeCreate, db: Session = Depends(get_session)):
@@ -88,7 +88,7 @@ def delete_card_type(card_type_id: int, db: Session = Depends(get_session)):
     if not db_card_type:
         raise HTTPException(status_code=404, detail="CardType not found")
     if getattr(db_card_type, 'built_in', False):
-        raise HTTPException(status_code=400, detail="系统内置卡片类型不可删除")
+        raise HTTPException(status_code=400, detail="系統內置卡片類型不可刪除")
     if not service.delete(card_type_id):
         raise HTTPException(status_code=404, detail="CardType not found")
     return {"ok": True}
@@ -196,7 +196,7 @@ def get_card(card_id: int, db: Session = Depends(get_session)):
 
 @router.put("/cards/{card_id}", response_model=CardRead)
 def update_card(card_id: int, card: CardUpdate, db: Session = Depends(get_session)):
-    # 获取更新前的状态
+    # 獲取更新前的狀態
     old_card = db.get(Card, card_id)
     old_content = None
     if old_card and old_card.content:
@@ -210,21 +210,21 @@ def update_card(card_id: int, card: CardUpdate, db: Session = Depends(get_sessio
     if db_card is None:
         raise HTTPException(status_code=404, detail="Card not found")
     
-    # 检查是否从"需要确认"状态变为"已确认"状态
+    # 檢查是否從"需要確認"狀態變爲"已確認"狀態
     is_now_confirmed = was_needs_confirmation and not getattr(db_card, 'needs_confirmation', False)
     
-    # 用户保存时的处理
+    # 用戶保存時的處理
     if is_now_confirmed:
-        # 场景1：用户确认了 AI 修改的卡片
-        logger.info(f"✅ 用户确认了 AI 修改的卡片 {card_id}，准备触发工作流")
+        # 場景1：用戶確認了 AI 修改的卡片
+        logger.info(f"✅ 用戶確認了 AI 修改的卡片 {card_id}，準備觸發工作流")
         db_card.last_modified_by = "user"
-        db_card.ai_modified = False  # 清除 AI 修改标记
+        db_card.ai_modified = False  # 清除 AI 修改標記
         db.add(db_card)
         db.commit()
         db.refresh(db_card)
     elif not was_needs_confirmation and getattr(db_card, 'last_modified_by', None) != 'user':
-        # 场景2：用户手动修改卡片（非 AI 创建的，或已确认过的）
-        # 标记为用户修改，但不影响工作流触发
+        # 場景2：用戶手動修改卡片（非 AI 創建的，或已確認過的）
+        # 標記爲用戶修改，但不影響工作流觸發
         db_card.last_modified_by = "user"
         db.add(db_card)
         db.commit()
@@ -243,7 +243,7 @@ def update_card(card_id: int, card: CardUpdate, db: Session = Depends(get_sessio
         triggered_run_ids = event_data.get("triggered_run_ids", [])
         
         if is_now_confirmed and triggered_run_ids:
-            logger.info(f"🎯 AI修改卡片确认后触发了 {len(triggered_run_ids)} 个工作流")
+            logger.info(f"🎯 AI修改卡片確認後觸發了 {len(triggered_run_ids)} 個工作流")
     except Exception:
         logger.exception("OnSave workflow trigger failed")
     
@@ -258,10 +258,10 @@ def batch_reorder_cards(request: CardBatchReorderRequest, db: Session = Depends(
     批量更新卡片排序
     
     Args:
-        request: 包含要更新的卡片列表，每个卡片包含 card_id, display_order, parent_id
+        request: 包含要更新的卡片列表，每個卡片包含 card_id, display_order, parent_id
         
     Returns:
-        更新的卡片数量和成功状态
+        更新的卡片數量和成功狀態
     """
     try:
         updated_count = 0
@@ -273,8 +273,8 @@ def batch_reorder_cards(request: CardBatchReorderRequest, db: Session = Depends(
                 # 更新 display_order
                 card.display_order = item.display_order
                 
-                # 更新 parent_id（无论是否变化都更新，因为前端已经明确传递了值）
-                # 这样可以正确处理：设置为根级(null)、设置为子卡片(有值)、保持不变(传递当前值)
+                # 更新 parent_id（無論是否變化都更新，因爲前端已經明確傳遞了值）
+                # 這樣可以正確處理：設置爲根級(null)、設置爲子卡片(有值)、保持不變(傳遞當前值)
                 card.parent_id = item.parent_id
                     
                 db.add(card)
@@ -283,18 +283,18 @@ def batch_reorder_cards(request: CardBatchReorderRequest, db: Session = Depends(
         # 一次性提交所有更新
         db.commit()
         
-        logger.info(f"批量更新排序完成，共更新 {updated_count} 张卡片")
+        logger.info(f"批量更新排序完成，共更新 {updated_count} 張卡片")
         
         return {
             "success": True,
             "updated_count": updated_count,
-            "message": f"成功更新 {updated_count} 张卡片的排序"
+            "message": f"成功更新 {updated_count} 張卡片的排序"
         }
         
     except Exception as e:
         db.rollback()
-        logger.error(f"批量更新排序失败: {e}")
-        raise HTTPException(status_code=500, detail=f"批量更新失败: {str(e)}")
+        logger.error(f"批量更新排序失敗: {e}")
+        raise HTTPException(status_code=500, detail=f"批量更新失敗: {str(e)}")
 
 
 @router.delete("/cards/{card_id}", status_code=204)
@@ -334,7 +334,7 @@ def get_card_schema(card_id: int, db: Session = Depends(get_session)) -> Dict[st
     if not c:
         raise HTTPException(status_code=404, detail="Card not found")
     effective = c.json_schema if c.json_schema is not None else (c.card_type.json_schema if c.card_type else None)
-    # 动态装配引用
+    # 動態裝配引用
     composed = compose_schema_with_card_types(db, effective or {})
     return {"json_schema": c.json_schema, "effective_schema": composed, "follow_type": c.json_schema is None}
 
@@ -343,7 +343,7 @@ def update_card_schema(card_id: int, payload: Dict[str, Any], db: Session = Depe
     c = db.get(Card, card_id)
     if not c:
         raise HTTPException(status_code=404, detail="Card not found")
-    # 传入 null/None 表示恢复跟随类型
+    # 傳入 null/None 表示恢復跟隨類型
     c.json_schema = payload.get("json_schema", None)
     db.add(c)
     db.commit()
@@ -359,7 +359,7 @@ def apply_card_schema_to_type(card_id: int, db: Session = Depends(get_session)) 
         raise HTTPException(status_code=404, detail="Card not found")
     if not c.card_type:
         raise HTTPException(status_code=400, detail="Card has no type")
-    # 取实例 schema；若为空则取有效 schema
+    # 取實例 schema；若爲空則取有效 schema
     effective = c.json_schema if c.json_schema is not None else (c.card_type.json_schema or None)
     if effective is None:
         raise HTTPException(status_code=400, detail="No schema to apply")

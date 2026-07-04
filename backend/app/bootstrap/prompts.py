@@ -1,6 +1,6 @@
-"""提示词初始化
+﻿"""提示詞初始化
 
-从文件系统加载提示词模板并初始化到数据库。
+從文件系統加載提示詞模板並初始化到數據庫。
 """
 
 import os
@@ -13,10 +13,10 @@ from .registry import initializer
 
 
 def _parse_prompt_file(file_path: str) -> dict:
-    """解析单个提示词文件
+    """解析單個提示詞文件
     
     Args:
-        file_path: 提示词文件路径
+        file_path: 提示詞文件路徑
         
     Returns:
         包含name, description, template的字典
@@ -26,7 +26,7 @@ def _parse_prompt_file(file_path: str) -> dict:
     
     filename = os.path.basename(file_path)
     name = os.path.splitext(filename)[0]
-    description = f"AI任务提示词: {name}"
+    description = f"AI任務提示詞: {name}"
             
     return {
         "name": name,
@@ -36,10 +36,10 @@ def _parse_prompt_file(file_path: str) -> dict:
 
 
 def get_all_prompt_files() -> dict:
-    """从文件系统加载所有提示词
+    """從文件系統加載所有提示詞
     
     Returns:
-        提示词字典，key为提示词名称
+        提示詞字典，key爲提示詞名稱
     """
     prompt_dir = os.path.join(os.path.dirname(__file__), 'prompts')
     if not os.path.exists(prompt_dir):
@@ -55,16 +55,16 @@ def get_all_prompt_files() -> dict:
     return prompt_files
 
 
-@initializer(name="提示词", order=10)
+@initializer(name="提示詞", order=10)
 def init_prompts(session: Session) -> None:
-    """初始化默认提示词
+    """初始化默認提示詞
     
-    行为受配置项 BOOTSTRAP_OVERWRITE 控制：
-    - True: 覆盖更新已存在的提示词
-    - False: 跳过已存在的提示词
+    行爲受配置項 BOOTSTRAP_OVERWRITE 控制：
+    - True: 覆蓋更新已存在的提示詞
+    - False: 跳過已存在的提示詞
     
     Args:
-        session: 数据库会话
+        session: 數據庫會話
     """
     overwrite = settings.bootstrap.should_overwrite
     existing_prompts = session.exec(select(Prompt)).all()
@@ -96,6 +96,6 @@ def init_prompts(session: Session) -> None:
 
     if new_count > 0 or updated_count > 0:
         session.commit()
-        logger.info(f"提示词更新完成: 新增 {new_count} 个，更新 {updated_count} 个（overwrite={overwrite}，跳过 {skipped_count} 个）。")
+        logger.info(f"提示詞更新完成: 新增 {new_count} 個，更新 {updated_count} 個（overwrite={overwrite}，跳過 {skipped_count} 個）。")
     else:
-        logger.info(f"所有提示词已是最新状态（overwrite={overwrite}，跳过 {skipped_count} 个）。")
+        logger.info(f"所有提示詞已是最新狀態（overwrite={overwrite}，跳過 {skipped_count} 個）。")

@@ -1,9 +1,9 @@
-<template>
+﻿<template>
   <div class="card-market">
     <CardFilterBar :card-types="cardTypes" @change="handleFilterChange" />
     <el-scrollbar>
       <div v-if="viewMode === '卡片'">
-        <div v-if="filteredCards.length > 0" class="card-grid" :class="{ compact: density==='紧凑' }">
+        <div v-if="filteredCards.length > 0" class="card-grid" :class="{ compact: density==='緊湊' }">
           <el-card v-for="card in filteredCards" :key="card.id" class="card-item" shadow="hover">
             <template #header>
               <div class="card-header">
@@ -12,24 +12,24 @@
                   <span class="title">{{ card.title }}</span>
                 </div>
                 <div class="header-right">
-                  <el-tooltip content="编辑">
-                    <el-button text size="small" @click="onEditCard(card.id)">编辑</el-button>
+                  <el-tooltip content="編輯">
+                    <el-button text size="small" @click="onEditCard(card.id)">編輯</el-button>
                   </el-tooltip>
                   <el-popconfirm
-                    title="确定要删除这张卡片吗？"
-                    confirm-button-text="确定"
+                    title="確定要刪除這張卡片嗎？"
+                    confirm-button-text="確定"
                     cancel-button-text="取消"
                     @confirm="onDeleteCard(card.id)"
                   >
                     <template #reference>
-                      <el-button text type="danger" size="small">删除</el-button>
+                      <el-button text type="danger" size="small">刪除</el-button>
                     </template>
                   </el-popconfirm>
                 </div>
               </div>
             </template>
             <div class="card-content">
-              <p class="meta">创建于: {{ formatDate(card.created_at) }}</p>
+              <p class="meta">創建於: {{ formatDate(card.created_at) }}</p>
             </div>
           </el-card>
         </div>
@@ -38,21 +38,21 @@
 
       <div v-else>
         <el-table :data="filteredCards" size="small" border stripe>
-          <el-table-column prop="title" label="标题" />
-          <el-table-column label="类型" width="140">
+          <el-table-column prop="title" label="標題" />
+          <el-table-column label="類型" width="140">
             <template #default="{ row }">
               <el-tag size="small">{{ row.card_type.name }}</el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="创建时间" width="200">
+          <el-table-column label="創建時間" width="200">
             <template #default="{ row }">{{ formatDate(row.created_at) }}</template>
           </el-table-column>
           <el-table-column label="操作" width="160">
             <template #default="{ row }">
-              <el-button size="small" type="primary" plain @click="onEditCard(row.id)">编辑</el-button>
-              <el-popconfirm title="确定删除?" @confirm="onDeleteCard(row.id)">
+              <el-button size="small" type="primary" plain @click="onEditCard(row.id)">編輯</el-button>
+              <el-popconfirm title="確定刪除?" @confirm="onDeleteCard(row.id)">
                 <template #reference>
-                  <el-button size="small" type="danger" plain>删除</el-button>
+                  <el-button size="small" type="danger" plain>刪除</el-button>
                 </template>
               </el-popconfirm>
             </template>
@@ -77,7 +77,7 @@ const { cards, cardTypes } = storeToRefs(cardStore)
 const keyword = ref('')
 const selectedTypes = ref<number[]>([])
 const sortKey = ref<'recent'|'title'|'type'>('recent')
-const density = ref<'舒适'|'紧凑'>('舒适')
+const density = ref<'舒適'|'緊湊'>('舒適')
 const viewMode = ref<'卡片'|'列表'>('卡片')
 
 const filteredCards = computed(() => {
@@ -104,7 +104,7 @@ const filteredCards = computed(() => {
   return list
 })
 
-function handleFilterChange(payload: { keyword: string; types: number[]; sortKey: 'recent'|'title'|'type'; density: '舒适'|'紧凑'; view: '卡片'|'列表' }) {
+function handleFilterChange(payload: { keyword: string; types: number[]; sortKey: 'recent'|'title'|'type'; density: '舒適'|'緊湊'; view: '卡片'|'列表' }) {
   keyword.value = payload.keyword
   selectedTypes.value = payload.types
   sortKey.value = payload.sortKey

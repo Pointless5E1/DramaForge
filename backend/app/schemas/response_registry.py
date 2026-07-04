@@ -1,8 +1,8 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from typing import Dict, Any
 
-# 统一集中导出所有需要在 OpenAPI 中暴露的响应/嵌套模型
+# 統一集中導出所有需要在 OpenAPI 中暴露的響應/嵌套模型
 from app.schemas.wizard import (
     Text,
 	WorldBuilding, Blueprint,
@@ -25,22 +25,22 @@ RESPONSE_MODEL_MAP: Dict[str, Any] = {
 	'WorldBuilding': WorldBuilding,
 	'WorldviewTemplate': WorldviewTemplate,
 	'Blueprint': Blueprint,
-	# 使用未包装模型
+	# 使用未包裝模型
 	'VolumeOutline': VolumeOutline,
  	'WritingGuide': WritingGuide,
     'ReviewResultCardContent': ReviewResultCardContent,
 	'ChapterOutline': ChapterOutline,
 	'Chapter': Chapter,
-	# 基础schema，自动包含在OpenAPI中
+	# 基礎schema，自動包含在OpenAPI中
 	'CharacterCard': CharacterCard,
 	'SceneCard': SceneCard,
 	'OrganizationCard': OrganizationCard,
 	'ItemCard': ItemCard,
 	'ConceptCard': ConceptCard,
-	# 显式导出嵌套类型，便于前端字段树解析
+	# 顯式導出嵌套類型，便於前端字段樹解析
 	'StageLine': StageLine,
 	'StoryLine': StoryLine,
-	# 工作流专用结构模型
+	# 工作流專用結構模型
 	'BookStageChunkPlan': BookStageChunkPlan,
 	'BookStageFinalPlan': BookStageFinalPlan,
 } 

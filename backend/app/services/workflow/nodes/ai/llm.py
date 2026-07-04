@@ -1,6 +1,6 @@
-"""LLM 生成节点
+﻿"""LLM 生成節點
 
-提供单轮 LLM 调用能力，支持提示词模板和结构化输出。
+提供單輪 LLM 調用能力，支持提示詞模板和結構化輸出。
 """
 
 import json
@@ -19,24 +19,24 @@ from langchain_core.messages import HumanMessage, SystemMessage
 # ============================================================
 
 class LLMInput(BaseModel):
-    """LLM 生成输入"""
-    user_prompt: str = Field(..., description="用户提示词")
-    system_prompt: Optional[str] = Field(None, description="系统提示词")
+    """LLM 生成輸入"""
+    user_prompt: str = Field(..., description="用戶提示詞")
+    system_prompt: Optional[str] = Field(None, description="系統提示詞")
     llm_config_id: int = Field(..., description="LLM 配置 ID", gt=0)
-    temperature: float = Field(0.7, description="温度参数", ge=0.0, le=2.0)
-    max_tokens: Optional[int] = Field(None, description="最大生成 token 数", gt=0)
-    timeout: int = Field(60, description="超时时间（秒）", gt=0)
-    max_retry: int = Field(3, description="最大重试次数", ge=0, le=10)
+    temperature: float = Field(0.7, description="溫度參數", ge=0.0, le=2.0)
+    max_tokens: Optional[int] = Field(None, description="最大生成 token 數", gt=0)
+    timeout: int = Field(60, description="超時時間（秒）", gt=0)
+    max_retry: int = Field(3, description="最大重試次數", ge=0, le=10)
 
 
 class LLMOutput(BaseModel):
-    """LLM 生成输出"""
+    """LLM 生成輸出"""
     response: str = Field(..., description="生成的文本")
-    usage: Dict[str, Any] = Field(default_factory=dict, description="Token 使用统计")
+    usage: Dict[str, Any] = Field(default_factory=dict, description="Token 使用統計")
 
 
 def _extract_text(value: Any) -> str:
-    """将模型返回内容稳健转换为纯文本，避免 list/dict 触发 response:str 校验失败。"""
+    """將模型返回內容穩健轉換爲純文本，避免 list/dict 觸發 response:str 校驗失敗。"""
     if value is None:
         return ""
 
@@ -99,20 +99,20 @@ def _extract_text(value: Any) -> str:
 
 @register_node
 class LLMGenerateNode(BaseNode[LLMInput, LLMOutput]):
-    """LLM 生成节点"""
+    """LLM 生成節點"""
     
     node_type = "AI.LLM"
     category = "ai"
-    label = "LLM 调用"
-    description = "调用大语言模型进行文本生成"
+    label = "LLM 調用"
+    description = "調用大語言模型進行文本生成"
     
     input_model = LLMInput
     output_model = LLMOutput
 
     async def execute(self, input_data: LLMInput) -> AsyncIterator[LLMOutput]:
-        """执行 LLM 调用"""
+        """執行 LLM 調用"""
         
-        # 构建 ChatModel (在重试循环外,避免重复构建)
+        # 構建 ChatModel (在重試循環外,避免重複構建)
         try:
             model = build_chat_model(
                 session=self.context.session,
@@ -122,23 +122,23 @@ class LLMGenerateNode(BaseNode[LLMInput, LLMOutput]):
                 timeout=input_data.timeout,
             )
         except Exception as e:
-            logger.error(f"[AI.LLM] 构建模型失败: {e}")
-            raise ValueError(f"构建模型失败: {str(e)}")
+            logger.error(f"[AI.LLM] 構建模型失敗: {e}")
+            raise ValueError(f"構建模型失敗: {str(e)}")
         
-        # 构建消息
+        # 構建消息
         messages = []
         if input_data.system_prompt:
             messages.append(SystemMessage(content=input_data.system_prompt))
         messages.append(HumanMessage(content=input_data.user_prompt))
         
-        # 重试循环
+        # 重試循環
         last_error = None
-        for attempt in range(input_data.max_retry + 1):  # +1 因为第一次不算重试
+        for attempt in range(input_data.max_retry + 1):  # +1 因爲第一次不算重試
             try:
-                # 调用模型
+                # 調用模型
                 response = await model.ainvoke(messages)
                 
-                # 提取文本（兼容 content 为 list/dict 的模型返回）
+                # 提取文本（兼容 content 爲 list/dict 的模型返回）
                 payload = response.content if hasattr(response, 'content') else response
                 response_text = _extract_text(payload)
                 
@@ -152,7 +152,7 @@ class LLMGenerateNode(BaseNode[LLMInput, LLMOutput]):
                         usage = meta.get('usage', {})
                 
                 logger.info(
-                    f"[AI.LLM] LLM 调用成功 (尝试 {attempt + 1}/{input_data.max_retry + 1}): "
+                    f"[AI.LLM] LLM 調用成功 (嘗試 {attempt + 1}/{input_data.max_retry + 1}): "
                     f"llm_config_id={input_data.llm_config_id}, response_length={len(response_text)}"
                 )
                 
@@ -166,14 +166,14 @@ class LLMGenerateNode(BaseNode[LLMInput, LLMOutput]):
                 last_error = e
                 if attempt < input_data.max_retry:
                     logger.warning(
-                        f"[AI.LLM] LLM 调用失败 (尝试 {attempt + 1}/{input_data.max_retry + 1}), "
-                        f"将重试: {str(e)}"
+                        f"[AI.LLM] LLM 調用失敗 (嘗試 {attempt + 1}/{input_data.max_retry + 1}), "
+                        f"將重試: {str(e)}"
                     )
                 else:
                     logger.error(
-                        f"[AI.LLM] LLM 调用失败,已达最大重试次数 ({input_data.max_retry + 1}): {str(e)}"
+                        f"[AI.LLM] LLM 調用失敗,已達最大重試次數 ({input_data.max_retry + 1}): {str(e)}"
                     )
         
-        # 所有重试都失败
-        raise RuntimeError(f"LLM 调用失败 (重试{input_data.max_retry}次后): {str(last_error)}")
+        # 所有重試都失敗
+        raise RuntimeError(f"LLM 調用失敗 (重試{input_data.max_retry}次後): {str(last_error)}")
 

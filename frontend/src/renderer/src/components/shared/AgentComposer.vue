@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="agent-composer">
     <el-input
       v-model="innerValue"
@@ -27,7 +27,7 @@ const props = withDefaults(defineProps<{
   resize?: 'none' | 'both' | 'horizontal' | 'vertical'
   inputClass?: string
 }>(), {
-  placeholder: '请输入内容',
+  placeholder: '請輸入內容',
   disabled: false,
   rows: 3,
   resize: 'none',

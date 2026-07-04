@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="agent-message-list" ref="listEl">
     <div v-for="(msg, idx) in props.messages" :key="idx" :class="['msg-row', msg.role]">
       <div class="msg-stack">
@@ -19,7 +19,7 @@
                           <template v-else>✓</template>
                         </span>
                         <span class="thinking-title">
-                          {{ isThinkingInProgress(idx, timelineIndex) ? '思考中…' : (isThinkingItemOpen(idx, timelineIndex) ? '思考过程' : '思考完成') }}
+                          {{ isThinkingInProgress(idx, timelineIndex) ? '思考中…' : (isThinkingItemOpen(idx, timelineIndex) ? '思考過程' : '思考完成') }}
                         </span>
                         <el-icon class="thinking-arrow">
                           <ArrowUp v-if="isThinkingItemOpen(idx, timelineIndex)" />
@@ -46,13 +46,13 @@
 
                     <div v-if="showJumpLink(timelineItem.tool)" class="tool-jump-row">
                       <el-link type="primary" size="small" @click="emitJumpToCard(timelineItem.tool)">
-                        跳转到卡片 →
+                        跳轉到卡片 →
                       </el-link>
                     </div>
 
                     <div v-if="timelineItem.tool.result !== undefined" class="tool-result-toggle-row">
                       <el-button text size="small" @click="toggleToolResult(idx, timelineIndex)">
-                        {{ isToolResultOpen(idx, timelineIndex) ? '收起结果' : '展开结果' }}
+                        {{ isToolResultOpen(idx, timelineIndex) ? '收起結果' : '展開結果' }}
                       </el-button>
                     </div>
                     <pre
@@ -95,7 +95,7 @@
           v-if="msg.role === 'assistant' && shouldShowAssistantActions(msg, idx)"
           class="assistant-actions"
         >
-          <el-tooltip content="复制回复" placement="top">
+          <el-tooltip content="複製回覆" placement="top">
             <el-button
               circle
               size="small"
@@ -111,7 +111,7 @@
               @click="emitRegenerateAssistant(idx)"
             />
           </el-tooltip>
-          <el-tooltip content="删除回复" placement="top">
+          <el-tooltip content="刪除回覆" placement="top">
             <el-button
               circle
               size="small"
@@ -125,7 +125,7 @@
           v-if="msg.role === 'user' && shouldShowUserActions(msg, idx)"
           class="assistant-actions"
         >
-          <el-tooltip content="复制消息" placement="top">
+          <el-tooltip content="複製消息" placement="top">
             <el-button
               circle
               size="small"
@@ -133,7 +133,7 @@
               @click="emitCopyUser(idx)"
             />
           </el-tooltip>
-          <el-tooltip content="删除消息" placement="top">
+          <el-tooltip content="刪除消息" placement="top">
             <el-button
               circle
               size="small"
@@ -168,7 +168,7 @@ const props = withDefaults(
     showUserActions?: boolean
   }>(),
   {
-    emptyDescription: '请输入需求，我会先给出可审阅的结果。',
+    emptyDescription: '請輸入需求，我會先給出可審閱的結果。',
     streaming: false,
     jumpProjectId: null,
     showAssistantActions: false,
@@ -289,8 +289,8 @@ function formatToolValue(value: unknown): string {
 function formatToolStatus(toolItem: any): string {
   const success = toolItem?.result?.success
   if (success === true) return '✅ 成功'
-  if (success === false) return '❌ 失败'
-  return '已执行'
+  if (success === false) return '❌ 失敗'
+  return '已執行'
 }
 
 function showJumpLink(toolItem: any): boolean {

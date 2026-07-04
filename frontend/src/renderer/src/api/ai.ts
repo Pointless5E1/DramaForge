@@ -1,4 +1,4 @@
-import { aiHttpClient, API_BASE_URL } from './request'
+﻿import { aiHttpClient, API_BASE_URL } from './request'
 import { createSSEStreamingRequest } from './streaming'
 import type { components } from '@renderer/types/generated'
 
@@ -7,7 +7,7 @@ export type ContinuationRequest = components['schemas']['ContinuationRequest']
 export type ContinuationResponse = components['schemas']['ContinuationResponse']
 export type AssistantChatRequest = components['schemas']['AssistantChatRequest']
 
-// append_continuous_novel_directive（用于控制是否追加"连续小说正文"指令）
+// append_continuous_novel_directive（用於控制是否追加"連續小說正文"指令）
 export type ContinuationWordControlMode = 'prompt_only' | 'balanced'
 export type ContinuationRequestExtended = ContinuationRequest & {
   append_continuous_novel_directive?: boolean
@@ -70,7 +70,7 @@ export interface AIConfigOptions {
   response_models: string[]
 }
 
-// 使用后端生成的类型
+// 使用後端生成的類型
 export type AssembleContextRequest = components['schemas']['AssembleContextRequest']
 type AssembleContextResponseBase = components['schemas']['AssembleContextResponse']
 
@@ -135,19 +135,19 @@ export function generateContinuationStreaming(
   onClose: () => void,
   onError?: (err: any) => void
 ) {
-  const endpoint = params.prompt_name === '灵感对话'
+  const endpoint = params.prompt_name === '靈感對話'
     ? `${API_BASE_URL}/ai/assistant/chat`
     : `${API_BASE_URL}/ai/generate/continuation`
   return createStreamingRequest(endpoint, params, onData, onClose, onError)
 }
 
-// 伏笔建议（占位）
+// 伏筆建議（佔位）
 export interface ForeshadowResponse { goals: string[]; items: string[]; persons: string[] }
 export function foreshadowSuggest(text: string): Promise<ForeshadowResponse> {
   return aiHttpClient.post<ForeshadowResponse>('/foreshadow/suggest', { text })
 }
 
-// 伏笔登记 CRUD
+// 伏筆登記 CRUD
 export interface ForeshadowItem {
   id: number
   project_id: number
@@ -175,7 +175,7 @@ export function deleteForeshadow(projectId: number, itemId: number): Promise<{ s
 }
 
 /**
- * 灵感助手专用流式对话
+ * 靈感助手專用流式對話
  */
 export function generateAssistantChatStreaming(
   params: AssistantChatRequest,

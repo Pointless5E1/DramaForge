@@ -1,17 +1,17 @@
-import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios'
+﻿import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios'
 import { ElMessage, ElLoading } from 'element-plus'
 
-// 后端API的基础URL
-// 约定：
-//  - web 开发环境：使用同源 + Vite 代理（BASE_URL = ''，请求走 /api 前缀）
-//  - web 生产环境：使用当前 hostname:54321
-//  - Electron / 其他：默认 http://127.0.0.1:54321
+// 後端API的基礎URL
+// 約定：
+//  - web 開發環境：使用同源 + Vite 代理（BASE_URL = ''，請求走 /api 前綴）
+//  - web 生產環境：使用當前 hostname:54321
+//  - Electron / 其他：默認 http://127.0.0.1:54321
 export const BASE_URL: string = (() => {
   const platform = import.meta.env.VITE_APP_PLATFORM
 
   if (platform === 'web') {
     if (import.meta.env.DEV) {
-      // 开发模式走 Vite 代理：/api -> http://127.0.0.1:54321
+      // 開發模式走 Vite 代理：/api -> http://127.0.0.1:54321
       return ''
     }
     if (typeof window !== 'undefined') {
@@ -22,16 +22,16 @@ export const BASE_URL: string = (() => {
     return ''
   }
 
-  // Electron 等非 web 场景
+  // Electron 等非 web 場景
   return 'http://127.0.0.1:54321'
 })()
 
-// 带 /api 前缀的基础 URL，供流式接口使用
+// 帶 /api 前綴的基礎 URL，供流式接口使用
 export const API_BASE_URL: string = BASE_URL
   ? `${BASE_URL.replace(/\/$/, '')}/api`
   : '/api'
 
-// API响应格式，与后端约定一致
+// API響應格式，與後端約定一致
 interface ApiResponse<T> {
   status: 'success' | 'error'
   data: T
@@ -53,7 +53,7 @@ class HttpClient {
           if (this.loadingCount === 0) {
             this.loadingInstance = ElLoading.service({
               lock: true,
-              text: '加载中...',
+              text: '加載中...',
               background: 'rgba(0, 0, 0, 0.7)'
             })
           }
@@ -76,7 +76,7 @@ class HttpClient {
             if (this.loadingCount === 0) this.loadingInstance?.close()
           } catch { }
         }
-        // 检查是否有由于请求触发的工作流运行
+        // 檢查是否有由於請求觸發的工作流運行
         const startedWorkflows = response.headers['x-workflows-started']
         if (startedWorkflows) {
           const runIds = startedWorkflows.split(',').map(Number)
@@ -85,21 +85,21 @@ class HttpClient {
           }
         }
 
-        // 允许透传原始响应（用于读取 headers）
+        // 允許透傳原始響應（用於讀取 headers）
         if ((response.config as any).rawResponse === true) {
           return response as any
         }
         const res = response.data
-        // 只有当 status 是 'success' 或 'error' 时才认为是包装格式
-        // 避免误判业务对象中的 status 字段（如 WorkflowRunRead.status）
+        // 只有當 status 是 'success' 或 'error' 時才認爲是包裝格式
+        // 避免誤判業務對象中的 status 字段（如 WorkflowRunRead.status）
         if (res.status === 'success' || res.status === 'error') {
           if (res.status === 'error') {
-            ElMessage.error(res.message || '操作失败')
+            ElMessage.error(res.message || '操作失敗')
             return Promise.reject(new Error(res.message || 'Error'))
           }
           return res.data
         }
-        // 其他情况直接返回原始数据
+        // 其他情況直接返回原始數據
         return res
       },
       (error) => {
@@ -121,15 +121,15 @@ class HttpClient {
               const fieldName = err.loc.slice(1).join(' -> ')
               return `字段 '${fieldName}': ${err.msg}`
             }).join('<br/>')
-            ElMessage({ type: 'error', dangerouslyUseHTMLString: true, message: `<strong>输入校验失败:</strong><br/>${errorMessages}`, duration: 5000 })
+            ElMessage({ type: 'error', dangerouslyUseHTMLString: true, message: `<strong>輸入校驗失敗:</strong><br/>${errorMessages}`, duration: 5000 })
           } else {
-            ElMessage.error('发生了一个未知的校验错误')
+            ElMessage.error('發生了一個未知的校驗錯誤')
           }
         } else {
-          const errorMessage = error.response?.data?.message || error.response?.data?.detail || error.message || '请求失败'
+          const errorMessage = error.response?.data?.message || error.response?.data?.detail || error.message || '請求失敗'
           ElMessage.error(errorMessage)
         }
-        console.error('请求错误:', error.response?.data || error)
+        console.error('請求錯誤:', error.response?.data || error)
         return Promise.reject(error)
       }
     )

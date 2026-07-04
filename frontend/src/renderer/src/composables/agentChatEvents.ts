@@ -1,4 +1,4 @@
-import type { AgentChatMessage, AgentStreamEvent, AgentTimelineItem, AgentToolTrace } from '@/types/agentChat'
+﻿import type { AgentChatMessage, AgentStreamEvent, AgentTimelineItem, AgentToolTrace } from '@/types/agentChat'
 
 interface ApplyAgentEventOptions {
   onToolEnd?: (toolName: string, result: any) => void
@@ -164,7 +164,7 @@ export function applyAgentStreamEvent(
       target.tools = target.tools || []
       target.tools.push({ tool_name: data.tool_name || 'tool', args: data.args })
     }
-    target.toolsInProgress = `⏳ 正在调用工具: ${data.tool_name || '工具'}...`
+    target.toolsInProgress = `⏳ 正在調用工具: ${data.tool_name || '工具'}...`
     return
   }
 
@@ -201,7 +201,7 @@ export function applyAgentStreamEvent(
     ;(target as any)._agentLastEventType = 'error'
     target.toolsInProgress = undefined
     if (options?.appendErrorToContent !== false) {
-      target.content += `\n\n[错误] ${data.error || 'unknown error'}`
+      target.content += `\n\n[錯誤] ${data.error || 'unknown error'}`
     }
   }
 }

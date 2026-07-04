@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div ref="editorRef" class="code-editor"></div>
 </template>
 
@@ -23,7 +23,7 @@ const emit = defineEmits(['update:modelValue', 'change'])
 const editorRef = ref(null)
 let view = null
 
-// 检测暗黑模式
+// 檢測暗黑模式
 const isDark = computed(() => {
   if (typeof document !== 'undefined') {
     return document.documentElement.classList.contains('dark')
@@ -31,7 +31,7 @@ const isDark = computed(() => {
   return false
 })
 
-// 创建主题
+// 創建主題
 const createTheme = () => {
   const dark = isDark.value
   
@@ -130,10 +130,10 @@ onMounted(() => {
     parent: editorRef.value
   })
   
-  // 监听暗黑模式变化
+  // 監聽暗黑模式變化
   const observer = new MutationObserver(() => {
     if (view) {
-      // 重新配置主题
+      // 重新配置主題
       view.dispatch({
         effects: EditorView.reconfigure.of([
           createTheme(),

@@ -1,59 +1,59 @@
-<template>
+﻿<template>
   <div class="outline-panel">
     <div class="panel-pad">
       <template v-if="hasAny">
-        <!-- 章节大纲 -->
+        <!-- 章節大綱 -->
         <template v-if="chapterOutline">
-          <h4 class="title">章节大纲</h4>
+          <h4 class="title">章節大綱</h4>
           <div class="section">
             <div class="stage-head">
               <span class="name">第{{ chapterOutline.chapter_number || '-' }}章｜{{ chapterOutline.title || '未命名' }}</span>
               <span class="badge">卷{{ volumeNumber ?? '-' }}</span>
             </div>
-            <p class="text">{{ chapterOutline.overview || '暂无概述' }}</p>
+            <p class="text">{{ chapterOutline.overview || '暫無概述' }}</p>
           </div>
         </template>
 
-        <!-- 当前阶段（推导或外部传入） -->
+        <!-- 當前階段（推導或外部傳入） -->
         <template v-if="stageNow">
-          <h4 class="title">当前阶段</h4>
+          <h4 class="title">當前階段</h4>
           <div class="section">
             <div class="stage-head">
-              <span class="name">{{ stageNow.stage_name || `阶段${stageNow.stage_number || '-'}` }}</span>
+              <span class="name">{{ stageNow.stage_name || `階段${stageNow.stage_number || '-'}` }}</span>
               <span v-if="Array.isArray(stageNow.reference_chapter) && stageNow.reference_chapter.length === 2" class="badge">第{{ stageNow.reference_chapter[0] }}-{{ stageNow.reference_chapter[1] }}章</span>
             </div>
-            <p class="text">{{ stageNow.overview || '暂无概述' }}</p>
-            <p v-if="stageNow.analysis" class="analysis"><b>创作分析：</b>{{ stageNow.analysis }}</p>
+            <p class="text">{{ stageNow.overview || '暫無概述' }}</p>
+            <p v-if="stageNow.analysis" class="analysis"><b>創作分析：</b>{{ stageNow.analysis }}</p>
           </div>
         </template>
 
-        <!-- 分卷大纲速查（原有） -->
+        <!-- 分卷大綱速查（原有） -->
         <template v-if="hasOutline">
-          <h4 class="title">分卷大纲速查</h4>
+          <h4 class="title">分卷大綱速查</h4>
           <div v-if="outline.thinking" class="section">
-            <div class="sec-title">💭 创作思考</div>
+            <div class="sec-title">💭 創作思考</div>
             <p class="text">{{ outline.thinking }}</p>
           </div>
           <div v-if="outline.main_target" class="section">
-            <div class="sec-title">🎯 主线目标</div>
-            <p class="text"><b>名称：</b>{{ outline.main_target.name || '未设置' }}</p>
-            <p class="text"><b>概述：</b>{{ outline.main_target.overview || '暂无概述' }}</p>
+            <div class="sec-title">🎯 主線目標</div>
+            <p class="text"><b>名稱：</b>{{ outline.main_target.name || '未設置' }}</p>
+            <p class="text"><b>概述：</b>{{ outline.main_target.overview || '暫無概述' }}</p>
           </div>
           <div v-if="Array.isArray(outline.branch_line) && outline.branch_line.length" class="section">
-            <div class="sec-title">🌿 支线剧情</div>
+            <div class="sec-title">🌿 支線劇情</div>
             <ul class="list">
-              <li v-for="(b, i) in outline.branch_line" :key="i">{{ b.name || `支线${Number(i)+1}` }}：{{ b.overview || '暂无概述' }}</li>
+              <li v-for="(b, i) in outline.branch_line" :key="i">{{ b.name || `支線${Number(i)+1}` }}：{{ b.overview || '暫無概述' }}</li>
             </ul>
           </div>
           <div v-if="Array.isArray(outline.stage_lines) && outline.stage_lines.length" class="section">
-            <div class="sec-title">📖 阶段性故事线</div>
+            <div class="sec-title">📖 階段性故事線</div>
             <div class="stage" v-for="(st, i) in outline.stage_lines" :key="i">
               <div class="stage-head">
-                <span class="name">{{ st.stage_name || `阶段${Number(i)+1}` }}</span>
+                <span class="name">{{ st.stage_name || `階段${Number(i)+1}` }}</span>
                 <span v-if="Array.isArray(st.reference_chapter) && st.reference_chapter.length === 2" class="badge">第{{ st.reference_chapter[0] }}-{{ st.reference_chapter[1] }}章</span>
               </div>
-              <p class="text">{{ st.overview || '暂无概述' }}</p>
-              <p v-if="st.analysis" class="analysis"><b>创作分析：</b>{{ st.analysis }}</p>
+              <p class="text">{{ st.overview || '暫無概述' }}</p>
+              <p v-if="st.analysis" class="analysis"><b>創作分析：</b>{{ st.analysis }}</p>
             </div>
           </div>
           <div v-if="Array.isArray(outline.character_snapshot) && outline.character_snapshot.length" class="section">
@@ -65,7 +65,7 @@
         </template>
       </template>
       <template v-else>
-        <div class="placeholder">暂无可用大纲</div>
+        <div class="placeholder">暫無可用大綱</div>
       </template>
     </div>
   </div>
@@ -87,11 +87,11 @@ const props = defineProps<{
 
 const { cards } = storeToRefs(useCardStore())
 
-// 内部状态：当activeCard存在且outline未提供时，自动查找
+// 內部狀態：當activeCard存在且outline未提供時，自動查找
 const internalOutline = ref<any | null>(null)
 const internalCurrentStage = ref<any | null>(null)
 
-// 查找分卷大纲
+// 查找分卷大綱
 function findVolumeOutline(card: CardRead | null): void {
   internalOutline.value = null
   internalCurrentStage.value = null
@@ -101,10 +101,10 @@ function findVolumeOutline(card: CardRead | null): void {
   const parent = cards.value?.find(c => c.id === card.parent_id)
   if (!parent) return
   
-  if (parent.card_type?.name === '分卷大纲') {
+  if (parent.card_type?.name === '分卷大綱') {
     internalOutline.value = parent.content
     
-    // 根据章节号匹配所处阶段
+    // 根據章節號匹配所處階段
     try {
       const stageLines: any[] = Array.isArray((parent.content as any)?.stage_lines) 
         ? (parent.content as any).stage_lines 
@@ -123,12 +123,12 @@ function findVolumeOutline(card: CardRead | null): void {
       console.error('Failed to find stage line:', e)
     }
   } else {
-    // 递归查找父级
+    // 遞歸查找父級
     findVolumeOutline(parent as any)
   }
 }
 
-// 当 activeCard 或卡片仓库内容发生变化时自动查找大纲
+// 當 activeCard 或卡片倉庫內容發生變化時自動查找大綱
 watch(
   [() => props.activeCard, cards],
   ([card]) => {
@@ -149,30 +149,30 @@ const hasOutline = computed(() => {
 
 const outline = computed(() => props.outline || internalOutline.value || {})
 
-// 若未传入 currentStage，则从分卷大纲中根据章节号推导
+// 若未傳入 currentStage，則從分卷大綱中根據章節號推導
 const stageNow = computed(() => {
   if (props.currentStage) return props.currentStage
   if (internalCurrentStage.value) return internalCurrentStage.value
   try {
-    // 1) 优先从分卷大纲的 stage_lines 推导
+    // 1) 優先從分卷大綱的 stage_lines 推導
     const sl = (outline.value?.stage_lines || []) as any[]
     const ch = Number(props.chapterNumber)
     if (Array.isArray(sl) && sl.length && Number.isFinite(ch)) {
       const hit = sl.find(st => Array.isArray(st.reference_chapter) && st.reference_chapter.length === 2 && ch >= Number(st.reference_chapter[0]) && ch <= Number(st.reference_chapter[1]))
       if (hit) return hit
     }
-    // 2) 回退：从卡片仓库中查找“阶段大纲”卡
+    // 2) 回退：從卡片倉庫中查找“階段大綱”卡
     const vol = Number(props.volumeNumber)
     if (!Number.isFinite(vol)) return null
     const all = (cards.value || [])
     if (!all.length) return null
-    // 构建 id->card 映射，便于向上追溯祖先
+    // 構建 id->card 映射，便於向上追溯祖先
     const idMap = new Map<number, any>(all.map(c => [c.id, c]))
-    // 定位当前卷的分卷大纲卡
-    const volumeCard = all.find(c => c?.card_type?.name === '分卷大纲' && Number(((c.content as any)?.volume_outline?.volume_number)) === vol)
-    // 候选阶段卡：card_type 名称为“阶段大纲”，且同属该卷（祖先包含 volumeCard 或 content.volume_number==vol）
+    // 定位當前卷的分卷大綱卡
+    const volumeCard = all.find(c => c?.card_type?.name === '分卷大綱' && Number(((c.content as any)?.volume_outline?.volume_number)) === vol)
+    // 候選階段卡：card_type 名稱爲“階段大綱”，且同屬該卷（祖先包含 volumeCard 或 content.volume_number==vol）
     const stageCards = all.filter(c => {
-      if (c?.card_type?.name !== '阶段大纲') return false
+      if (c?.card_type?.name !== '階段大綱') return false
       const contentVol = Number(((c.content as any)?.volume_number))
       if (Number.isFinite(contentVol) && contentVol === vol) return true
       if (volumeCard && c.parent_id) {
@@ -185,30 +185,30 @@ const stageNow = computed(() => {
       return false
     })
     if (!stageCards.length) return null
-    // 优先按章节号匹配 reference_chapter
+    // 優先按章節號匹配 reference_chapter
     if (Number.isFinite(ch)) {
       const byRange = stageCards.find(c => Array.isArray((c.content as any)?.reference_chapter) && ch >= Number((c.content as any).reference_chapter[0]) && ch <= Number((c.content as any).reference_chapter[1]))
       if (byRange) return (byRange.content as any)
     }
-    // 次选：若某卡 content.stage_number 恰好与 props.currentStage?.stage_number（若外部提供）一致
+    // 次選：若某卡 content.stage_number 恰好與 props.currentStage?.stage_number（若外部提供）一致
     const sn = Number((props.currentStage as any)?.stage_number)
     if (Number.isFinite(sn)) {
       const byIndex = stageCards.find(c => Number((c.content as any)?.stage_number) === sn)
       if (byIndex) return (byIndex.content as any)
     }
-    // 最后回退：取第一个阶段卡
+    // 最後回退：取第一個階段卡
     const first = stageCards[0]
     return first ? (first.content as any) : null
   } catch { return null }
 })
 
-// 章节大纲：扫描所有卡片，匹配当前卷/章
+// 章節大綱：掃描所有卡片，匹配當前卷/章
 const chapterOutline = computed(() => {
   try {
     const vol = Number(props.volumeNumber)
     const ch = Number(props.chapterNumber)
     if (!Number.isFinite(vol) || !Number.isFinite(ch)) return null
-    const list = (cards.value || []).filter(c => c?.card_type?.name === '章节大纲')
+    const list = (cards.value || []).filter(c => c?.card_type?.name === '章節大綱')
     for (const c of list) {
       const co = (c.content as any)?.chapter_outline || (c.content as any)
       const v = Number(co?.volume_number)
@@ -242,7 +242,7 @@ const hasAny = computed(() => !!chapterOutline.value || !!stageNow.value || !!ha
 .name { font-weight: 600; font-size: 14px; color: var(--el-text-color-primary); }
 .placeholder { color: var(--el-text-color-secondary); }
 .badge { font-size: 12px; color: var(--el-color-warning); border: 1px solid var(--el-color-warning); border-radius: 3px; padding: 0 6px; }
-/* 高对比度调试样式 */
+/* 高對比度調試樣式 */
 .debug-box { background: #1e1e1e; border-radius: 6px; padding: 8px; max-height: 260px; overflow: auto; }
 .debug-pre { color: #e6e6e6; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 12px; line-height: 1.6; margin: 0; white-space: pre; }
 </style> 

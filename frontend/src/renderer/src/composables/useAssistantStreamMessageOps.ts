@@ -1,4 +1,4 @@
-import type { Ref } from 'vue'
+﻿import type { Ref } from 'vue'
 
 import type { AssistantPanelMessage, AssistantToolResult } from '@renderer/types/assistantPanel'
 import { applyAgentStreamEvent } from './agentChatEvents'
@@ -105,7 +105,7 @@ export function applyAssistantStreamChunk(options: ApplyAssistantStreamChunkOpti
 
     const baseMessage = options.messages.value[options.targetIdx]
     if (!baseMessage) {
-      console.warn(`[AssistantPanel] 目标消息索引 ${options.targetIdx} 不存在，忽略事件`, event)
+      console.warn(`[AssistantPanel] 目標消息索引 ${options.targetIdx} 不存在，忽略事件`, event)
       return
     }
 
@@ -248,21 +248,21 @@ export function applyAssistantStreamChunk(options: ApplyAssistantStreamChunkOpti
     }
 
     if (type === 'retry') {
-      const reason = data.reason || '工具调用失败'
+      const reason = data.reason || '工具調用失敗'
       const current = data.current ?? data.retry
       const max = data.max
-      baseMessage.toolsInProgress = `🔄 工具调用失败，${reason}，正在重试 (${current}/${max})...`
+      baseMessage.toolsInProgress = `🔄 工具調用失敗，${reason}，正在重試 (${current}/${max})...`
       options.scrollToBottom()
       return
     }
 
     if (type === 'error') {
-      const errMessage = data.error || '执行失败'
+      const errMessage = data.error || '執行失敗'
       applyAgentStreamEvent(baseMessage as any, event as any, {
         trackToolStartInTools: false,
         appendErrorToContent: false,
       })
-      baseMessage.toolsInProgress = `❌ 工具调用失败: ${errMessage}`
+      baseMessage.toolsInProgress = `❌ 工具調用失敗: ${errMessage}`
       options.scrollToBottom()
       return
     }
@@ -275,7 +275,7 @@ export function applyAssistantStreamChunk(options: ApplyAssistantStreamChunkOpti
 
   const msg = options.messages.value[options.targetIdx]
   if (!msg) {
-    console.warn(`⚠️ [AssistantPanel] 目标消息索引 ${options.targetIdx} 不存在，停止流式输出`)
+    console.warn(`⚠️ [AssistantPanel] 目標消息索引 ${options.targetIdx} 不存在，停止流式輸出`)
     return
   }
 

@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Tuple
 from sqlmodel import Session
@@ -10,71 +10,71 @@ from app.schemas.relation_extract import RelationExtraction, CN_TO_EN_KIND
 from app.schemas.entity import Entity
 from app.services.ai.core import llm_service
 from pydantic import BaseModel
-# 引入动态信息模型
+# 引入動態信息模型
 from app.schemas.entity import UpdateDynamicInfo, DynamicInfoType, DynamicInfoItem, DeletionInfo
 from app.db.models import Card, CardType
 from sqlmodel import select
 
-# 引入带类型的参与者模型
+# 引入帶類型的參與者模型
 from app.schemas.memory import ParticipantTyped
 
-# 从数据库加载提示词
+# 從數據庫加載提示詞
 from app.services import prompt_service
 from app.services.memory_extractors.memory_base import log_extract_prompt
 from app.services.memory_extractors.registry_factory import get_memory_extractor_registry
 
-# 使用可切换的知识图谱 Provider
+# 使用可切換的知識圖譜 Provider
 from app.services.kg_provider import get_provider, KnowledgeGraphUnavailableError
 
-# 主宾类型约束（建议表）
+# 主賓類型約束（建議表）
 _ALLOWED_PAIRS: Dict[str, List[Tuple[str, str]]] = {
     '同盟': [('character','character')],
-    '队友': [('character','character')],
-    '同门': [('character','character')],
-    '敌对': [('character','character')],
-    '亲属': [('character','character')],
-    '师徒': [('character','character')],
-    '对手': [('character','character')],
-    '伙伴': [('character','character')],
-    '上级': [('character','character')],
-    '下属': [('character','character')],
+    '隊友': [('character','character')],
+    '同門': [('character','character')],
+    '敵對': [('character','character')],
+    '親屬': [('character','character')],
+    '師徒': [('character','character')],
+    '對手': [('character','character')],
+    '夥伴': [('character','character')],
+    '上級': [('character','character')],
+    '下屬': [('character','character')],
 
-    '隶属': [('character','organization')],
-    '成员': [('character','organization')],
-    '领导': [('character','organization'), ('organization','organization')],
-    '创立': [('character','organization') , ('organization','organization')],
+    '隸屬': [('character','organization')],
+    '成員': [('character','organization')],
+    '領導': [('character','organization'), ('organization','organization')],
+    '創立': [('character','organization') , ('organization','organization')],
 
-    '拥有': [('character','item'), ('organization','item')],
+    '擁有': [('character','item'), ('organization','item')],
     '使用': [('character','item'), ('organization','item')],
-    '修炼': [('character','concept')],
-    '领悟': [('character','concept')],
-    '承载': [('item','concept')],
+    '修煉': [('character','concept')],
+    '領悟': [('character','concept')],
+    '承載': [('item','concept')],
     '映射': [('concept','item')],
 
     '控制': [('organization','scene')],
-    '位于': [('scene','organization')],
+    '位於': [('scene','organization')],
 
     
-    '关于': [('character','character'), ('organization','organization'), ('character','organization'), ('organization','character'),
+    '關於': [('character','character'), ('organization','organization'), ('character','organization'), ('organization','character'),
         #    ('item','item'), ('concept','concept'), ('character','concept'), ('character','item')
            ],
     '其他': [('character','character'), ('organization','organization'), ('character','organization'), ('organization','character'), ('item','item'), ('concept','concept'), ('character','concept'), ('character','item')],
-    # '影响': [('character','character'), ('organization','organization'), ('character','organization'), ('organization','character'), ('item','item'), ('concept','concept'), ('character','concept'), ('character','item'), ('scene','organization'), ('organization','scene')],
-    # '克制': [('item','item'), ('concept','concept'), ('character','character')],
+    # '影響': [('character','character'), ('organization','organization'), ('character','organization'), ('organization','character'), ('item','item'), ('concept','concept'), ('character','concept'), ('character','item'), ('scene','organization'), ('organization','scene')],
+    # '剋制': [('item','item'), ('concept','concept'), ('character','character')],
 }
 
-# # 简化：从卡片类型名称推断实体类型
+# # 簡化：從卡片類型名稱推斷實體類型
 # _CARDTYPE_TO_ENTITYTYPE: Dict[str, str] = {
 #     '角色卡': 'character',
-#     '场景卡': 'scene',
-#     '组织卡': 'organization',
+#     '場景卡': 'scene',
+#     '組織卡': 'organization',
 #     # '物品卡': 'item',
 #     # '概念卡': 'concept',
 # }
 
 def _guess_entity_type(session: Session, project_id: int, name: str) -> Optional[str]:
     try:
-        # 在该项目下查找 title == name 的卡片，并读取其类型名称
+        # 在該項目下查找 title == name 的卡片，並讀取其類型名稱
         st = select(Card).where(Card.project_id == project_id, Card.title == name)
         card = session.exec(st).first()
         if not card:
@@ -83,7 +83,7 @@ def _guess_entity_type(session: Session, project_id: int, name: str) -> Optional
         if not ct:
             return None
         
-        # 修正：card.content 已经是 dict，应使用 model_validate 而不是 model_validate_json
+        # 修正：card.content 已經是 dict，應使用 model_validate 而不是 model_validate_json
         entity=Entity.model_validate(card.content)
         return str(entity.entity_type)
         # return _CARDTYPE_TO_ENTITYTYPE.get(ct.name or '', None)
@@ -92,16 +92,16 @@ def _guess_entity_type(session: Session, project_id: int, name: str) -> Optional
         return None
 
 
-# 动态信息每类别数量上限（可根据需要调整）
+# 動態信息每類別數量上限（可根據需要調整）
 DYNAMIC_INFO_LIMITS: Dict[str, int] = {
-    "系统/模拟器/金手指信息": 3,
-    "等级/修为境界": 3,
-    "装备/法宝": 3,
-    "知识/情报": 3,
-    "资产/领地": 3,
+    "系統/模擬器/金手指信息": 3,
+    "等級/修爲境界": 3,
+    "裝備/法寶": 3,
+    "知識/情報": 3,
+    "資產/領地": 3,
     "功法/技能": 3,
-    "血脉/体质": 3,
-    "心理想法/目标快照": 3,
+    "血脈/體質": 3,
+    "心理想法/目標快照": 3,
 }
 
 class MemoryService:
@@ -203,7 +203,7 @@ class MemoryService:
         participants: Optional[List[ParticipantTyped]] = None,
         llm_config_id: int = 1,
         timeout: Optional[float] = None,
-        prompt_name: Optional[str] = "关系提取",
+        prompt_name: Optional[str] = "關係提取",
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
     ) -> RelationExtraction:
@@ -211,12 +211,12 @@ class MemoryService:
         system_prompt = prompt.template
 
         schema_json = RelationExtraction.model_json_schema()
-        system_prompt += f"\n\n请严格按以下 JSON Schema 格式输出:\n{schema_json}"
+        system_prompt += f"\n\n請嚴格按以下 JSON Schema 格式輸出:\n{schema_json}"
 
         participant_names = [p.name for p in participants] if participants else []
         user_prompt = (
-            f"参与者: {', '.join(participant_names)}\n\n"
-            "请从以下正文中提取:\n"
+            f"參與者: {', '.join(participant_names)}\n\n"
+            "請從以下正文中提取:\n"
             f"{text}"
         )
         log_extract_prompt("relation_preview", prompt_name, llm_config_id, system_prompt, user_prompt)
@@ -231,7 +231,7 @@ class MemoryService:
             timeout=timeout,
         )
         if not isinstance(res, RelationExtraction):
-            raise ValueError("LLM 关系抽取失败：输出格式不符合 RelationExtraction")
+            raise ValueError("LLM 關係抽取失敗：輸出格式不符合 RelationExtraction")
         return res
 
     async def extract_dynamic_info_preview(
@@ -241,7 +241,7 @@ class MemoryService:
         participants: Optional[List[ParticipantTyped]] = None,
         llm_config_id: int = 1,
         timeout: Optional[float] = None,
-        prompt_name: Optional[str] = "角色动态信息提取",
+        prompt_name: Optional[str] = "角色動態信息提取",
         project_id: Optional[int] = None,
         extra_context: Optional[str] = None,
         temperature: Optional[float] = None,
@@ -249,15 +249,15 @@ class MemoryService:
     ) -> UpdateDynamicInfo:
         prompt = prompt_service.get_prompt_by_name(self.session, prompt_name)
         if not prompt:
-            raise ValueError(f"未找到提示词: {prompt_name}")
+            raise ValueError(f"未找到提示詞: {prompt_name}")
         system_prompt = prompt.template
 
         schema_json = UpdateDynamicInfo.model_json_schema()
-        system_prompt += f"\n\n请严格按以下 JSON Schema 格式输出:\n{schema_json}"
+        system_prompt += f"\n\n請嚴格按以下 JSON Schema 格式輸出:\n{schema_json}"
 
         ref_blocks: List[str] = []
         if extra_context:
-            ref_blocks.append(f"【大纲参考信息，不允许从中提取信息】\n{extra_context}")
+            ref_blocks.append(f"【大綱參考信息，不允許從中提取信息】\n{extra_context}")
 
         character_participants = [p for p in (participants or []) if p.type == 'character']
         if project_id and character_participants:
@@ -287,7 +287,7 @@ class MemoryService:
                         logger.error(f"Error preparing dynamic info context: {e}")
                         continue
                 if lines:
-                    ref_blocks.append("【现有角色动态信息（只读参考）】\n" + "\n".join(lines))
+                    ref_blocks.append("【現有角色動態信息（只讀參考）】\n" + "\n".join(lines))
             except Exception as e:
                 logger.error(f"Error preparing dynamic info context: {e}")
 
@@ -295,14 +295,14 @@ class MemoryService:
         participant_text = ""
         if character_participants:
             participant_text = (
-                "本章当前参与角色（仅作优先参考，不是硬限制；如果正文里明确出现了其他重要角色，也可以提取）：\n"
+                "本章當前參與角色（僅作優先參考，不是硬限制；如果正文裏明確出現了其他重要角色，也可以提取）：\n"
                 f"{', '.join([p.name for p in character_participants])}\n\n"
             )
         user_prompt = (
             f"{ref_text}"
-            f"章节正文:\n{text}\n\n"
+            f"章節正文:\n{text}\n\n"
             f"{participant_text}"
-            "请从以上正文中提取本章值得写回角色卡的动态信息。"
+            "請從以上正文中提取本章值得寫回角色卡的動態信息。"
         )
 
         log_extract_prompt("character_dynamic_preview", prompt_name, llm_config_id, system_prompt, user_prompt)
@@ -318,23 +318,23 @@ class MemoryService:
         )
 
         if not isinstance(res, UpdateDynamicInfo):
-            raise ValueError("LLM 动态信息抽取失败：输出格式不符合 UpdateDynamicInfo")
+            raise ValueError("LLM 動態信息抽取失敗：輸出格式不符合 UpdateDynamicInfo")
 
         return res
 
-    async def extract_relations_llm(self, text: str, participants: Optional[List[ParticipantTyped]] = None, llm_config_id: int = 1, timeout: Optional[float] = None, prompt_name: Optional[str] = "关系提取") -> RelationExtraction:
-        # 优先使用默认提示词，如果不存在则回退到硬编码版本
+    async def extract_relations_llm(self, text: str, participants: Optional[List[ParticipantTyped]] = None, llm_config_id: int = 1, timeout: Optional[float] = None, prompt_name: Optional[str] = "關係提取") -> RelationExtraction:
+        # 優先使用默認提示詞，如果不存在則回退到硬編碼版本
         prompt = prompt_service.get_prompt_by_name(self.session, prompt_name)
         system_prompt = prompt.template
         
-        # 将输出模型的 JSON Schema 附加到系统提示词中
+        # 將輸出模型的 JSON Schema 附加到系統提示詞中
         schema_json = RelationExtraction.model_json_schema()
-        system_prompt += f"\n\n请严格按照以下 JSON Schema 格式进行输出:\n{schema_json}"
+        system_prompt += f"\n\n請嚴格按照以下 JSON Schema 格式進行輸出:\n{schema_json}"
 
         participant_names = [p.name for p in participants] if participants else []
         user_prompt = (
-            f"参与者: {', '.join(participant_names)}\n\n"
-            "请从以下正文中抽取：\n"
+            f"參與者: {', '.join(participant_names)}\n\n"
+            "請從以下正文中抽取：\n"
             f"{text}"
         )
         log_extract_prompt("relation_extract", prompt_name, llm_config_id, system_prompt, user_prompt)
@@ -347,26 +347,26 @@ class MemoryService:
             timeout=timeout,
         )
         if not isinstance(res, RelationExtraction):
-            raise ValueError("LLM 关系抽取失败：输出格式不符合 RelationExtraction")
+            raise ValueError("LLM 關係抽取失敗：輸出格式不符合 RelationExtraction")
         return res
 
-    async def extract_dynamic_info_from_text(self, text: str, participants: Optional[List[ParticipantTyped]] = None, llm_config_id: int = 1, timeout: Optional[float] = None, prompt_name: Optional[str] = "角色动态信息提取", project_id: Optional[int] = None, extra_context: Optional[str] = None) -> UpdateDynamicInfo:
-        """从文本中抽取角色动态信息。participants 仅作为优先参考，不作为硬限制。"""
+    async def extract_dynamic_info_from_text(self, text: str, participants: Optional[List[ParticipantTyped]] = None, llm_config_id: int = 1, timeout: Optional[float] = None, prompt_name: Optional[str] = "角色動態信息提取", project_id: Optional[int] = None, extra_context: Optional[str] = None) -> UpdateDynamicInfo:
+        """從文本中抽取角色動態信息。participants 僅作爲優先參考，不作爲硬限制。"""
         prompt = prompt_service.get_prompt_by_name(self.session, prompt_name)
         if not prompt:
-            raise ValueError(f"未找到提示词: {prompt_name}")
+            raise ValueError(f"未找到提示詞: {prompt_name}")
         system_prompt = prompt.template
 
-        # 附加 JSON Schema 以强化输出结构
+        # 附加 JSON Schema 以強化輸出結構
         schema_json = UpdateDynamicInfo.model_json_schema()
-        system_prompt += f"\n\n请严格按照以下 JSON Schema 格式进行输出:\n{schema_json}"
+        system_prompt += f"\n\n請嚴格按照以下 JSON Schema 格式進行輸出:\n{schema_json}"
 
-        # 参考上下文（完全由前端决定）+ 现有角色动态信息
+        # 參考上下文（完全由前端決定）+ 現有角色動態信息
         ref_blocks: List[str] = []
         if extra_context:
-            ref_blocks.append(f"【大纲参考信息，不允许从中提取信息】\n{extra_context}")
+            ref_blocks.append(f"【大綱參考信息，不允許從中提取信息】\n{extra_context}")
 
-        # 使用带类型的参与者，仅处理 character 类型
+        # 使用帶類型的參與者，僅處理 character 類型
         character_participants = [p for p in (participants or []) if p.type == 'character']
         if project_id and character_participants:
             try:
@@ -389,7 +389,7 @@ class MemoryService:
                             if len(items)==0:
                                 continue
 
-                            # 增加数量/上限的上下文（去掉权重）
+                            # 增加數量/上限的上下文（去掉權重）
                             preview = "; ".join([f"[{it.id}] {it.info}" for it in items[:5]])
                             limit = DYNAMIC_INFO_LIMITS.get(cat_enum, 3)
                             info_line = f"  • {cat_enum} ({len(items)}/{limit}): {preview}"
@@ -398,7 +398,7 @@ class MemoryService:
                         logger.error(f"Error preparing dynamic info context: {e}")
                         continue
                 if lines:
-                    ref_blocks.append("【现有角色动态信息（只读参考）】\n" + "\n".join(lines))
+                    ref_blocks.append("【現有角色動態信息（只讀參考）】\n" + "\n".join(lines))
             except Exception as e:
                 logger.error(f"Error preparing dynamic info context: {e}")
 
@@ -406,15 +406,15 @@ class MemoryService:
         participant_text = ""
         if character_participants:
             participant_text = (
-                "本章当前参与角色（仅作优先参考，不是硬限制；如果正文里明确出现了其他重要角色，也可以提取）：\n"
+                "本章當前參與角色（僅作優先參考，不是硬限制；如果正文裏明確出現了其他重要角色，也可以提取）：\n"
                 f"{', '.join([p.name for p in character_participants])}\n\n"
             )
 
         user_prompt = (
             f"{ref_text}"
-            f"章节正文：\n{text}\n\n"
+            f"章節正文：\n{text}\n\n"
             f"{participant_text}"
-            "请从以上正文中提取本章值得写回角色卡的动态信息。"
+            "請從以上正文中提取本章值得寫回角色卡的動態信息。"
         )
 
         log_extract_prompt("character_dynamic_extract", prompt_name, llm_config_id, system_prompt, user_prompt)
@@ -428,7 +428,7 @@ class MemoryService:
         )
 
         if not isinstance(res, UpdateDynamicInfo):
-            raise ValueError("LLM 动态信息抽取失败：输出格式不符合 UpdateDynamicInfo")
+            raise ValueError("LLM 動態信息抽取失敗：輸出格式不符合 UpdateDynamicInfo")
         
         return res
 
@@ -451,20 +451,20 @@ class MemoryService:
         )
 
     def ingest_relations_from_llm(self, project_id: int, data: RelationExtraction, *, volume_number: Optional[int] = None, chapter_number: Optional[int] = None, participants_with_type: Optional[List[ParticipantTyped]] = None) -> Dict[str, Any]:
-        # 写入关系三元组；同时最小持久化称呼/事件摘要/立场（作为可检索证据）
-        # tuples: (主体, 关系, 客体, 属性字典)
+        # 寫入關係三元組；同時最小持久化稱呼/事件摘要/立場（作爲可檢索證據）
+        # tuples: (主體, 關係, 客體, 屬性字典)
         triples_with_attrs: List[tuple[str, str, str, Dict[str, Any]]] = []
 
         DIALOGUES_QUEUE_SIZE = 2
         EVENTS_QUEUE_SIZE = 10
 
-        # 创建参与者类型映射以便快速查找
+        # 創建參與者類型映射以便快速查找
         participant_type_map = {p.name: p.type for p in participants_with_type} if participants_with_type else {}
 
         def _merge_queue(existing: List[Any], incoming: List[Any], key_fn=lambda x: x, max_size: int = 3) -> List[Any]:
             seen = set()
             merged: List[Any] = []
-            # 先旧后新，保持“新在队尾”，之后裁剪保留队尾（最近）
+            # 先舊後新，保持“新在隊尾”，之後裁剪保留隊尾（最近）
             for it in (existing or []) + (incoming or []):
                 k = key_fn(it)
                 if k in seen:
@@ -475,20 +475,20 @@ class MemoryService:
                 return merged
             return merged[-max_size:]
 
-        # 按队列策略合并对话/事件摘要（size=3），并序列化为字典
+        # 按隊列策略合併對話/事件摘要（size=3），並序列化爲字典
         merged_evidence_map: Dict[Tuple[str, str, str], Dict[str, Any]] = {}
 
-        # 预取：将本批所有 (a, b, kind_cn) 收集，做一次子图查询后在内存中过滤，避免多次往返
+        # 預取：將本批所有 (a, b, kind_cn) 收集，做一次子圖查詢後在內存中過濾，避免多次往返
         pairs: List[Tuple[str, str, str]] = []  # (a, b, kind_en)
         for r in (data.relations or []):
             pred = CN_TO_EN_KIND.get(r.kind or '', '')
             if pred:
                 pairs.append((r.a, r.b, pred))
 
-        # 构建现存数据索引：key=(a,b,kind_en) -> {recent_dialogues, recent_event_summaries}
+        # 構建現存數據索引：key=(a,b,kind_en) -> {recent_dialogues, recent_event_summaries}
         existing_index: Dict[Tuple[str, str, str], Dict[str, Any]] = {}
         try:
-            # 参与者全集（去重）
+            # 參與者全集（去重）
             all_parts = list({p for t in pairs for p in (t[0], t[1])})
             if all_parts:
                 sub = self.graph.query_subgraph(project_id=project_id, participants=all_parts, top_k=200)
@@ -517,32 +517,32 @@ class MemoryService:
                 return kind_cn
             if (type_a, type_b) in allowed:
                 return kind_cn
-            # 不合法：降级为“关于”
-            return '关于'
+            # 不合法：降級爲“關於”
+            return '關於'
 
         for r in (data.relations or []):
             pred = CN_TO_EN_KIND.get(r.kind or '', '')
             if not pred:
                 continue
             
-            # 使用传入的类型信息，如果缺失则回退到猜测
+            # 使用傳入的類型信息，如果缺失則回退到猜測
             type_a = participant_type_map.get(r.a) or _guess_entity_type(self.session, project_id, r.a)
             type_b = participant_type_map.get(r.b) or _guess_entity_type(self.session, project_id, r.b)
 
-            # 约束：依据实体类型矫正关系 kind（中文）
+            # 約束：依據實體類型矯正關係 kind（中文）
             kind_cn_fixed = _coerce_kind_by_types(r.kind, type_a, type_b)
             pred = CN_TO_EN_KIND.get(kind_cn_fixed, pred)
             
-            # 准备属性字典
+            # 準備屬性字典
             attributes = r.model_dump(exclude={"a", "b", "kind"}, exclude_none=True)
 
-            # 后端强制过滤：如果 A 或 B 不是 character，则移除称呼和对话
+            # 後端強制過濾：如果 A 或 B 不是 character，則移除稱呼和對話
             if type_a != 'character' or type_b != 'character':
                 attributes.pop('a_to_b_addressing', None)
                 attributes.pop('b_to_a_addressing', None)
                 attributes.pop('recent_dialogues', None)
 
-            # 对话（过滤长度）
+            # 對話（過濾長度）
             new_dialogues = [d.strip() for d in (attributes.get("recent_dialogues") or []) if isinstance(d, str) and len(d.strip()) >= 20]
             if new_dialogues:
                 attributes["recent_dialogues"] = new_dialogues
@@ -550,7 +550,7 @@ class MemoryService:
                 attributes.pop("recent_dialogues")
 
 
-            # 事件摘要（补全卷章）
+            # 事件摘要（補全卷章）
             new_summaries: List[Dict[str, Any]] = []
             old_summaries_by_summary: Dict[str, Dict[str, Any]] = {}
             key = (r.a, r.b, pred)
@@ -585,7 +585,7 @@ class MemoryService:
                 except Exception:
                     continue
 
-            # 读取现存并合并为队列
+            # 讀取現存並合併爲隊列
             old_dialogues: List[str] = list(prev.get("recent_dialogues") or [])
 
             merged_dialogues = _merge_queue(old_dialogues, new_dialogues, key_fn=lambda x: x, max_size=DIALOGUES_QUEUE_SIZE)
@@ -613,7 +613,7 @@ class MemoryService:
             
             triples_with_attrs.append((r.a, pred, r.b, attributes))
             
-            # 返回值（仅摘要）
+            # 返回值（僅摘要）
             merged_evidence_map[key] = {
                 "recent_dialogues": attributes.get("recent_dialogues", []),
                 "recent_event_summaries": [s.get('summary') for s in attributes.get("recent_event_summaries", [])]
@@ -623,22 +623,22 @@ class MemoryService:
             try:
                 self.graph.ingest_triples_with_attributes(project_id, triples_with_attrs)
             except Exception as e:
-                raise ValueError(f"知识图谱写入失败: {e}")
+                raise ValueError(f"知識圖譜寫入失敗: {e}")
         
         return {"written": len(triples_with_attrs), "merged_evidence": merged_evidence_map} 
 
     def update_dynamic_character_info(self, project_id: int, data: UpdateDynamicInfo, queue_size: int = 3) -> Dict[str, Any]:
         """
-        更新角色卡的动态信息，支持新增、删除。
-        每个类别的最大数量使用 DYNAMIC_INFO_LIMITS 中的配置；若未配置，则回退到 queue_size（默认3）。
+        更新角色卡的動態信息，支持新增、刪除。
+        每個類別的最大數量使用 DYNAMIC_INFO_LIMITS 中的配置；若未配置，則回退到 queue_size（默認3）。
         """
         from app.schemas.entity import CharacterCard
 
-        # 1. 先处理删除
+        # 1. 先處理刪除
         if data.delete_info_list:
             for del_item in data.delete_info_list:
-                # 心理想法/目标快照：忽略来自 LLM 的删除指令，交由系统按 FIFO 处理
-                if str(del_item.dynamic_type) == '心理想法/目标快照':
+                # 心理想法/目標快照：忽略來自 LLM 的刪除指令，交由系統按 FIFO 處理
+                if str(del_item.dynamic_type) == '心理想法/目標快照':
                     continue
                 st = select(Card).where(Card.project_id == project_id, Card.title == del_item.name)
                 card = self.session.exec(st).first()
@@ -658,9 +658,9 @@ class MemoryService:
                     logger.warning(f"Failed to process deletion for {del_item.name}: {e}")
             self.session.commit()
 
-        # 2. 再处理新增与修改
+        # 2. 再處理新增與修改
         updated_cards: Dict[str, Card] = {}
-        # 预加载所有相关的角色卡
+        # 預加載所有相關的角色卡
         all_names = list(set([i.name for i in data.info_list]))
         if not all_names:
             return {"success": False, "updated_card_count": 0}
@@ -670,8 +670,8 @@ class MemoryService:
         card_map = {c.title: c for c in cards if c.card_type and c.card_type.name == '角色卡'}
 
 
-        # 处理新增
-        # (和之前类似，但要确保在已更新的 card 对象上操作)
+        # 處理新增
+        # (和之前類似，但要確保在已更新的 card 對象上操作)
         for info_group in data.info_list:
             card = updated_cards.get(info_group.name) or card_map.get(info_group.name)
             if not card:
@@ -691,14 +691,14 @@ class MemoryService:
                     
                     existing_items = model.dynamic_info[cat]
                     
-                    # 合并（新项追加在队尾，便于 FIFO）
+                    # 合併（新項追加在隊尾，便於 FIFO）
                     for new_item in items:
-                        # 将占位或缺失ID暂记为 0，稍后统一分配正数ID
+                        # 將佔位或缺失ID暫記爲 0，稍後統一分配正數ID
                         if not isinstance(new_item.id, int) or new_item.id <= 0:
                             new_item.id = 0
                         existing_items.append(new_item)
                     
-                    # 统一ID规范化：为所有 <=0 的条目分配连续正数ID（不改变已有正数ID）
+                    # 統一ID規範化：爲所有 <=0 的條目分配連續正數ID（不改變已有正數ID）
                     existing_positive = [it.id for it in existing_items if isinstance(it.id, int) and it.id > 0]
                     next_id = (max(existing_positive) + 1) if existing_positive else 1
                     for it in existing_items:
@@ -708,11 +708,11 @@ class MemoryService:
                     
                     # 按配置上限裁剪
                     limit = DYNAMIC_INFO_LIMITS.get(cat, queue_size)
-                    if str(cat) == '心理想法/目标快照':
-                        # 保留最新 limit 条（先进先出，淘汰最旧）
+                    if str(cat) == '心理想法/目標快照':
+                        # 保留最新 limit 條（先進先出，淘汰最舊）
                         model.dynamic_info[cat] = existing_items[-limit:]
                     else:
-                        # 其他类别沿用当前策略（若需改为保留最新，可改为 existing_items[-limit:]）
+                        # 其他類別沿用當前策略（若需改爲保留最新，可改爲 existing_items[-limit:]）
                         model.dynamic_info[cat] = existing_items[:limit]
 
                 card.content = model.model_dump(exclude_unset=True)
@@ -721,7 +721,7 @@ class MemoryService:
             except Exception as e:
                 logger.warning(f"Failed to process addition for {info_group.name}: {e}")
 
-        # 统一提交
+        # 統一提交
         for card in updated_cards.values():
             self.session.add(card)
         

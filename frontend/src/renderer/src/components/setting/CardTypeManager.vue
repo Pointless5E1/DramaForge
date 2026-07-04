@@ -1,14 +1,14 @@
-<template>
+﻿<template>
   <div class="card-type-manager">
-    <!-- 工具条：搜索 + 新增 -->
+    <!-- 工具條：搜索 + 新增 -->
     <div class="toolbar">
-      <el-input v-model="query" placeholder="搜索类型（名称/描述）" clearable class="search" />
-      <el-button type="primary" @click="openEditor()">新增类型</el-button>
+      <el-input v-model="query" placeholder="搜索類型（名稱/描述）" clearable class="search" />
+      <el-button type="primary" @click="openEditor()">新增類型</el-button>
     </div>
 
     <!-- 列表 -->
     <el-table :data="filteredTypes" height="60vh" size="small" :border="false" v-loading="loading">
-      <el-table-column prop="name" label="名称" width="220" />
+      <el-table-column prop="name" label="名稱" width="220" />
       <el-table-column prop="description" label="描述" min-width="260" show-overflow-tooltip>
         <template #default="{ row }">
           <span>{{ (row.description && String(row.description).trim()) ? row.description : '—' }}</span>
@@ -16,66 +16,66 @@
       </el-table-column>
       <el-table-column label="AI" width="90">
         <template #default="{ row }">
-          <el-tag size="small" :type="row.is_ai_enabled ? 'success' : 'info'">{{ row.is_ai_enabled ? '启用' : '关闭' }}</el-tag>
+          <el-tag size="small" :type="row.is_ai_enabled ? 'success' : 'info'">{{ row.is_ai_enabled ? '啓用' : '關閉' }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column label="操作" width="260" align="right">
         <template #default="{ row }">
-          <el-button size="small" @click="openEditor(row)">编辑</el-button>
-          <el-button size="small" type="primary" plain @click="openSchemaStudio(row)">编辑结构</el-button>
+          <el-button size="small" @click="openEditor(row)">編輯</el-button>
+          <el-button size="small" type="primary" plain @click="openSchemaStudio(row)">編輯結構</el-button>
           <template v-if="!isBuiltInCardType(row)">
-            <el-popconfirm title="删除该类型？（若有引用将影响创建操作）" @confirm="removeType(row)">
+            <el-popconfirm title="刪除該類型？（若有引用將影響創建操作）" @confirm="removeType(row)">
               <template #reference>
-                <el-button size="small" type="danger" plain>删除</el-button>
+                <el-button size="small" type="danger" plain>刪除</el-button>
               </template>
             </el-popconfirm>
           </template>
-          <el-button v-else size="small" type="danger" plain disabled>删除</el-button>
+          <el-button v-else size="small" type="danger" plain disabled>刪除</el-button>
         </template>
       </el-table-column>
     </el-table>
 
-    <!-- 编辑抽屉：基础信息 + 结构编辑入口 -->
-    <el-drawer v-model="drawer.visible" :title="drawer.editing ? '编辑卡片类型' : '新增卡片类型'" size="60%">
+    <!-- 編輯抽屜：基礎信息 + 結構編輯入口 -->
+    <el-drawer v-model="drawer.visible" :title="drawer.editing ? '編輯卡片類型' : '新增卡片類型'" size="60%">
       <div class="editor-grid">
         <el-form label-position="top" :model="form">
-          <el-form-item label="名称"><el-input v-model="form.name" /></el-form-item>
+          <el-form-item label="名稱"><el-input v-model="form.name" /></el-form-item>
           <el-form-item label="描述"><el-input v-model="form.description" type="textarea" :rows="2" /></el-form-item>
-          <el-form-item label="是否启用AI"><el-switch v-model="form.is_ai_enabled" /></el-form-item>
-          <el-form-item label="是否单例"><el-switch v-model="form.is_singleton" /></el-form-item>
-          <el-form-item label="默认上下文模板"><el-input v-model="form.default_ai_context_template" type="textarea" :rows="4" /></el-form-item>
+          <el-form-item label="是否啓用AI"><el-switch v-model="form.is_ai_enabled" /></el-form-item>
+          <el-form-item label="是否單例"><el-switch v-model="form.is_singleton" /></el-form-item>
+          <el-form-item label="默認上下文模板"><el-input v-model="form.default_ai_context_template" type="textarea" :rows="4" /></el-form-item>
 
           <template v-if="form.is_ai_enabled">
-            <div class="ai-section-title">AI 参数</div>
+            <div class="ai-section-title">AI 參數</div>
             <el-form-item label="模型（LLM 配置）">
-              <el-select v-model="aiParams.llm_config_id" filterable placeholder="选择模型" style="width:100%">
+              <el-select v-model="aiParams.llm_config_id" filterable placeholder="選擇模型" style="width:100%">
                 <el-option v-for="c in llmConfigs" :key="c.id" :label="c.display_name || (c.provider + ':' + c.model_name)" :value="c.id" />
               </el-select>
             </el-form-item>
-            <el-form-item label="提示词">
-              <el-select v-model="aiParams.prompt_name" filterable placeholder="选择提示词" style="width:100%">
+            <el-form-item label="提示詞">
+              <el-select v-model="aiParams.prompt_name" filterable placeholder="選擇提示詞" style="width:100%">
                 <el-option v-for="p in prompts" :key="p.name" :label="p.name" :value="p.name" />
               </el-select>
             </el-form-item>
             <div class="ai-grid">
-              <el-form-item label="温度">
+              <el-form-item label="溫度">
                 <el-input-number v-model="aiParams.temperature" :min="0" :max="2" :step="0.1" controls-position="right" style="width:100%" />
               </el-form-item>
               <el-form-item label="最大 tokens">
                 <el-input-number v-model="aiParams.max_tokens" :min="1" :step="128" controls-position="right" style="width:100%" />
               </el-form-item>
-              <el-form-item label="超时 (秒)">
+              <el-form-item label="超時 (秒)">
                 <el-input-number v-model="aiParams.timeout" :min="1" :max="600" :step="5" controls-position="right" style="width:100%" />
               </el-form-item>
             </div>
           </template>
 
-          <el-form-item label="UI 布局（可选）">
+          <el-form-item label="UI 佈局（可選）">
             <el-input v-model="uiLayoutText" type="textarea" :rows="6" placeholder='{ "sections": [ ... ] }' />
           </el-form-item>
         </el-form>
         <div class="mt-2">
-          <el-button type="primary" plain @click="openSchemaEditor">编辑结构（Schema）</el-button>
+          <el-button type="primary" plain @click="openSchemaEditor">編輯結構（Schema）</el-button>
         </div>
       </div>
       <template #footer>
@@ -99,7 +99,7 @@ import { schemaService } from '@renderer/api/schema'
 import { listCardTypes, createCardType, updateCardType, deleteCardType, listLLMConfigs, listPrompts, type CardTypeRead as CTR, type CardTypeCreate as CTC, type CardTypeUpdate as CTU } from '@renderer/api/setting'
 import SchemaStudio from '../shared/SchemaStudio.vue'
 
-// 后端 CardType 类型
+// 後端 CardType 類型
 type CardTypeRead = CTR
 type CardTypeCreate = CTC
 type CardTypeUpdate = CTU
@@ -123,7 +123,7 @@ const filteredTypes = computed(() => {
 const drawer = ref({ visible: false, editing: false, id: 0 })
 const form = ref<any>({ name: '', description: '', is_ai_enabled: true, is_singleton: false, default_ai_context_template: '' })
 const uiLayoutText = ref('')
-// AI 参数与可选项
+// AI 參數與可選項
 const aiParams = ref<{ llm_config_id?: number; prompt_name?: string; temperature?: number; max_tokens?: number; timeout?: number }>({})
 const defaultAIParams = { temperature: 0.7, max_tokens: 1024, timeout: 60 }
 const llmConfigs = ref<any[]>([])
@@ -134,7 +134,7 @@ function openEditor(row?: CardTypeRead) {
   form.value = row ? { ...row } : { name: '', description: '', is_ai_enabled: true, is_singleton: false, default_ai_context_template: '' }
   uiLayoutText.value = row?.ui_layout ? JSON.stringify(row.ui_layout, null, 2) : ''
   aiParams.value = (row as any)?.ai_params ? { ...defaultAIParams, ...(row as any).ai_params } : { ...defaultAIParams }
-  // 首次打开加载可选项
+  // 首次打開加載可選項
   if (llmConfigs.value.length === 0) { listLLMConfigs().then((v) => { llmConfigs.value = v; if (!aiParams.value.llm_config_id && v?.length) aiParams.value.llm_config_id = v[0].id }).catch(() => {}) }
   else if (!aiParams.value.llm_config_id && llmConfigs.value?.length) { aiParams.value.llm_config_id = llmConfigs.value[0].id }
   if (prompts.value.length === 0) { listPrompts().then((v:any) => prompts.value = v).catch(() => {}) }
@@ -146,7 +146,7 @@ const studio = ref<{ visible: boolean; typeId: number; typeName: string }>({ vis
 function openSchemaStudio(row?: CardTypeRead) {
   const id = row?.id || drawer.value.id
   const name = row?.name || form.value?.name || ''
-  if (!id) { ElMessage.warning('请先保存类型的基础信息'); return }
+  if (!id) { ElMessage.warning('請先保存類型的基礎信息'); return }
   studio.value = { visible: true, typeId: id as number, typeName: name }
 }
 
@@ -154,26 +154,26 @@ function openSchemaStudio(row?: CardTypeRead) {
 
 async function saveType(): Promise<void> {
   let ui_layout: any = undefined
-  try { ui_layout = uiLayoutText.value ? JSON.parse(uiLayoutText.value) : undefined } catch { ElMessage.error('UI 布局不是有效的 JSON'); return }
+  try { ui_layout = uiLayoutText.value ? JSON.parse(uiLayoutText.value) : undefined } catch { ElMessage.error('UI 佈局不是有效的 JSON'); return }
   const payload: Partial<CardTypeCreate & CardTypeUpdate> = { ...form.value, ui_layout } as any
   ;(payload as any).ai_params = form.value.is_ai_enabled ? aiParams.value : null
   try {
     if (drawer.value.editing) {
       const id = drawer.value.id
       await updateCardType(id, payload)
-      ElMessage.success('已更新卡片类型')
+      ElMessage.success('已更新卡片類型')
     } else {
       await createCardType(payload)
-      ElMessage.success('已创建卡片类型')
+      ElMessage.success('已創建卡片類型')
     }
     drawer.value.visible = false
     await fetchTypes()
     await cardStore.fetchCardTypes()
     await schemaService.refreshSchemas()
-  } catch (e:any) { ElMessage.error('保存失败：' + (e?.message || e)) }
+  } catch (e:any) { ElMessage.error('保存失敗：' + (e?.message || e)) }
 }
 
-async function removeType(row: CardTypeRead) { try { await deleteCardType(row.id as number); ElMessage.success('已删除'); await fetchTypes() } catch (e:any) { ElMessage.error('删除失败：' + (e?.message || e)) } }
+async function removeType(row: CardTypeRead) { try { await deleteCardType(row.id as number); ElMessage.success('已刪除'); await fetchTypes() } catch (e:any) { ElMessage.error('刪除失敗：' + (e?.message || e)) } }
 
 function onStudioSaved() { fetchTypes(); cardStore.fetchCardTypes(); schemaService.refreshSchemas() }
 
@@ -188,7 +188,7 @@ onBeforeUnmount(() => {
   if (handler) window.removeEventListener('card-types-updated', handler as any)
 })
 
-// 启用AI时若参数为空，为其填充默认值
+// 啓用AI時若參數爲空，爲其填充默認值
 watch(() => form.value.is_ai_enabled, (v) => {
   if (v) {
     aiParams.value = { ...defaultAIParams, ...(aiParams.value || {}) }

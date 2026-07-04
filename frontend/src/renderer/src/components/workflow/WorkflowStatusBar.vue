@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useWorkflowStore } from '@/stores/useWorkflowStore'
@@ -9,12 +9,12 @@ const { activeRunCount, completedRuns, activeRuns, totalRunCount } = storeToRefs
 
 const visible = ref(false)
 
-// 清空已完成的记录
+// 清空已完成的記錄
 const clearCompleted = () => {
   store.clearCompleted()
 }
 
-// --- 拖拽逻辑 ---
+// --- 拖拽邏輯 ---
 const statusBarRef = ref<HTMLElement | null>(null)
 const isDragging = ref(false)
 const position = ref<{ left: number; top: number } | null>(null)
@@ -98,11 +98,11 @@ const getStatusIcon = (status: string) => {
     }
 }
 
-// 计算总节点数和已完成节点数
+// 計算總節點數和已完成節點數
 const getNodeStats = (run: any) => {
-  // 根据进度百分比估算节点数
+  // 根據進度百分比估算節點數
   if (run.progress !== undefined && run.progress > 0) {
-    const total = 10 // 假设平均10个节点
+    const total = 10 // 假設平均10個節點
     const completed = Math.floor((run.progress / 100) * total)
     return {
       completed,
@@ -112,27 +112,27 @@ const getNodeStats = (run: any) => {
   return null
 }
 
-// 闪烁提醒逻辑
+// 閃爍提醒邏輯
 const isFlashing = ref(false)
 let flashTimer: any = null
 let lastCompletedCount = 0
 
 watch(() => completedRuns.value.length, (newVal, oldVal) => {
   const previous = oldVal ?? 0
-  console.log('[WorkflowStatusBar] completedRuns 变化:', oldVal, '->', newVal)
+  console.log('[WorkflowStatusBar] completedRuns 變化:', oldVal, '->', newVal)
   if (newVal > previous && newVal > lastCompletedCount) {
-    console.log('[WorkflowStatusBar] 触发闪烁动画')
+    console.log('[WorkflowStatusBar] 觸發閃爍動畫')
     isFlashing.value = true
     lastCompletedCount = newVal
     if (flashTimer) clearTimeout(flashTimer)
     flashTimer = setTimeout(() => {
       isFlashing.value = false
-      console.log('[WorkflowStatusBar] 闪烁动画结束')
+      console.log('[WorkflowStatusBar] 閃爍動畫結束')
     }, 2000)
   }
 }, { immediate: true })
 
-// 调试日志
+// 調試日誌
 watch(() => activeRuns.value, (runs) => {
   console.log('[WorkflowStatusBar] activeRuns 更新:', runs)
 }, { deep: true })
@@ -153,7 +153,7 @@ watch(() => activeRunCount.value, (count) => {
       <el-popover
         v-model:visible="visible"
         placement="top-end"
-        title="工作流执行状态"
+        title="工作流執行狀態"
         :width="360"
         trigger="click"
       >
@@ -168,10 +168,10 @@ watch(() => activeRunCount.value, (count) => {
            <div class="status-content">
              <span class="status-text">
                <template v-if="activeRunCount > 0">
-                  {{ activeRunCount }} 运行中 / {{ completedRuns.length }} 已完成
+                  {{ activeRunCount }} 運行中 / {{ completedRuns.length }} 已完成
                </template>
                <template v-else>
-                  工作流就绪
+                  工作流就緒
                </template>
              </span>
            </div>
@@ -180,7 +180,7 @@ watch(() => activeRunCount.value, (count) => {
       
       <div class="run-list">
         <template v-if="activeRuns.length > 0">
-            <div class="list-header">运行中</div>
+            <div class="list-header">運行中</div>
             <div v-for="run in activeRuns" :key="run.id" class="run-item running">
                 <el-icon class="is-loading"><Loading /></el-icon>
                 <div class="run-info">
@@ -190,13 +190,13 @@ watch(() => activeRunCount.value, (count) => {
                       <span v-if="run.created_at"> · {{ formatTime(run.created_at) }}</span>
                     </div>
                     
-                    <!-- 当前节点 -->
+                    <!-- 當前節點 -->
                     <div v-if="run.current_node" class="run-node">
                         <el-icon><Connection /></el-icon>
-                        <span>当前节点: {{ run.current_node }}</span>
+                        <span>當前節點: {{ run.current_node }}</span>
                     </div>
                     
-                    <!-- 进度条 -->
+                    <!-- 進度條 -->
                     <div v-if="run.progress !== undefined" class="progress-wrapper">
                       <el-progress
                         :percentage="Math.round(run.progress)"
@@ -236,7 +236,7 @@ watch(() => activeRunCount.value, (count) => {
         </template>
         
         <div v-if="activeRuns.length === 0 && completedRuns.length === 0" class="empty-tip">
-            暂无运行记录
+            暫無運行記錄
         </div>
       </div>
     </el-popover>

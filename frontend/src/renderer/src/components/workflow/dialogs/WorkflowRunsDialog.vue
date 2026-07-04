@@ -1,24 +1,24 @@
-<template>
+﻿<template>
   <el-dialog
     v-model="visible"
-    title="工作流运行记录"
+    title="工作流運行記錄"
     width="90%"
     :close-on-click-modal="false"
   >
     <div class="runs-dialog-content">
-      <!-- 过滤器 -->
+      <!-- 過濾器 -->
       <div class="filters">
-        <el-select v-model="statusFilter" placeholder="状态筛选" clearable @change="loadRuns" style="width: 150px">
+        <el-select v-model="statusFilter" placeholder="狀態篩選" clearable @change="loadRuns" style="width: 150px">
           <el-option label="全部" value="" />
-          <el-option label="运行中" value="running" />
-          <el-option label="已暂停" value="paused" />
+          <el-option label="運行中" value="running" />
+          <el-option label="已暫停" value="paused" />
           <el-option label="已完成" value="succeeded" />
-          <el-option label="失败" value="failed" />
+          <el-option label="失敗" value="failed" />
         </el-select>
         <el-button @click="loadRuns" :icon="Refresh">刷新</el-button>
       </div>
 
-      <!-- 运行列表 -->
+      <!-- 運行列表 -->
       <el-table :data="runs" v-loading="loading" stripe style="margin-top: 10px">
         <el-table-column prop="id" label="ID" width="60" />
         
@@ -28,7 +28,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="状态" width="100">
+        <el-table-column label="狀態" width="100">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)" size="small">
               {{ getStatusLabel(row.status) }}
@@ -36,7 +36,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="进度" width="150">
+        <el-table-column label="進度" width="150">
           <template #default="{ row }">
             <el-progress 
               v-if="row.status === 'running' || row.status === 'paused'"
@@ -59,7 +59,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="创建时间" width="160">
+        <el-table-column label="創建時間" width="160">
           <template #default="{ row }">
             {{ formatTime(row.created_at) }}
           </template>
@@ -74,7 +74,7 @@
                 :icon="VideoPause"
                 size="small"
               >
-                暂停
+                暫停
               </el-button>
 
               <el-button
@@ -84,7 +84,7 @@
                 :icon="VideoPlay"
                 size="small"
               >
-                恢复
+                恢復
               </el-button>
 
               <el-button
@@ -92,7 +92,7 @@
                 :icon="List"
                 size="small"
               >
-                状态
+                狀態
               </el-button>
               
               <el-button
@@ -102,7 +102,7 @@
                 plain
                 size="small"
               >
-                删除
+                刪除
               </el-button>
             </div>
           </template>
@@ -110,29 +110,29 @@
       </el-table>
     </div>
 
-    <!-- 节点状态对话框 -->
+    <!-- 節點狀態對話框 -->
     <el-dialog
       v-model="nodeStatusVisible"
-      title="节点执行状态"
+      title="節點執行狀態"
       width="700px"
       append-to-body
     >
       <el-table :data="nodeStatuses" v-loading="loadingNodeStatus" size="small">
-        <el-table-column prop="node_id" label="节点 ID" width="120" />
-        <el-table-column prop="node_type" label="节点类型" width="150" />
-        <el-table-column label="状态" width="100">
+        <el-table-column prop="node_id" label="節點 ID" width="120" />
+        <el-table-column prop="node_type" label="節點類型" width="150" />
+        <el-table-column label="狀態" width="100">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)" size="small">
               {{ getStatusLabel(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="进度" width="120">
+        <el-table-column label="進度" width="120">
           <template #default="{ row }">
             <el-progress :percentage="row.progress" :stroke-width="6" />
           </template>
         </el-table-column>
-        <el-table-column prop="error" label="错误" show-overflow-tooltip />
+        <el-table-column prop="error" label="錯誤" show-overflow-tooltip />
       </el-table>
     </el-dialog>
   </el-dialog>
@@ -238,7 +238,7 @@ async function loadRuns(silent = false) {
       params.status = statusFilter.value
     }
 
-    // 如果指定了 workflowId，只加载该工作流的运行记录
+    // 如果指定了 workflowId，只加載該工作流的運行記錄
     const url = props.workflowId 
       ? `/workflows/${props.workflowId}/runs`
       : '/runs'
@@ -246,7 +246,7 @@ async function loadRuns(silent = false) {
     const response = await request.get<WorkflowRun[]>(url, params, '/api')
     runs.value = response
 
-    // 加载运行中任务的进度
+    // 加載運行中任務的進度
     for (const run of runs.value) {
       if (run.status === 'running' || run.status === 'paused') {
         loadProgress(run.id)
@@ -254,7 +254,7 @@ async function loadRuns(silent = false) {
     }
   } catch (error: any) {
     if (!silent) {
-      ElMessage.error(`加载运行列表失败：${error.message || error}`)
+      ElMessage.error(`加載運行列表失敗：${error.message || error}`)
     }
   } finally {
     if (!silent) {
@@ -279,8 +279,8 @@ async function loadProgress(runId: number) {
       progressCache.value[runId] = Math.round(totalProgress / status.nodes.length)
     }
   } catch (error) {
-    // 静默失败，避免干扰用户
-    console.warn(`[WorkflowRunsDialog] 加载进度失败: runId=${runId}`, error)
+    // 靜默失敗，避免幹擾用戶
+    console.warn(`[WorkflowRunsDialog] 加載進度失敗: runId=${runId}`, error)
   }
 }
 
@@ -291,40 +291,40 @@ function getProgress(runId: number): number {
 async function pauseRun(runId: number) {
   try {
     await request.post(`/workflows/runs/${runId}/pause`, {}, '/api')
-    ElMessage.success('工作流已暂停')
+    ElMessage.success('工作流已暫停')
     loadRuns()
   } catch (error: any) {
-    ElMessage.error(`暂停失败：${error.message || error}`)
+    ElMessage.error(`暫停失敗：${error.message || error}`)
   }
 }
 
 async function resumeRun(runId: number) {
   try {
     await request.post(`/workflows/runs/${runId}/resume`, {}, '/api')
-    ElMessage.success('工作流已恢复，将从断点继续执行')
+    ElMessage.success('工作流已恢復，將從斷點繼續執行')
     loadRuns()
   } catch (error: any) {
-    ElMessage.error(`恢复失败：${error.message || error}`)
+    ElMessage.error(`恢復失敗：${error.message || error}`)
   }
 }
 
 async function resumeRunFromDialog(run: WorkflowRun) {
   try {
-    // 关闭对话框
+    // 關閉對話框
     visible.value = false
     
-    // 通知父组件恢复执行
+    // 通知父組件恢復執行
     emit('resume-run', run)
     
-    ElMessage.success('正在恢复工作流执行...')
+    ElMessage.success('正在恢復工作流執行...')
   } catch (error: any) {
-    ElMessage.error(`恢复失败：${error.message || error}`)
+    ElMessage.error(`恢復失敗：${error.message || error}`)
   }
 }
 
 async function cancelRun(runId: number) {
   try {
-    await ElMessageBox.confirm('确定要取消这个工作流运行吗？', '确认取消', {
+    await ElMessageBox.confirm('確定要取消這個工作流運行嗎？', '確認取消', {
       type: 'warning'
     })
 
@@ -333,7 +333,7 @@ async function cancelRun(runId: number) {
     loadRuns()
   } catch (error: any) {
     if (error !== 'cancel') {
-      ElMessage.error(`取消失败：${error.message || error}`)
+      ElMessage.error(`取消失敗：${error.message || error}`)
     }
   }
 }
@@ -346,7 +346,7 @@ async function viewNodeStatus(runId: number) {
     const status = await request.get<RunStatusResponse>(`/workflows/runs/${runId}/status`, {}, '/api')
     nodeStatuses.value = status.nodes || []
   } catch (error: any) {
-    ElMessage.error(`加载节点状态失败：${error.message || error}`)
+    ElMessage.error(`加載節點狀態失敗：${error.message || error}`)
   } finally {
     loadingNodeStatus.value = false
   }
@@ -354,18 +354,18 @@ async function viewNodeStatus(runId: number) {
 
 async function deleteRun(runId: number) {
   try {
-    await ElMessageBox.confirm('确定要删除这条运行记录吗？此操作不可恢复。', '确认删除', {
+    await ElMessageBox.confirm('確定要刪除這條運行記錄嗎？此操作不可恢復。', '確認刪除', {
       type: 'warning',
-      confirmButtonText: '确定删除',
+      confirmButtonText: '確定刪除',
       cancelButtonText: '取消'
     })
 
     await deleteRunApi(runId)
-    ElMessage.success('运行记录已删除')
+    ElMessage.success('運行記錄已刪除')
     loadRuns()
   } catch (error: any) {
     if (error !== 'cancel') {
-      ElMessage.error(`删除失败：${error.message || error}`)
+      ElMessage.error(`刪除失敗：${error.message || error}`)
     }
   }
 }
@@ -387,16 +387,16 @@ function getStatusType(status: string): string {
 
 function getStatusLabel(status: string): string {
   const labelMap: Record<string, string> = {
-    running: '运行中',
-    paused: '已暂停',
+    running: '運行中',
+    paused: '已暫停',
     succeeded: '已完成',
-    failed: '失败',
+    failed: '失敗',
     cancelled: '已取消',
-    idle: '空闲',
+    idle: '空閒',
     pending: '等待中',
     success: '成功',
-    error: '错误',
-    skipped: '已跳过'
+    error: '錯誤',
+    skipped: '已跳過'
   }
   return labelMap[status] || status
 }
@@ -404,30 +404,30 @@ function getStatusLabel(status: string): string {
 function formatTime(time?: string | number): string {
   if (!time) return '-'
   
-  // 如果是数字（Unix 时间戳），需要乘以 1000 转换为毫秒
-  // 但如果数字很小（< 100000000），说明可能是错误的数据
+  // 如果是數字（Unix 時間戳），需要乘以 1000 轉換爲毫秒
+  // 但如果數字很小（< 100000000），說明可能是錯誤的數據
   if (typeof time === 'number') {
-    console.warn('[formatTime] 收到数字类型的时间戳:', time)
+    console.warn('[formatTime] 收到數字類型的時間戳:', time)
     if (time < 100000000) {
-      console.error('[formatTime] 时间戳异常小，可能是错误数据')
-      return '数据异常'
+      console.error('[formatTime] 時間戳異常小，可能是錯誤數據')
+      return '數據異常'
     }
-    time = time * 1000 // 转换为毫秒
+    time = time * 1000 // 轉換爲毫秒
   }
   
   const date = new Date(time)
   
-  // 检查日期是否有效
+  // 檢查日期是否有效
   if (isNaN(date.getTime())) {
-    console.error('[formatTime] 无效的日期:', time)
-    return '无效日期'
+    console.error('[formatTime] 無效的日期:', time)
+    return '無效日期'
   }
   
-  // 检查日期是否在合理范围内（2020-2030）
+  // 檢查日期是否在合理範圍內（2020-2030）
   const year = date.getFullYear()
   if (year < 2020 || year > 2030) {
-    console.error('[formatTime] 日期超出合理范围:', date.toISOString(), '原始值:', time)
-    return '日期异常'
+    console.error('[formatTime] 日期超出合理範圍:', date.toISOString(), '原始值:', time)
+    return '日期異常'
   }
   
   return date.toLocaleString('zh-CN', {

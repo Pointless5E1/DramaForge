@@ -1,10 +1,10 @@
-from typing import List, Optional
+﻿from typing import List, Optional
 from sqlmodel import Session, select
 from app.db.models import Knowledge
 
 class KnowledgeService:
-    """知识库服务：提供知识库的增删改查。
-    注意：内置（built_in=True）的知识库不允许删除。
+    """知識庫服務：提供知識庫的增刪改查。
+    注意：內置（built_in=True）的知識庫不允許刪除。
     """
 
     def __init__(self, db: Session) -> None:
@@ -46,7 +46,7 @@ class KnowledgeService:
         if not kb:
             return False
         if getattr(kb, 'built_in', False):
-            raise ValueError("系统内置知识库不可删除")
+            raise ValueError("系統內置知識庫不可刪除")
         self.db.delete(kb)
         self.db.commit()
         return True 

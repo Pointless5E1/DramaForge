@@ -1,83 +1,83 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from typing import List, Optional, Literal, Dict
 from pydantic import BaseModel, Field
 
 
 
-# 扩展后的关系类型（中文枚举，保持单一来源）
+# 擴展後的關係類型（中文枚舉，保持單一來源）
 RelationKind = Literal[
-    # 人物关系
-    '同盟','队友','同门','敌对','亲属','师徒','对手','伙伴','上级','下属','指导',
-    # 人物 ↔ 组织
-    '隶属','成员','领导','创立',
-    # 实体与物品/概念
-    '拥有','使用','修炼','领悟','承载','映射',
-    # 组织 ↔ 场景
-    '控制','位于',
-    # 泛用与兜底
-    '影响','克制','关于','其他'
+    # 人物關係
+    '同盟','隊友','同門','敵對','親屬','師徒','對手','夥伴','上級','下屬','指導',
+    # 人物 ↔ 組織
+    '隸屬','成員','領導','創立',
+    # 實體與物品/概念
+    '擁有','使用','修煉','領悟','承載','映射',
+    # 組織 ↔ 場景
+    '控制','位於',
+    # 泛用與兜底
+    '影響','剋制','關於','其他'
 ]
-RelationStance = Literal['友好', '中立', '敌意']
-RELATION_STANCES: tuple[RelationStance, ...] = ('友好', '中立', '敌意')
+RelationStance = Literal['友好', '中立', '敵意']
+RELATION_STANCES: tuple[RelationStance, ...] = ('友好', '中立', '敵意')
 
-# 统一提供中英映射（单一来源）——保留兼容（如已有英文入图/读图逻辑）
+# 統一提供中英映射（單一來源）——保留兼容（如已有英文入圖/讀圖邏輯）
 CN_TO_EN_KIND: Dict[str, str] = {
     '同盟': 'ally',
-    '队友': 'team',
-    '同门': 'fellow',
-    '敌对': 'enemy',
-    '亲属': 'family',
-    '师徒': 'mentor',
-    '对手': 'rival',
-    '伙伴': 'partner',
-    '上级': 'superior',
-    '下属': 'subordinate',
-    '指导': 'guide',
+    '隊友': 'team',
+    '同門': 'fellow',
+    '敵對': 'enemy',
+    '親屬': 'family',
+    '師徒': 'mentor',
+    '對手': 'rival',
+    '夥伴': 'partner',
+    '上級': 'superior',
+    '下屬': 'subordinate',
+    '指導': 'guide',
 
-    '隶属': 'member_of',
-    '成员': 'member',
-    '领导': 'lead',
-    '创立': 'found',
+    '隸屬': 'member_of',
+    '成員': 'member',
+    '領導': 'lead',
+    '創立': 'found',
 
-    '拥有': 'own',
+    '擁有': 'own',
     '使用': 'use',
-    '修炼': 'practice',
-    '领悟': 'realize',
-    '承载': 'carry',
+    '修煉': 'practice',
+    '領悟': 'realize',
+    '承載': 'carry',
     '映射': 'map_to',
 
 
     '控制': 'control',
-    '位于': 'locate_in',
+    '位於': 'locate_in',
 
-    '影响': 'influence',
-    '克制': 'counter',
-    '关于': 'about',
+    '影響': 'influence',
+    '剋制': 'counter',
+    '關於': 'about',
     '其他': 'other',
 }
 EN_TO_CN_KIND: Dict[str, str] = {v: k for k, v in CN_TO_EN_KIND.items()}
 
 
 class RecentEventSummary(BaseModel):
-    summary: str = Field(description="A、B 之间近期发生事件的一句摘要（本次提取建议融合为一条）")
-    volume_number: Optional[int] = Field(default=None, description="发生的卷号（置空，系统可补全）")
-    chapter_number: Optional[int] = Field(default=None, description="发生的章节号（置空，系统可补全）")
+    summary: str = Field(description="A、B 之間近期發生事件的一句摘要（本次提取建議融合爲一條）")
+    volume_number: Optional[int] = Field(default=None, description="發生的卷號（置空，系統可補全）")
+    chapter_number: Optional[int] = Field(default=None, description="發生的章節號（置空，系統可補全）")
 
 
 class RelationItem(BaseModel):
-    a: str = Field(description="实体 A 名称（参与者之一）")
-    b: str = Field(description="实体 B 名称（参与者之一）")
-    kind: RelationKind = Field(description="关系类型（中文）")
-    description: Optional[str] = Field(default=None, description="对该关系的简要文字说明（可选）")
-    # 互相称呼（可选，无需出现在近期对话中）
-    a_to_b_addressing: Optional[str] = Field(default=None, description="A 对 B 的称呼词，如：师兄、先生。仅当 A, B 均为角色时提取。")
-    b_to_a_addressing: Optional[str] = Field(default=None, description="B 对 A 的称呼词。仅当 A, B 均为角色时提取。")
-    # 近期证据（用于语气一致性与事实回溯）——建议各 ≤3 条
-    recent_dialogues: List[str] = Field(default_factory=list, description="近期对话片段（建议包含双方各至少一句，可用 A:“…”, B:“…” 合并片段；长度≥20字）。仅当 A, B 均为角色时提取。")
-    recent_event_summaries: List[RecentEventSummary] = Field(default_factory=list, description="近期 A 与 B 直接发生在彼此之间的事件；若同一事实涉及三方或以上，仅在最直接的一对上记录一次。优先记录角色-角色的配对；当事件主体确系 A 与 B 为角色-组织/组织-组织时再记录相应关系，避免将组织背景误当作双边事件。")
-    # 立场（可选）：友好/中立/敌意
-    stance: Optional[RelationStance] = Field(default=None, description="A 对 B 的总体立场（可选）")
+    a: str = Field(description="實體 A 名稱（參與者之一）")
+    b: str = Field(description="實體 B 名稱（參與者之一）")
+    kind: RelationKind = Field(description="關係類型（中文）")
+    description: Optional[str] = Field(default=None, description="對該關係的簡要文字說明（可選）")
+    # 互相稱呼（可選，無需出現在近期對話中）
+    a_to_b_addressing: Optional[str] = Field(default=None, description="A 對 B 的稱呼詞，如：師兄、先生。僅當 A, B 均爲角色時提取。")
+    b_to_a_addressing: Optional[str] = Field(default=None, description="B 對 A 的稱呼詞。僅當 A, B 均爲角色時提取。")
+    # 近期證據（用於語氣一致性與事實回溯）——建議各 ≤3 條
+    recent_dialogues: List[str] = Field(default_factory=list, description="近期對話片段（建議包含雙方各至少一句，可用 A:“…”, B:“…” 合併片段；長度≥20字）。僅當 A, B 均爲角色時提取。")
+    recent_event_summaries: List[RecentEventSummary] = Field(default_factory=list, description="近期 A 與 B 直接發生在彼此之間的事件；若同一事實涉及三方或以上，僅在最直接的一對上記錄一次。優先記錄角色-角色的配對；當事件主體確係 A 與 B 爲角色-組織/組織-組織時再記錄相應關係，避免將組織背景誤當作雙邊事件。")
+    # 立場（可選）：友好/中立/敵意
+    stance: Optional[RelationStance] = Field(default=None, description="A 對 B 的總體立場（可選）")
 
 
 class RelationExtraction(BaseModel):

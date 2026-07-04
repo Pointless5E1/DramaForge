@@ -1,4 +1,4 @@
-
+﻿
 from typing import List, Optional, Tuple
 from sqlmodel import Session, select
 
@@ -10,12 +10,12 @@ from app.services.kg_provider import get_provider
 
 FREE_PROJECT_NAME = "__free__"
 
-# 获取或创建保留项目（__free__）
+# 獲取或創建保留項目（__free__）
 def get_or_create_free_project(session: Session) -> Project:
     proj = session.exec(select(Project).where(Project.name == FREE_PROJECT_NAME)).first()
     if proj:
         return proj
-    proj = Project(name=FREE_PROJECT_NAME, description="系统保留项目：存放自由卡片")
+    proj = Project(name=FREE_PROJECT_NAME, description="系統保留項目：存放自由卡片")
     session.add(proj)
     session.commit()
     session.refresh(proj)
@@ -40,14 +40,14 @@ def get_project(session: Session, project_id: int) -> Optional[Project]:
 from typing import List, Optional, Tuple
 
 def create_project(session: Session, project_in: ProjectCreate) -> Tuple[Project, List[int]]:
-    # 检查项目名称是否已存在
+    # 檢查項目名稱是否已存在
     from sqlmodel import select
     existing_project = session.exec(
         select(Project).where(Project.name == project_in.name)
     ).first()
     
     if existing_project:
-        raise ValueError(f"项目名称已存在: {project_in.name}")
+        raise ValueError(f"項目名稱已存在: {project_in.name}")
     
     db_project = Project.model_validate(project_in)
     session.add(db_project)
@@ -55,23 +55,23 @@ def create_project(session: Session, project_in: ProjectCreate) -> Tuple[Project
     session.refresh(db_project)
     
     triggered_run_ids = []
-    # 触发项目创建事件
+    # 觸發項目創建事件
     try:
         from app.core import emit_event
         
         event_data = {
             "session": session,
             "project_id": db_project.id,
-            "template": project_in.template,  # 传递模板标识
+            "template": project_in.template,  # 傳遞模板標識
         }
         
         emit_event("project.created", event_data)
         triggered_run_ids = event_data.get("triggered_run_ids", [])
     except Exception:
-        # 不阻断项目创建
+        # 不阻斷項目創建
         pass
     
-    # 刷新以加载新创建的卡片到项目关系中
+    # 刷新以加載新創建的卡片到項目關係中
     session.refresh(db_project)
     
     return db_project, triggered_run_ids
@@ -94,17 +94,17 @@ def delete_project(session: Session, project_id: int) -> bool:
     project = session.get(Project, project_id)
     if not project:
         return False
-    # 保留项目禁止删除
+    # 保留項目禁止刪除
     if getattr(project, 'name', None) == FREE_PROJECT_NAME:
         return False
-    # 先删除数据库中的项目记录
+    # 先刪除數據庫中的項目記錄
     session.delete(project)
     session.commit()
-    # 再清理图数据库中该项目的所有实体与关系
+    # 再清理圖數據庫中該項目的所有實體與關係
     try:
         kg = get_provider()
         kg.delete_project_graph(project_id)
     except Exception:
-        # 避免图数据库不可用时影响主流程
+        # 避免圖數據庫不可用時影響主流程
         pass
     return True 

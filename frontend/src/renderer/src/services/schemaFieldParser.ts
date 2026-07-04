@@ -1,13 +1,13 @@
-/**
- * Schema字段解析服务
- * 用于解析JSON Schema的字段结构，支持嵌套对象、引用和anyOf
- * 与现有的schemaService集成，提供统一的Schema解析能力
+﻿/**
+ * Schema字段解析服務
+ * 用於解析JSON Schema的字段結構，支持嵌套對象、引用和anyOf
+ * 與現有的schemaService集成，提供統一的Schema解析能力
  * 
- * 统一解析入口：
- * - 卡片渲染时：ModelDrivenForm.vue -> resolveActualSchema()
- * - 工作流预览时：WorkflowParamPanel.vue -> parseSchemaFields()
- * - 数组字段解析：ArrayField.vue -> resolveActualSchema() + createDefaultValue()
- * - 设置界面编辑：使用独立的outputModelSchemaUtils.ts（专门用于Schema编辑器）
+ * 統一解析入口：
+ * - 卡片渲染時：ModelDrivenForm.vue -> resolveActualSchema()
+ * - 工作流預覽時：WorkflowParamPanel.vue -> parseSchemaFields()
+ * - 數組字段解析：ArrayField.vue -> resolveActualSchema() + createDefaultValue()
+ * - 設置界面編輯：使用獨立的outputModelSchemaUtils.ts（專門用於Schema編輯器）
  */
 
 import { schemaService } from '@renderer/api/schema'
@@ -28,11 +28,11 @@ export interface ParsedField {
 }
 
 /**
- * 解析JSON Schema字段结构
- * @param schema JSON Schema对象
- * @param path 字段路径前缀
- * @param maxDepth 最大递归深度
- * @returns 解析后的字段列表
+ * 解析JSON Schema字段結構
+ * @param schema JSON Schema對象
+ * @param path 字段路徑前綴
+ * @param maxDepth 最大遞歸深度
+ * @returns 解析後的字段列表
  */
 export function parseSchemaFields(schema: any, path = '$.content', maxDepth = 5): ParsedField[] {
   if (maxDepth <= 0) return []
@@ -64,7 +64,7 @@ export function parseSchemaFields(schema: any, path = '$.content', maxDepth = 5)
         expanded: false
       }
       
-      // 处理嵌套对象
+      // 處理嵌套對象
       if (fieldType === 'object' && resolvedSchema.properties) {
         const children = parseSchemaFields(resolvedSchema, fieldPath, maxDepth - 1)
         if (children.length > 0) {
@@ -74,7 +74,7 @@ export function parseSchemaFields(schema: any, path = '$.content', maxDepth = 5)
         }
       }
       
-      // 处理数组类型
+      // 處理數組類型
       else if (fieldType === 'array' && resolvedSchema.items) {
         const itemsSchema = resolveSchemaRef(resolvedSchema.items, defs)
         if (itemsSchema.type === 'object' && itemsSchema.properties) {
@@ -93,7 +93,7 @@ export function parseSchemaFields(schema: any, path = '$.content', maxDepth = 5)
       fields.push(fieldInfo)
     }
   } catch (e) {
-    console.warn('解析Schema字段失败:', e)
+    console.warn('解析Schema字段失敗:', e)
   }
   
   return fields
@@ -101,19 +101,19 @@ export function parseSchemaFields(schema: any, path = '$.content', maxDepth = 5)
 
 /**
  * 解析Schema引用，支持本地$defs和全局schemaService
- * @param schema Schema对象
- * @param localDefs 本地$defs定义
- * @returns 解析后的Schema对象
+ * @param schema Schema對象
+ * @param localDefs 本地$defs定義
+ * @returns 解析後的Schema對象
  */
 export function resolveSchemaRef(schema: any, localDefs?: any): any {
   if (!schema || typeof schema !== 'object') return schema
   
-  // 处理anyOf类型 - 优先处理
+  // 處理anyOf類型 - 優先處理
   if (schema.anyOf && Array.isArray(schema.anyOf)) {
     for (const anySchema of schema.anyOf) {
       if (anySchema.type === 'null') continue
       
-      // 递归解析anyOf中的引用
+      // 遞歸解析anyOf中的引用
       const resolved = resolveSchemaRef(anySchema, localDefs)
       if (resolved && resolved.type && resolved.type !== 'null') {
         return {
@@ -125,22 +125,22 @@ export function resolveSchemaRef(schema: any, localDefs?: any): any {
     }
   }
   
-  // 处理$ref引用
+  // 處理$ref引用
   if (schema.$ref && typeof schema.$ref === 'string') {
     const refPath = schema.$ref
     if (refPath.startsWith('#/$defs/')) {
       const refName = refPath.replace('#/$defs/', '')
       
-      // 优先使用本地$defs
+      // 優先使用本地$defs
       let resolved = localDefs && localDefs[refName] ? localDefs[refName] : null
       
-      // 如果本地没有，尝试从全局schemaService获取
+      // 如果本地沒有，嘗試從全局schemaService獲取
       if (!resolved) {
         resolved = schemaService.getSchema(refName)
       }
       
       if (resolved) {
-        // 递归解析引用的定义（可能还包含其他引用）
+        // 遞歸解析引用的定義（可能還包含其他引用）
         const finalResolved = resolveSchemaRef(resolved, localDefs)
         return {
           ...finalResolved,
@@ -155,9 +155,9 @@ export function resolveSchemaRef(schema: any, localDefs?: any): any {
 }
 
 /**
- * 获取字段类型对应的图标
- * @param type 字段类型
- * @returns 图标字符
+ * 獲取字段類型對應的圖標
+ * @param type 字段類型
+ * @returns 圖標字符
  */
 export function getFieldIcon(type: string): string {
   switch (type) {
@@ -172,9 +172,9 @@ export function getFieldIcon(type: string): string {
 }
 
 /**
- * 切换字段的展开/折叠状态
+ * 切換字段的展開/摺疊狀態
  * @param fields 字段列表
- * @param targetPath 目标字段路径
+ * @param targetPath 目標字段路徑
  */
 export function toggleFieldExpanded(fields: ParsedField[], targetPath: string): void {
   for (const field of fields) {
@@ -189,16 +189,16 @@ export function toggleFieldExpanded(fields: ParsedField[], targetPath: string): 
 }
 
 /**
- * 从解析的字段中提取所有字段路径选项
- * @param fields 解析后的字段列表
- * @param options 累积的选项数组
- * @returns 字段路径选项数组
+ * 從解析的字段中提取所有字段路徑選項
+ * @param fields 解析後的字段列表
+ * @param options 累積的選項數組
+ * @returns 字段路徑選項數組
  */
 export function extractFieldPathOptions(fields: ParsedField[], options: Array<{ label: string; value: string }> = []): Array<{ label: string; value: string }> {
   for (const field of fields) {
-    // 只添加非对象类型的字段，或者没有子字段的对象
+    // 只添加非對象類型的字段，或者沒有子字段的對象
     if (field.type !== 'object' || !field.children?.length) {
-      // 移除 $.content 前缀，显示相对路径
+      // 移除 $.content 前綴，顯示相對路徑
       const label = field.path.replace(/^\$\.content\.?/, '') || field.name
       options.push({
         label: label,
@@ -206,7 +206,7 @@ export function extractFieldPathOptions(fields: ParsedField[], options: Array<{ 
       })
     }
     
-    // 递归处理子字段
+    // 遞歸處理子字段
     if (field.children?.length) {
       extractFieldPathOptions(field.children, options)
     }
@@ -216,24 +216,24 @@ export function extractFieldPathOptions(fields: ParsedField[], options: Array<{ 
 }
 
 /**
- * 为ModelDrivenForm等组件提供的Schema解析函数
- * 与原有的resolveActualSchema逻辑兼容
- * @param schema Schema对象
- * @param parentSchema 父级Schema（用于获取$defs）
- * @returns 解析后的Schema对象
+ * 爲ModelDrivenForm等組件提供的Schema解析函數
+ * 與原有的resolveActualSchema邏輯兼容
+ * @param schema Schema對象
+ * @param parentSchema 父級Schema（用於獲取$defs）
+ * @returns 解析後的Schema對象
  */
 export function resolveActualSchema(schema: any, parentSchema?: any): any {
   const localDefs = parentSchema?.$defs || {}
-  // 先解析当前节点自身（处理直接的 anyOf / $ref）
+  // 先解析當前節點自身（處理直接的 anyOf / $ref）
   const base = resolveSchemaRef(schema, localDefs)
 
-  // 对于非对象或空值，直接返回解析结果
+  // 對於非對象或空值，直接返回解析結果
   if (!base || typeof base !== 'object') return base
 
-  // 创建浅拷贝，避免意外修改原始 Schema
+  // 創建淺拷貝，避免意外修改原始 Schema
   const resolved: any = { ...base }
 
-  // 递归解析 properties 中的子字段（保持与根级 $defs 一致）
+  // 遞歸解析 properties 中的子字段（保持與根級 $defs 一致）
   if (resolved.properties && typeof resolved.properties === 'object') {
     const nextProps: Record<string, any> = {}
     for (const [key, val] of Object.entries(resolved.properties)) {
@@ -242,17 +242,17 @@ export function resolveActualSchema(schema: any, parentSchema?: any): any {
     resolved.properties = nextProps
   }
 
-  // 递归解析数组 items（特别是 items.$ref → #/$defs/ModelName 的场景）
+  // 遞歸解析數組 items（特別是 items.$ref → #/$defs/ModelName 的場景）
   if (resolved.items) {
     resolved.items = resolveSchemaRef(resolved.items, localDefs)
   }
 
-  // 递归解析元组 prefixItems
+  // 遞歸解析元組 prefixItems
   if (Array.isArray(resolved.prefixItems)) {
     resolved.prefixItems = resolved.prefixItems.map((it: any) => resolveSchemaRef(it, localDefs))
   }
 
-  // 递归解析 anyOf 中的子 schema
+  // 遞歸解析 anyOf 中的子 schema
   if (Array.isArray(resolved.anyOf)) {
     resolved.anyOf = resolved.anyOf.map((it: any) => resolveSchemaRef(it, localDefs))
   }

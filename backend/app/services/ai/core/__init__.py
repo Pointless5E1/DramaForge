@@ -1,6 +1,6 @@
-"""AI核心工具模块
+﻿"""AI核心工具模塊
 
-纯函数工具和配额管理，无外部依赖。
+純函數工具和配額管理，無外部依賴。
 """
 
 from .token_utils import estimate_tokens, calc_input_tokens

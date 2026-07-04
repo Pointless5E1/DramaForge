@@ -1,10 +1,10 @@
-/*
-环境配置文件
-开发环境
-测试环境
-线上环境
+﻿/*
+環境配置文件
+開發環境
+測試環境
+線上環境
 */
-//当前的环境
+//當前的環境
 const env = 'local'
 
 const EnvConfig = {
@@ -19,6 +19,6 @@ const EnvConfig = {
 
 export default {
     env,
-    //mock的总开关
+    //mock的總開關
     ...EnvConfig[env]
 }

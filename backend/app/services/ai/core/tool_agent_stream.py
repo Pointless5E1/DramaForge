@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import asyncio
 import json
@@ -40,7 +40,7 @@ async def stream_agent_with_tools(
         need_calls=1,
     )
     if not ok:
-        raise ValueError(f"LLM配额不足: {reason}")
+        raise ValueError(f"LLM配額不足: {reason}")
 
     model = build_chat_model(
         session=session,
@@ -254,11 +254,11 @@ async def stream_agent_with_tools(
     if not accumulated_text.strip() and not reasoning_accumulated.strip():
         if tool_end_count > 0:
             if tool_end_failed_count == tool_end_count:
-                fallback_text = "已执行工具调用，但工具结果均未成功，请查看工具结果并调整后重试。"
+                fallback_text = "已執行工具調用，但工具結果均未成功，請查看工具結果並調整後重試。"
             else:
-                fallback_text = "已执行工具调用，请查看工具结果。"
+                fallback_text = "已執行工具調用，請查看工具結果。"
         else:
-            fallback_text = "本轮未产生可见回复文本，请重试或调整提问。"
+            fallback_text = "本輪未產生可見回覆文本，請重試或調整提問。"
 
         accumulated_text += fallback_text
         yield {

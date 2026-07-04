@@ -1,10 +1,10 @@
-<template>
+﻿<template>
   <div class="node-library">
     <div class="library-header">
-      <h3>节点库</h3>
+      <h3>節點庫</h3>
       <el-input
         v-model="searchQuery"
-        placeholder="搜索节点..."
+        placeholder="搜索節點..."
         clearable
         :prefix-icon="Search"
         size="small"
@@ -40,7 +40,7 @@
                 </el-icon>
                 <div class="node-info">
                   <div class="node-name">{{ node.label }}</div>
-                  <div class="node-desc">{{ node.description || '无描述' }}</div>
+                  <div class="node-desc">{{ node.description || '無描述' }}</div>
                 </div>
               </div>
             </div>
@@ -73,7 +73,7 @@ const activeCategories = ref(['logic', 'novel', 'card', 'example'])
 const nodeTypes = ref([])
 const loading = ref(false)
 
-// 按分类组织节点
+// 按分類組織節點
 const nodesByCategory = computed(() => {
   const grouped = {}
   nodeTypes.value.forEach(node => {
@@ -85,7 +85,7 @@ const nodesByCategory = computed(() => {
   return grouped
 })
 
-// 过滤后的节点
+// 過濾後的節點
 const filteredNodesByCategory = computed(() => {
   if (!searchQuery.value) return nodesByCategory.value
 
@@ -106,7 +106,7 @@ const filteredNodesByCategory = computed(() => {
   return filtered
 })
 
-// 分类图标映射
+// 分類圖標映射
 const getCategoryIcon = (category) => {
   const map = {
     'trigger': Lightning,
@@ -122,23 +122,23 @@ const getCategoryIcon = (category) => {
   return map[category] || Menu
 }
 
-// 分类名称映射
+// 分類名稱映射
 const getCategoryLabel = (category) => {
   const map = {
-    'trigger': '触发器',
-    'logic': '逻辑控制',
+    'trigger': '觸發器',
+    'logic': '邏輯控制',
     'card': '卡片操作',
-    'data': '数据处理',
+    'data': '數據處理',
     'ai': 'AI 生成',
-    'novel': '小说处理',
-    'prompt': '提示词',
-    'example': '示例节点',
+    'novel': '小說處理',
+    'prompt': '提示詞',
+    'example': '示例節點',
     'context': '上下文'
   }
   return map[category] || category
 }
 
-// 节点图标映射
+// 節點圖標映射
 const getNodeIcon = (type) => {
   if (type.startsWith('Trigger.')) return Lightning
   if (type.startsWith('Card.')) return Collection
@@ -150,19 +150,19 @@ const getNodeIcon = (type) => {
   return Box
 }
 
-// 点击节点
+// 點擊節點
 const handleNodeClick = (node) => {
   emit('add-node', node.type)
 }
 
-// 加载节点类型
+// 加載節點類型
 async function loadNodeTypes() {
   loading.value = true
   try {
     const response = await request.get('/nodes/types', undefined, '/api', { showLoading: false })
     nodeTypes.value = response.node_types || []
   } catch (error) {
-    console.error('加载节点类型失败:', error)
+    console.error('加載節點類型失敗:', error)
   } finally {
     loading.value = false
   }

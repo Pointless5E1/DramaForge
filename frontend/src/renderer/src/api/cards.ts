@@ -1,4 +1,4 @@
-import request from './request'
+﻿import request from './request'
 import type { components } from '@renderer/types/generated'
 import type { AxiosResponse } from 'axios'
 
@@ -21,7 +21,7 @@ export const getCardsForProject = (projectId: number): Promise<CardRead[]> => re
 export const searchCards = (projectId: number, query: string): Promise<CardRead[]> => request.get(`/projects/${projectId}/cards/search`, { q: query })
 export const createCard = (projectId: number, data: CardCreate): Promise<CardRead> => request.post(`/projects/${projectId}/cards`, data)
 export const updateCard = (id: number, data: CardUpdate): Promise<CardRead> => request.put(`/cards/${id}`, data)
-// 原始响应：用于读取 X-Workflows-Started
+// 原始響應：用於讀取 X-Workflows-Started
 export const updateCardRaw = (id: number, data: CardUpdate): Promise<AxiosResponse<CardRead>> => (request as any).request({ method: 'PUT', url: `/api/cards/${id}`, data, rawResponse: true })
 
 // 批量更新卡片排序

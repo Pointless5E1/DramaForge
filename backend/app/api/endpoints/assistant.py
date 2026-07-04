@@ -1,6 +1,6 @@
-"""
-灵感助手专用接口
-支持工具调用的对话
+﻿"""
+靈感助手專用接口
+支持工具調用的對話
 """
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -23,15 +23,15 @@ async def assistant_chat(
     session: Session = Depends(get_session)
 ):
     """
-    灵感助手对话接口（支持工具调用）
+    靈感助手對話接口（支持工具調用）
     
-    特点：
-    - 专用请求模型（语义清晰）
-    - 自动注入工具集
-    - 支持流式输出
-    - 支持工具调用结果返回
+    特點：
+    - 專用請求模型（語義清晰）
+    - 自動注入工具集
+    - 支持流式輸出
+    - 支持工具調用結果返回
     """
-    # 加载系统提示词（根据模式选择不同的提示词）
+    # 加載系統提示詞（根據模式選擇不同的提示詞）
     from app.services import prompt_service
     
     prompt_name = request.prompt_name
@@ -42,22 +42,22 @@ async def assistant_chat(
         p = prompt_service.get_prompt_by_name(session, react_prompt_name)
         if p and p.template:
             system_prompt = str(p.template)
-            logger.info(f"[Assistant API] React 模式启用，使用提示词 {react_prompt_name}")
+            logger.info(f"[Assistant API] React 模式啓用，使用提示詞 {react_prompt_name}")
         else:
-            logger.warning(f"[Assistant API] React 模式启用但未找到 {react_prompt_name}，退回标准提示词 {prompt_name}")
+            logger.warning(f"[Assistant API] React 模式啓用但未找到 {react_prompt_name}，退回標準提示詞 {prompt_name}")
             p = prompt_service.get_prompt_by_name(session, prompt_name)
             if not p or not p.template:
-                raise HTTPException(status_code=400, detail=f"未找到提示词: {prompt_name}")
+                raise HTTPException(status_code=400, detail=f"未找到提示詞: {prompt_name}")
             system_prompt = str(p.template)
     else:
         p = prompt_service.get_prompt_by_name(session, prompt_name)
         if not p or not p.template:
-            raise HTTPException(status_code=400, detail=f"未找到提示词: {prompt_name}")
+            raise HTTPException(status_code=400, detail=f"未找到提示詞: {prompt_name}")
         system_prompt = str(p.template)
     
-    # 所有模式统一走 LangChain ChatModel + Tools 管线
+    # 所有模式統一走 LangChain ChatModel + Tools 管線
     async def stream_with_tools() -> AsyncGenerator[str, None]:
-        logger.info("[Assistant API] 使用{}模式".format("React" if react_enabled else "标准"))
+        logger.info("[Assistant API] 使用{}模式".format("React" if react_enabled else "標準"))
         async for chunk in generate_assistant_chat_streaming(
             session=session,
             request=request,

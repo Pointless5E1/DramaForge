@@ -1,25 +1,25 @@
-export function unwrapChapterOutline(obj: any): any {
+﻿export function unwrapChapterOutline(obj: any): any {
   if (!obj || typeof obj !== 'object') return {}
-  // 常见包装键
+  // 常見包裝鍵
   if (obj.chapter_outline && typeof obj.chapter_outline === 'object') return obj.chapter_outline
   if (obj.ChapterOutline && typeof obj.ChapterOutline === 'object') return obj.ChapterOutline
   if (obj.chapterOutline && typeof obj.chapterOutline === 'object') return obj.chapterOutline
-  // 直接识别：出现关键字段即可视为章节大纲形态
+  // 直接識別：出現關鍵字段即可視爲章節大綱形態
   const hallmark = ['volume_number', 'chapter_number', 'character_list', 'overview', 'characters', 'participants', 'roles']
   const keys = Object.keys(obj || {})
   return keys.some(k => hallmark.includes(k)) ? obj : {}
 }
 
-// 统一清洗姓名：去除括号备注、全角/半角空格、尾部顿号等
+// 統一清洗姓名：去除括號備註、全角/半角空格、尾部頓號等
 export function sanitizeName(raw: string): string {
   if (!raw) return ''
   let s = String(raw).trim()
   // 去掉全角空格
   s = s.replace(/\u3000/g, ' ')
   s = s.replace(/\s+/g, ' ').trim()
-  // 去除括号及其中内容（中英文括号）
+  // 去除括號及其中內容（中英文括號）
   s = s.replace(/[（(][^）)]*[）)]/g, '').trim()
-  // 去掉末尾的无意义符号
+  // 去掉末尾的無意義符號
   s = s.replace(/[、，。,.]+$/g, '').trim()
   return s
 }

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <el-dialog
     :model-value="visible"
     @update:model-value="(v:boolean) => emit('update:visible', v)"
@@ -10,20 +10,20 @@
       <div class="left">
         <template v-if="mode==='type'">
           <el-form label-position="top" class="modelname-form">
-            <el-form-item label="模型名称">
-              <el-input v-model="modelName" placeholder="不填则默认等于卡片类型名" />
+            <el-form-item label="模型名稱">
+              <el-input v-model="modelName" placeholder="不填則默認等於卡片類型名" />
             </el-form-item>
           </el-form>
         </template>
-        <div class="pane-header">结构构建器</div>
+        <div class="pane-header">結構構建器</div>
         <OutputModelBuilder v-model="builderFields" :models="relationTargets" :current-model-name="contextTitle" />
       </div>
       <div class="right">
         <div class="subpane">
-          <div class="pane-header">表单预览</div>
+          <div class="pane-header">表單預覽</div>
           <div class="preview">
             <ModelDrivenForm v-if="schemaObject" :schema="schemaObject" v-model="previewModel" />
-            <div v-else class="placeholder">暂无 Schema</div>
+            <div v-else class="placeholder">暫無 Schema</div>
           </div>
         </div>
         <div class="subpane">
@@ -34,14 +34,14 @@
     </div>
     <template #footer>
       <div class="footer-actions">
-        <el-button @click="emit('update:visible', false)">关闭</el-button>
+        <el-button @click="emit('update:visible', false)">關閉</el-button>
         <template v-if="mode==='card'">
-          <el-button @click="restoreFollowType" type="warning" plain>恢复跟随类型</el-button>
-          <el-button @click="applyToType" type="primary" plain>应用到类型</el-button>
-          <el-button @click="saveForCard" type="primary">仅此卡生效</el-button>
+          <el-button @click="restoreFollowType" type="warning" plain>恢復跟隨類型</el-button>
+          <el-button @click="applyToType" type="primary" plain>應用到類型</el-button>
+          <el-button @click="saveForCard" type="primary">僅此卡生效</el-button>
         </template>
         <template v-else>
-          <el-button type="primary" @click="saveForType">保存到类型</el-button>
+          <el-button type="primary" @click="saveForType">保存到類型</el-button>
         </template>
       </div>
     </template>
@@ -59,21 +59,21 @@ import { getCardTypeSchema, updateCardTypeSchema, getCardSchema, updateCardSchem
 const props = defineProps<{ visible: boolean; mode: 'type' | 'card'; targetId: number; contextTitle?: string }>()
 const emit = defineEmits<{ 'update:visible': [boolean]; 'saved': []; 'close': [] }>()
 
-const headerTitle = computed(() => props.mode === 'type' ? `类型结构编辑：${props.contextTitle || props.targetId}` : `实例结构编辑：${props.contextTitle || props.targetId}`)
+const headerTitle = computed(() => props.mode === 'type' ? `類型結構編輯：${props.contextTitle || props.targetId}` : `實例結構編輯：${props.contextTitle || props.targetId}`)
 
 const builderFields = ref<BuilderField[]>([])
 const relationTargets = ref<Array<{ name: string; json_schema?: any }>>([])
 const previewModel = ref<any>({})
 const modelName = ref<string>('')
-// 保留原始 schema，用于保护复杂字段（如 dynamic_info）的结构不被简化覆盖
+// 保留原始 schema，用於保護複雜字段（如 dynamic_info）的結構不被簡化覆蓋
 const originalSchema = ref<any | null>(null)
 
 const schemaObject = computed(() => {
   try {
     const base: any = builderToSchema(builderFields.value) as any
 
-    // 若原始 schema 中存在复杂对象字段（目前主要是 dynamic_info），
-    // 为避免被简化的 builder 覆盖其结构，这里用原始定义进行回填。
+    // 若原始 schema 中存在複雜對象字段（目前主要是 dynamic_info），
+    // 爲避免被簡化的 builder 覆蓋其結構，這裏用原始定義進行回填。
     const orig = originalSchema.value as any
     if (orig && typeof orig === 'object' && orig.properties && base && base.properties) {
       const origProps = orig.properties as Record<string, any>
@@ -85,7 +85,7 @@ const schemaObject = computed(() => {
     }
 
     const defs: Record<string, any> = {}
-    // 收集被引用的目标模型结构
+    // 收集被引用的目標模型結構
     for (const f of builderFields.value) {
       if (f.kind === 'relation' && f.relation?.targetModelName) {
         const name = f.relation.targetModelName
@@ -93,7 +93,7 @@ const schemaObject = computed(() => {
         if (found?.json_schema) defs[name] = found.json_schema
       }
     }
-    // 若类型模式且设置了模型名，可作为当前模型名称引用（供外部使用）
+    // 若類型模式且設置了模型名，可作爲當前模型名稱引用（供外部使用）
     if (Object.keys(defs).length) base.$defs = defs
     return base
   } catch { return null }
@@ -118,7 +118,7 @@ async function loadSchema() {
       builderFields.value = schemaToBuilder(sch)
     }
 
-    // 载入可被引用的目标模型（所有卡片类型）
+    // 載入可被引用的目標模型（所有卡片類型）
     try {
       const types = await listCardTypes()
       const list = (types || []) as any[]
@@ -129,7 +129,7 @@ async function loadSchema() {
       }
     } catch {}
   } catch (e:any) {
-    ElMessage.error('加载 Schema 失败')
+    ElMessage.error('加載 Schema 失敗')
   }
 }
 
@@ -140,34 +140,34 @@ async function saveForType() {
       await updateCardType(props.targetId, { model_name: modelName.value || null } as any)
     }
     await updateCardTypeSchema(props.targetId, schemaObject.value || {})
-    ElMessage.success('已保存到类型结构')
+    ElMessage.success('已保存到類型結構')
     emit('saved')
-  } catch (e:any) { ElMessage.error('保存失败') }
+  } catch (e:any) { ElMessage.error('保存失敗') }
 }
 
 async function saveForCard() {
   try {
     await updateCardSchema(props.targetId, schemaObject.value || {})
-    ElMessage.success('已保存，仅此卡生效')
+    ElMessage.success('已保存，僅此卡生效')
     emit('saved')
-  } catch (e:any) { ElMessage.error('保存失败') }
+  } catch (e:any) { ElMessage.error('保存失敗') }
 }
 
 async function restoreFollowType() {
   try {
     await updateCardSchema(props.targetId, null)
-    ElMessage.success('已恢复跟随类型')
+    ElMessage.success('已恢復跟隨類型')
     await loadSchema()
     emit('saved')
-  } catch (e:any) { ElMessage.error('操作失败') }
+  } catch (e:any) { ElMessage.error('操作失敗') }
 }
 
 async function applyToType() {
   try {
     await applyCardSchemaToType(props.targetId)
-    ElMessage.success('已应用到类型')
+    ElMessage.success('已應用到類型')
     emit('saved')
-  } catch (e:any) { ElMessage.error('应用失败') }
+  } catch (e:any) { ElMessage.error('應用失敗') }
 }
 
 function handleKey(e: KeyboardEvent) {
@@ -196,6 +196,6 @@ const contextTitle = computed(() => props.contextTitle || '')
 .footer-actions { display: flex; gap: 8px; justify-content: flex-end; width: 100%; }
 .placeholder { color: var(--el-text-color-secondary); padding: 12px; }
 .modelname-form { padding: 6px 0; }
-/* 与窗口按钮保持距离 */
+/* 與窗口按鈕保持距離 */
 :deep(.el-dialog__headerbtn) { margin-right: 6px; }
 </style> 

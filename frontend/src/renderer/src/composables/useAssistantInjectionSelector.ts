@@ -1,4 +1,4 @@
-import { computed, ref, type Ref } from 'vue'
+﻿import { computed, ref, type Ref } from 'vue'
 import type { CardRead } from '@renderer/api/cards'
 
 interface AssistantProjectLite {
@@ -35,7 +35,7 @@ export function useAssistantInjectionSelector(options: UseAssistantInjectionSele
   const selectorTreeData = computed(() => {
     const cardsByType: Record<string, any[]> = {}
     for (const card of filteredSelectorCards.value || []) {
-      const typeName = card.card_type?.name || '未分类'
+      const typeName = card.card_type?.name || '未分類'
       if (!cardsByType[typeName]) {
         cardsByType[typeName] = []
       }

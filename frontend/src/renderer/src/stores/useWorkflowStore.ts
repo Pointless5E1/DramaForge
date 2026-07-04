@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+﻿import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { 
     getRun, 
@@ -8,19 +8,19 @@ import {
     type WorkflowNodeType 
 } from '@/api/workflows'
 
-// 简单的运行信息接口，用于状态栏显示
+// 簡單的運行信息接口，用於狀態欄顯示
 export interface RunInfo {
     id: number
     workflow_id: number
     workflow_name?: string
     status: string
     created_at?: string
-    error?: string // 从 error_json 提取的错误信息
-    current_node?: string // 当前执行的节点
-    progress?: number // 执行进度（0-100）
+    error?: string // 從 error_json 提取的錯誤信息
+    current_node?: string // 當前執行的節點
+    progress?: number // 執行進度（0-100）
 }
 
-// SSE 连接管理
+// SSE 連接管理
 interface SSEConnection {
     runId: number
     workflowId: number
@@ -30,13 +30,13 @@ interface SSEConnection {
 }
 
 /**
- * 统一的工作流 Store
+ * 統一的工作流 Store
  * 管理：
- * 1. 节点类型、卡片类型等元数据
- * 2. 工作流运行状态和 SSE 连接
+ * 1. 節點類型、卡片類型等元數據
+ * 2. 工作流運行狀態和 SSE 連接
  */
 export const useWorkflowStore = defineStore('workflow', () => {
-    // ==================== 元数据管理 ====================
+    // ==================== 元數據管理 ====================
     const nodeTypes = ref<WorkflowNodeType[]>([])
     const cardTypes = ref<any[]>([])
     const isLoadingNodeTypes = ref(false)
@@ -80,10 +80,10 @@ export const useWorkflowStore = defineStore('workflow', () => {
         }
     }
 
-    // ==================== 运行状态管理 ====================
+    // ==================== 運行狀態管理 ====================
     const runs = ref<Map<number, RunInfo>>(new Map())
     const pollingTimer = ref<any>(null)
-    const sseConnections = ref<Map<number, SSEConnection>>(new Map()) // 管理所有 SSE 连接
+    const sseConnections = ref<Map<number, SSEConnection>>(new Map()) // 管理所有 SSE 連接
 
     // Getters
     const activeRuns = computed(() => {
@@ -105,19 +105,19 @@ export const useWorkflowStore = defineStore('workflow', () => {
     function addRun(id: number, workflowName?: string) {
         if (runs.value.has(id)) return
 
-        // 初始化占位
+        // 初始化佔位
         runs.value.set(id, {
             id,
             workflow_id: 0,
             status: 'running',
-            workflow_name: workflowName || '加载中...',
+            workflow_name: workflowName || '加載中...',
             progress: 0
         })
 
-        // 立即获取一次详情
+        // 立即獲取一次詳情
         fetchRunDetails(id)
 
-        // 确保轮询开启
+        // 確保輪詢開啓
         startPolling()
     }
 
@@ -149,7 +149,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
             if (run) {
                 const existingRun = runs.value.get(id)
                 
-                // 从 error_json 提取错误信息
+                // 從 error_json 提取錯誤信息
                 let errorMessage: string | undefined
                 if (run.error_json) {
                     errorMessage = typeof run.error_json === 'object' 
@@ -164,8 +164,8 @@ export const useWorkflowStore = defineStore('workflow', () => {
                     status: run.status,
                     created_at: run.created_at || undefined,
                     error: errorMessage,
-                    current_node: existingRun?.current_node, // 保留当前节点信息
-                    progress: existingRun?.progress // 保留进度信息
+                    current_node: existingRun?.current_node, // 保留當前節點信息
+                    progress: existingRun?.progress // 保留進度信息
                 })
             }
         } catch (e) {
@@ -176,12 +176,12 @@ export const useWorkflowStore = defineStore('workflow', () => {
     function startPolling() {
         if (pollingTimer.value) return
 
-        // 立即执行一次检查
+        // 立即執行一次檢查
         checkActiveRuns()
 
         pollingTimer.value = setInterval(() => {
             checkActiveRuns()
-        }, 2000) // 2秒轮询一次
+        }, 2000) // 2秒輪詢一次
     }
 
     function stopPolling() {
@@ -192,23 +192,23 @@ export const useWorkflowStore = defineStore('workflow', () => {
     }
 
     /**
-     * 监听后端触发的工作流（通过响应头通知）
+     * 監聽後端觸發的工作流（通過響應頭通知）
      */
     function setupWorkflowListener() {
         const handleWorkflowStarted = (event: CustomEvent) => {
             const runIds = event.detail as number[]
             
-            // 添加所有新启动的运行到状态
+            // 添加所有新啓動的運行到狀態
             runIds.forEach(runId => {
                 if (!runs.value.has(runId)) {
-                    addRun(runId, '触发器工作流')
+                    addRun(runId, '觸發器工作流')
                 }
             })
         }
         
         window.addEventListener('workflow-started', handleWorkflowStarted as EventListener)
         
-        // 返回清理函数
+        // 返回清理函數
         return () => {
             window.removeEventListener('workflow-started', handleWorkflowStarted as EventListener)
         }
@@ -220,18 +220,18 @@ export const useWorkflowStore = defineStore('workflow', () => {
             return
         }
 
-        // 更新所有活动运行的状态
+        // 更新所有活動運行的狀態
         for (const run of activeRuns.value) {
             await fetchRunDetails(run.id)
         }
     }
 
-    // 清理已完成的运行（可选，避免内存占用过多）
+    // 清理已完成的運行（可選，避免內存佔用過多）
     function clearCompleted() {
         const completedIds = completedRuns.value.map(r => r.id)
         completedIds.forEach(id => {
             runs.value.delete(id)
-            // 同时清理对应的 SSE 连接
+            // 同時清理對應的 SSE 連接
             const conn = sseConnections.value.get(id)
             if (conn) {
                 conn.eventSource.close()
@@ -241,12 +241,12 @@ export const useWorkflowStore = defineStore('workflow', () => {
     }
 
     /**
-     * 启动工作流执行（全局 SSE 连接管理）
+     * 啓動工作流執行（全局 SSE 連接管理）
      * @param workflowId 工作流 ID
-     * @param workflowName 工作流名称
-     * @param callbacks 回调函数（用于更新 UI）
-     * @param resume 是否恢复执行
-     * @param runId 恢复执行时的 run ID
+     * @param workflowName 工作流名稱
+     * @param callbacks 回調函數（用於更新 UI）
+     * @param resume 是否恢復執行
+     * @param runId 恢復執行時的 run ID
      */
     async function startWorkflowExecution(
         workflowId: number,
@@ -259,29 +259,29 @@ export const useWorkflowStore = defineStore('workflow', () => {
         let totalNodes = 0
         let completedNodes = 0
 
-        // 如果是恢复执行，确保运行记录存在且状态正确
+        // 如果是恢復執行，確保運行記錄存在且狀態正確
         if (resume && runId) {
             const existingRun = runs.value.get(runId)
             if (existingRun) {
-                // 更新状态为运行中
+                // 更新狀態爲運行中
                 updateRunStatus(runId, 'running')
-                console.log('[WorkflowStore] 恢复执行，更新状态为 running:', runId)
+                console.log('[WorkflowStore] 恢復執行，更新狀態爲 running:', runId)
             } else {
-                // 如果不存在，添加到状态栏
+                // 如果不存在，添加到狀態欄
                 addRun(runId, workflowName)
-                console.log('[WorkflowStore] 恢复执行，添加运行记录:', runId)
+                console.log('[WorkflowStore] 恢復執行，添加運行記錄:', runId)
             }
         }
 
-        // 包装回调，自动更新状态栏
+        // 包裝回調，自動更新狀態欄
         const wrappedCallbacks: WorkflowStreamCallbacks = {
             onRunStarted: (actualRunId: number) => {
                 currentRunId = actualRunId
-                // 添加到状态栏（仅新执行）
+                // 添加到狀態欄（僅新執行）
                 if (!resume) {
                     addRun(actualRunId, workflowName)
                 }
-                // 调用原始回调
+                // 調用原始回調
                 if (callbacks.onRunStarted) {
                     callbacks.onRunStarted(actualRunId)
                 }
@@ -289,19 +289,19 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
             onStart: (event) => {
                 totalNodes++
-                // 更新状态栏：当前节点
+                // 更新狀態欄：當前節點
                 if (currentRunId) {
                     const progress = totalNodes > 0 ? (completedNodes / totalNodes) * 100 : 0
                     updateRunProgress(currentRunId, progress, event.statement?.variable)
                 }
-                // 调用原始回调
+                // 調用原始回調
                 if (callbacks.onStart) {
                     callbacks.onStart(event)
                 }
             },
 
             onProgress: (event) => {
-                // 更新状态栏：进度
+                // 更新狀態欄：進度
                 if (currentRunId) {
                     const nodeProgress = event.percent || 0
                     const overallProgress = totalNodes > 0 
@@ -309,7 +309,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
                         : nodeProgress
                     updateRunProgress(currentRunId, overallProgress, event.statement?.variable)
                 }
-                // 调用原始回调
+                // 調用原始回調
                 if (callbacks.onProgress) {
                     callbacks.onProgress(event)
                 }
@@ -317,45 +317,45 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
             onComplete: (event) => {
                 completedNodes++
-                // 更新状态栏：完成一个节点
+                // 更新狀態欄：完成一個節點
                 if (currentRunId) {
                     const progress = totalNodes > 0 ? (completedNodes / totalNodes) * 100 : 100
                     updateRunProgress(currentRunId, progress, event.statement?.variable)
                 }
-                // 调用原始回调
+                // 調用原始回調
                 if (callbacks.onComplete) {
                     callbacks.onComplete(event)
                 }
             },
 
             onError: (event) => {
-                // 更新状态
+                // 更新狀態
                 if (currentRunId) {
                     updateRunStatus(currentRunId, 'failed', event.error)
                 }
-                // 调用原始回调
+                // 調用原始回調
                 if (callbacks.onError) {
                     callbacks.onError(event)
                 }
             },
 
             onEnd: () => {
-                // 工作流结束，最终更新状态
+                // 工作流結束，最終更新狀態
                 if (currentRunId) {
                     updateRunProgress(currentRunId, 100, undefined)
-                    // 更新状态为 succeeded（如果不是 failed）
+                    // 更新狀態爲 succeeded（如果不是 failed）
                     const run = runs.value.get(currentRunId)
                     if (run && run.status !== 'failed') {
                         updateRunStatus(currentRunId, 'succeeded')
                     }
-                    // 清理 SSE 连接
+                    // 清理 SSE 連接
                     const conn = sseConnections.value.get(currentRunId)
                     if (conn) {
                         conn.eventSource.close()
                         sseConnections.value.delete(currentRunId)
                     }
                 }
-                // 调用原始回调
+                // 調用原始回調
                 if (callbacks.onEnd) {
                     callbacks.onEnd()
                 }
@@ -363,17 +363,17 @@ export const useWorkflowStore = defineStore('workflow', () => {
         }
 
         try {
-            // 如果是恢复执行，先清理旧的 SSE 连接
+            // 如果是恢復執行，先清理舊的 SSE 連接
             if (resume && runId) {
                 const oldConn = sseConnections.value.get(runId)
                 if (oldConn) {
-                    console.log('[WorkflowStore] 清理旧的 SSE 连接:', runId)
+                    console.log('[WorkflowStore] 清理舊的 SSE 連接:', runId)
                     oldConn.eventSource.close()
                     sseConnections.value.delete(runId)
                 }
             }
             
-            // 启动 SSE 连接
+            // 啓動 SSE 連接
             const { runId: actualRunId, eventSource } = await runCodeWorkflowStream(
                 workflowId,
                 wrappedCallbacks,
@@ -381,9 +381,9 @@ export const useWorkflowStore = defineStore('workflow', () => {
                 runId
             )
 
-            // 保存连接信息
+            // 保存連接信息
             if (currentRunId) {
-                console.log('[WorkflowStore] 保存 SSE 连接:', currentRunId)
+                console.log('[WorkflowStore] 保存 SSE 連接:', currentRunId)
                 sseConnections.value.set(currentRunId, {
                     runId: currentRunId,
                     workflowId,
@@ -395,36 +395,36 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
             return { runId: actualRunId, eventSource }
         } catch (error) {
-            console.error('[WorkflowStore] 启动工作流失败:', error)
+            console.error('[WorkflowStore] 啓動工作流失敗:', error)
             throw error
         }
     }
 
     /**
-     * 暂停工作流执行
+     * 暫停工作流執行
      */
     function pauseWorkflowExecution(runId: number) {
-        console.log('[WorkflowStore] 暂停工作流执行:', runId)
+        console.log('[WorkflowStore] 暫停工作流執行:', runId)
         const conn = sseConnections.value.get(runId)
         if (conn) {
-            console.log('[WorkflowStore] 关闭 SSE 连接:', runId)
+            console.log('[WorkflowStore] 關閉 SSE 連接:', runId)
             conn.eventSource.close()
             sseConnections.value.delete(runId)
             updateRunStatus(runId, 'paused')
         } else {
-            console.warn('[WorkflowStore] 未找到 SSE 连接:', runId)
+            console.warn('[WorkflowStore] 未找到 SSE 連接:', runId)
         }
     }
 
     /**
-     * 获取 SSE 连接
+     * 獲取 SSE 連接
      */
     function getSSEConnection(runId: number) {
         return sseConnections.value.get(runId)
     }
 
     return {
-        // 元数据
+        // 元數據
         nodeTypes,
         cardTypes,
         isLoadingNodeTypes,
@@ -434,7 +434,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
         fetchNodeTypes,
         fetchCardTypes,
         
-        // 运行状态
+        // 運行狀態
         runs,
         activeRuns,
         completedRuns,
@@ -448,7 +448,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
         pauseWorkflowExecution,
         getSSEConnection,
         
-        // 工作流监听器
+        // 工作流監聽器
         setupWorkflowListener
     }
 })

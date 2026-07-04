@@ -1,6 +1,6 @@
-"""AI 工作流节点
+﻿"""AI 工作流節點
 
-提供上下文组装、LLM 调用和 Agent 执行能力。
+提供上下文組裝、LLM 調用和 Agent 執行能力。
 """
 
 from .context import ContextAssembleNode

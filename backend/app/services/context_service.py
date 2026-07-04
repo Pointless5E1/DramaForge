@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
@@ -32,12 +32,12 @@ class AssembledContext:
 	def to_system_prompt_block(self) -> str:
 		parts: List[str] = []
 		if self.facts_subgraph:
-			parts.append(f"[事实子图]\n{self.facts_subgraph}")
+			parts.append(f"[事實子圖]\n{self.facts_subgraph}")
 		return "\n\n".join(parts)
 
 
 def _compose_facts_subgraph_stub() -> str:
-	return "关键事实：暂无（尚未收集）"
+	return "關鍵事實：暫無（尚未收集）"
 
 
 def _clean_text(value: Any) -> str:
@@ -175,7 +175,7 @@ def assemble_context(session: Session, params: ContextAssembleParams) -> Assembl
 			if (str(it.get("a")) in participant_set and str(it.get("b")) in participant_set)
 		]
 		if filtered_relation_items:
-			lines: List[str] = ["关键事实："]
+			lines: List[str] = ["關鍵事實："]
 			for it in filtered_relation_items:
 				a = str(it.get("a"))
 				b = str(it.get("b"))
@@ -186,7 +186,7 @@ def assemble_context(session: Session, params: ContextAssembleParams) -> Assembl
 		else:
 			txt = "\n".join([f"- {f}" for f in (sub_struct.get("fact_summaries") or [])])
 			if txt:
-				facts_text = "关键事实：\n" + txt
+				facts_text = "關鍵事實：\n" + txt
 
 		try:
 			fs_model = FactsStructured(
@@ -225,7 +225,7 @@ def assemble_context(session: Session, params: ContextAssembleParams) -> Assembl
 				"concept_summaries": concept_summaries,
 			}
 
-	facts = truncate_text(facts_text, facts_quota, suffix="\n...[已截断]")
+	facts = truncate_text(facts_text, facts_quota, suffix="\n...[已截斷]")
 
 	return AssembledContext(
 		facts_subgraph=facts,

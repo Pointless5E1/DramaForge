@@ -21,8 +21,8 @@ from .tools import (
 )
 
 
-WORKFLOW_AGENT_PROMPT_NAME = "工作流智能体"
-WORKFLOW_AGENT_REACT_PROMPT_NAME = "工作流智能体-React"
+WORKFLOW_AGENT_PROMPT_NAME = "工作流智能體"
+WORKFLOW_AGENT_REACT_PROMPT_NAME = "工作流智能體-React"
 WORKFLOW_AGENT_MAX_VALIDATE_RETRIES = 0
 
 
@@ -54,8 +54,8 @@ def _append_node_briefs_to_prompt(base_prompt: str) -> str:
     node_map = "\n".join(lines)
     return (
         f"{base_prompt}\n\n"
-        "【系统内置节点简表（启动已注入）】\n"
-        "你已具备所有节点的简要信息。优先直接根据该简表选节点，仅在需要字段级细节时再调用 wf_get_node_metadata。\n"
+        "【系統內置節點簡表（啓動已注入）】\n"
+        "你已具備所有節點的簡要信息。優先直接根據該簡表選節點，僅在需要字段級細節時再調用 wf_get_node_metadata。\n"
         f"{node_map}"
     )
 
@@ -89,14 +89,14 @@ def get_workflow_agent_system_prompt(session: Session, react_enabled: bool = Fal
             )
             return _append_node_briefs_to_prompt(prompt.template.strip())
         raise RuntimeError(
-            f"未找到提示词: {WORKFLOW_AGENT_PROMPT_NAME}。"
-            "请先执行 bootstrap 初始化，或在提示词管理中创建该提示词。"
+            f"未找到提示詞: {WORKFLOW_AGENT_PROMPT_NAME}。"
+            "請先執行 bootstrap 初始化，或在提示詞管理中創建該提示詞。"
         )
     except Exception as exc:
         logger.error("[WorkflowAgent] load prompt from DB failed: {}", exc)
         raise RuntimeError(
-            f"加载提示词失败: {WORKFLOW_AGENT_PROMPT_NAME}。"
-            "请检查数据库与 bootstrap 状态。"
+            f"加載提示詞失敗: {WORKFLOW_AGENT_PROMPT_NAME}。"
+            "請檢查數據庫與 bootstrap 狀態。"
         ) from exc
 
 
@@ -111,13 +111,13 @@ def _build_user_prompt(request: WorkflowAgentChatRequest) -> str:
     pending_code_section = ""
     if pending_code_text:
         pending_code_section = (
-            "\n\n未应用补丁候选代码（优先基于此继续修改，不要先回退到数据库当前代码）:\n"
+            "\n\n未應用補丁候選代碼（優先基於此繼續修改，不要先回退到數據庫當前代碼）:\n"
             f"```python\n{pending_code_text}\n```"
         )
 
     if user_prompt:
-        return f"{header}\n\n用户请求:\n{user_prompt}{pending_code_section}"
-    return f"{header}\n\n用户请求为空，请先确认需求并读取当前代码。"
+        return f"{header}\n\n用戶請求:\n{user_prompt}{pending_code_section}"
+    return f"{header}\n\n用戶請求爲空，請先確認需求並讀取當前代碼。"
 
 
 async def stream_workflow_agent_chat(
@@ -233,7 +233,7 @@ async def stream_workflow_agent_chat(
                     if validation_errors:
                         retry_hint = "；".join(validation_errors)
                     else:
-                        retry_hint = "校验未通过"
+                        retry_hint = "校驗未通過"
                 else:
                     retry_hint = ""
 
@@ -257,8 +257,8 @@ async def stream_workflow_agent_chat(
             break
 
         latest_prompt = (
-            "上一次补丁未通过校验，请继续修复并再次调用工具生成可通过校验的补丁。\n"
-            f"失败原因：{retry_hint}"
+            "上一次補丁未通過校驗，請繼續修復並再次調用工具生成可通過校驗的補丁。\n"
+            f"失敗原因：{retry_hint}"
         )
 
 

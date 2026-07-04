@@ -1,7 +1,7 @@
-from pydantic import BaseModel, Field, model_validator
+﻿from pydantic import BaseModel, Field, model_validator
 from typing import Literal, Optional, List, Tuple, Any, Union
 
-from .entity import CharacterCard as CharacterCard  # 以完整角色卡替换简化模型
+from .entity import CharacterCard as CharacterCard  # 以完整角色卡替換簡化模型
 from .entity import SceneCard as SceneCard
 from .entity import OrganizationCard as OrganizationCard
 from .entity import EntityType as EntityType
@@ -9,75 +9,75 @@ from .entity import EntityType as EntityType
 
 class Text(BaseModel):
     '''
-    通用的文本模型，自由存储各种内容
+    通用的文本模型，自由存儲各種內容
     '''
-    content: str = Field(description="任意文本内容，需使用/转换为markdown格式文本")
+    content: str = Field(description="任意文本內容，需使用/轉換爲markdown格式文本")
 
 # --- Schemas for Tags ---
 
 class Tags(BaseModel):
     """
-    统一的标签模型。
+    統一的標籤模型。
     """
-    theme: str = Field(default="", description="主题类别，格式: 大类-子类")
-    audience: Literal['通用','男生', '女生'] = Field(default='通用', description="目标读者")
-    narrative_person: Literal['第一人称', '第三人称'] = Field(default='第三人称', description="写作人称（第一人称/第三人称）")
-    story_tags: List[Tuple[str, Literal['低权重', '中权重', '高权重']]] = Field(default=[], description="类别标签及权重档位（低/中/高）")
-    affection: str = Field(default="", description="情感关系标签")
+    theme: str = Field(default="", description="主題類別，格式: 大類-子類")
+    audience: Literal['通用','男生', '女生'] = Field(default='通用', description="目標讀者")
+    narrative_person: Literal['第一人稱', '第三人稱'] = Field(default='第三人稱', description="寫作人稱（第一人稱/第三人稱）")
+    story_tags: List[Tuple[str, Literal['低權重', '中權重', '高權重']]] = Field(default=[], description="類別標籤及權重檔位（低/中/高）")
+    affection: str = Field(default="", description="情感關係標籤")
 
 
 class SpecialAbility(BaseModel):
-    name: str = Field(description="金手指的名称")
-    description: str = Field(description="金手指的具体描述")
+    name: str = Field(description="金手指的名稱")
+    description: str = Field(description="金手指的具體描述")
 
 
 class SpecialAbilityResponse(BaseModel):
-    """0: 根据tags设计金手指的请求模型"""
-    special_abilities_thinking: str = Field(description="从标签到金手指的创作思考过程。",examples=["示例输出，仅供学习思考方式，不要被具体内容影响：根据标签“重生”和“无敌流”，我需要设计一个让主角能够不断尝试、不断变强，最终达到无敌状态的金手指。仅仅重生一次不足以支撑“无敌流”的长期发展，因此，将“重生”特性深化为“无限复活并回溯时间”的能力，每次复活都能保留经验和记忆，这既符合“重生”的特点，又能为主角的“无敌”之路提供逻辑支撑。同时，结合“异世大陆”和“文明推演”的背景，这种能力能够让主角在面对未知世界时，通过反复试错来积累知识和经验，从而实现降维打击，迅速崛起。这个金手指的设定，能够让读者对主角如何利用这种能力解决困境、颠覆旧秩序产生强烈的期待感。"])
-    special_abilities: Optional[List[SpecialAbility]] = Field(None, description="主要金手指信息。金手指可以是各种系统、模拟器等这种具体的，也可以是某种优势/天赋/体质等，例如主角重生或者穿越，那么ta的先知先觉也是一种金手指。")
+    """0: 根據tags設計金手指的請求模型"""
+    special_abilities_thinking: str = Field(description="從標籤到金手指的創作思考過程。",examples=["示例輸出，僅供學習思考方式，不要被具體內容影響：根據標籤“重生”和“無敵流”，我需要設計一個讓主角能夠不斷嘗試、不斷變強，最終達到無敵狀態的金手指。僅僅重生一次不足以支撐“無敵流”的長期發展，因此，將“重生”特性深化爲“無限復活並回溯時間”的能力，每次復活都能保留經驗和記憶，這既符合“重生”的特點，又能爲主角的“無敵”之路提供邏輯支撐。同時，結合“異世大陸”和“文明推演”的背景，這種能力能夠讓主角在面對未知世界時，通過反覆試錯來積累知識和經驗，從而實現降維打擊，迅速崛起。這個金手指的設定，能夠讓讀者對主角如何利用這種能力解決困境、顛覆舊秩序產生強烈的期待感。"])
+    special_abilities: Optional[List[SpecialAbility]] = Field(None, description="主要金手指信息。金手指可以是各種系統、模擬器等這種具體的，也可以是某種優勢/天賦/體質等，例如主角重生或者穿越，那麼ta的先知先覺也是一種金手指。")
 
 
 class OneSentence(BaseModel):
-    """1: 根据tags、金手指设计一句话概述的请求模型"""
-    one_sentence_thinking: str = Field(description="从标签/金手指到一句话概述的创作思考过程。",examples=["示例输出，仅供学习思考方式，不要被具体内容影响：考虑到'玄幻奇幻-异世大陆'的主题和'穿越'、'异界科学流'等标签，我首先需要构建一个跨世界的故事框架。现代剑道高手与异世界魔法师的相遇是个很好的切入点，'禁忌魔法传送门'金手指为这一相遇提供了合理契机。同时，'单CP'的情感标签要求这段关系要成为故事的重要线索。'文明碰撞'和'异界科学流'标签则提示要让主角带来现代世界的知识优势，形成独特的冲突和看点。综合这些元素，我决定构建一个关于现代人进入魔法世界，通过知识优势与个人成长影响整个异界命运的故事。"])
-    one_sentence: str = Field(description="一句话概述整本小说内容")
+    """1: 根據tags、金手指設計一句話概述的請求模型"""
+    one_sentence_thinking: str = Field(description="從標籤/金手指到一句話概述的創作思考過程。",examples=["示例輸出，僅供學習思考方式，不要被具體內容影響：考慮到'玄幻奇幻-異世大陸'的主題和'穿越'、'異界科學流'等標籤，我首先需要構建一個跨世界的故事框架。現代劍道高手與異世界魔法師的相遇是個很好的切入點，'禁忌魔法傳送門'金手指爲這一相遇提供了合理契機。同時，'單CP'的情感標籤要求這段關係要成爲故事的重要線索。'文明碰撞'和'異界科學流'標籤則提示要讓主角帶來現代世界的知識優勢，形成獨特的衝突和看點。綜合這些元素，我決定構建一個關於現代人進入魔法世界，通過知識優勢與個人成長影響整個異界命運的故事。"])
+    one_sentence: str = Field(description="一句話概述整本小說內容")
 
 
 class ParagraphOverview(BaseModel):
-    """2: 根据一句话概述等信息扩充为一段话概述的请求模型"""
-    overview_thinking: str = Field(description="从一句话概述到一段话大纲的创作思考过程。",examples=["示例输出，仅供学习思考方式，不要被具体内容影响：基于一句话概述，进一步思考故事的具体展开。从'穿越'标签出发，需要交代主角穿越后的身份转变和初始困境。'反派流'和'幕后流'决定了主角必须采取非传统的反派手段。'种田流'提示要详细描写魔族社会发展过程。'傲慢天赋'金手指则提供了主角解决问题的独特方式。整个故事需要展现出主角如何利用现代思维和智谋，在有限时间内完成魔族改造和人类世界的和平渗透。"])
-    overview: str = Field(description="扩展后的小说大纲")
+    """2: 根據一句話概述等信息擴充爲一段話概述的請求模型"""
+    overview_thinking: str = Field(description="從一句話概述到一段話大綱的創作思考過程。",examples=["示例輸出，僅供學習思考方式，不要被具體內容影響：基於一句話概述，進一步思考故事的具體展開。從'穿越'標籤出發，需要交代主角穿越後的身份轉變和初始困境。'反派流'和'幕後流'決定了主角必須採取非傳統的反派手段。'種田流'提示要詳細描寫魔族社會發展過程。'傲慢天賦'金手指則提供了主角解決問題的獨特方式。整個故事需要展現出主角如何利用現代思維和智謀，在有限時間內完成魔族改造和人類世界的和平滲透。"])
+    overview: str = Field(description="擴展後的小說大綱")
     
 
 class SocialSystem(BaseModel):
-    power_structure: str = Field(description="权力架构（如：封建王朝/资本联邦）")
-    currency_system: List[str] = Field(description="货币体系")
-    background:List[str]=Field(description="该社会体系的势力格局背景、历史传说等")
-    major_power_camps: List[OrganizationCard] = Field(description="主要组织/门派/势力阵营，仅在此生成跨卷长期影响的核心组织。")
-    civilization_level: Optional[str] = Field(description="科技/文明发展水平")
+    power_structure: str = Field(description="權力架構（如：封建王朝/資本聯邦）")
+    currency_system: List[str] = Field(description="貨幣體系")
+    background:List[str]=Field(description="該社會體系的勢力格局背景、歷史傳說等")
+    major_power_camps: List[OrganizationCard] = Field(description="主要組織/門派/勢力陣營，僅在此生成跨卷長期影響的核心組織。")
+    civilization_level: Optional[str] = Field(description="科技/文明發展水平")
 
 class CoreSystem(BaseModel):
-    system_type: str = Field(min_length=1,description="体系类型（力量/社会/科技/异能等）")
-    name: str = Field(description="体系名称（如：斗气/资本规则/朝堂权谋）")
-    levels: Optional[List[str]] = Field(None, description="等级/阶层划分（可选）")
-    source: str = Field(description="能量/权力来源（如：灵气/资本/皇权）")
+    system_type: str = Field(min_length=1,description="體系類型（力量/社會/科技/異能等）")
+    name: str = Field(description="體系名稱（如：鬥氣/資本規則/朝堂權謀）")
+    levels: Optional[List[str]] = Field(None, description="等級/階層劃分（可選）")
+    source: str = Field(description="能量/權力來源（如：靈氣/資本/皇權）")
 
 class SettingItem(BaseModel):
-    title: str = Field(description="设定标题，例如：地理宇宙观、历史传说、种族设定等")
-    description: str = Field(description="该项设定的具体描述")
+    title: str = Field(description="設定標題，例如：地理宇宙觀、歷史傳說、種族設定等")
+    description: str = Field(description="該項設定的具體描述")
 
 class WorldviewTemplate(BaseModel):
     """
-    世界观模板
+    世界觀模板
     """
-    world_name: str = Field(min_length=2, description="世界名称")
-    core_conflict: str = Field(description="世界核心矛盾（如：资源争夺/种族仇恨）")
-    social_system: SocialSystem = Field(description="社会体系")
-    power_systems: List[CoreSystem] = Field(description="核心体系列表，可包含力量/科技/异能等多种体系，避免设定过于复杂，最多设置两种体系。若是现实/历史等写实题材，则可置为空",max_length=2)
-    # key_settings: Optional[List[SettingItem]] = Field(description="其他关键世界观设定（可选）")
+    world_name: str = Field(min_length=2, description="世界名稱")
+    core_conflict: str = Field(description="世界核心矛盾（如：資源爭奪/種族仇恨）")
+    social_system: SocialSystem = Field(description="社會體系")
+    power_systems: List[CoreSystem] = Field(description="核心體系列表，可包含力量/科技/異能等多種體系，避免設定過於複雜，最多設置兩種體系。若是現實/歷史等寫實題材，則可置爲空",max_length=2)
+    # key_settings: Optional[List[SettingItem]] = Field(description="其他關鍵世界觀設定（可選）")
 
 class WorldBuilding(BaseModel):
-    world_view_thinking: str = Field(description="世界观设计的思考过程",examples=["示例输出，仅用于学习思考方式，不要被具体内容影响：在设计世界观时，我希望构建一个既贴近现实又充满科幻想象力的框架。首先，为了让读者有代入感，我选择将故事背景设定在现代都市，这样主角的特殊能力与日常生活的冲突会更具张力。但仅仅是现代都市显然不够支撑“时空穿越”的主题，因此，我引入了“梦境”作为连接现实与未来的桥梁。这个梦境世界，最初是现实的映射，但随着主角的干预，它会发生剧烈变化，甚至出现“旧海”和“新海市”这种未来世界的差异，这为世界观增添了层次感和探索空间。为了解释这种变化，我需要一套严谨的时空法则，比如“时空蝴蝶效应”、“历史线修正”等，这些法则不仅解释了梦境与现实的互动，也为剧情的推进和冲突的产生提供了逻辑基础。同时，为了承载“文明推演”和“异界科学流”的标签，我构思了一个隐藏在幕后的组织，他们掌握着超越时代的科技和对时空法则的深刻理解，他们的存在是世界核心矛盾的体现——即关于历史走向的掌控权。社会体系上，现实世界是现代社会，而未来梦境则可能呈现出科技高度发达但社会畸形（如积分至上）或末日废土（如辐射灾害）的多种面貌，这种对比能增强故事的深度和警示意义。核心驱动体系上，除了主角的梦境能力，还需要有“超时空粒子”等科学概念作为力量来源和理论支撑，使得整个世界观在科幻的框架下显得自洽且充满探索潜力。"])
+    world_view_thinking: str = Field(description="世界觀設計的思考過程",examples=["示例輸出，僅用於學習思考方式，不要被具體內容影響：在設計世界觀時，我希望構建一個既貼近現實又充滿科幻想象力的框架。首先，爲了讓讀者有代入感，我選擇將故事背景設定在現代都市，這樣主角的特殊能力與日常生活的衝突會更具張力。但僅僅是現代都市顯然不夠支撐“時空穿越”的主題，因此，我引入了“夢境”作爲連接現實與未來的橋樑。這個夢境世界，最初是現實的映射，但隨着主角的幹預，它會發生劇烈變化，甚至出現“舊海”和“新海市”這種未來世界的差異，這爲世界觀增添了層次感和探索空間。爲了解釋這種變化，我需要一套嚴謹的時空法則，比如“時空蝴蝶效應”、“歷史線修正”等，這些法則不僅解釋了夢境與現實的互動，也爲劇情的推進和衝突的產生提供了邏輯基礎。同時，爲了承載“文明推演”和“異界科學流”的標籤，我構思了一個隱藏在幕後的組織，他們掌握着超越時代的科技和對時空法則的深刻理解，他們的存在是世界核心矛盾的體現——即關於歷史走向的掌控權。社會體繫上，現實世界是現代社會，而未來夢境則可能呈現出科技高度發達但社會畸形（如積分至上）或末日廢土（如輻射災害）的多種面貌，這種對比能增強故事的深度和警示意義。核心驅動體繫上，除了主角的夢境能力，還需要有“超時空粒子”等科學概念作爲力量來源和理論支撐，使得整個世界觀在科幻的框架下顯得自洽且充滿探索潛力。"])
     world_view: WorldviewTemplate
 
 
@@ -85,94 +85,94 @@ class WorldBuilding(BaseModel):
 
 
 class Blueprint(BaseModel):
-    volume_count: int = Field(description="预期小说的分卷数,通常设置为3~6卷")
-    character_thinking: str = Field(description="角色设计思考过程",examples=["示例输出，仅供学习思考方式，不要被具体内容影响：在设计角色时，我秉持着“多样性与互补性”的原则，确保每个核心角色都能在故事中发挥独特的作用，并与主角团形成紧密的联系。\n\n首先是主角王小明。他作为“穿越者”，必须具备现代人的思维和适应能力。我设定他是一名剑道高手，这既能让他快速融入异世界，又能与异世界的“剑术”体系相呼应。他的核心驱动力是“高额酬金”和“守护海雯”，这让他从一个旁观者逐渐转变为异世界的参与者和守护者。他的成长弧光将是“从现实世界的普通人到异世界的救世主”，这与“进化流”的标签紧密相连。\n\n女主角海雯是故事的引路人。她必须是异世界的核心人物，拥有强大的魔法天赋和独特的背景。我设定她是“天才魔法师”和“王族联姻的逃犯”，这为她提供了最初的困境和行动动机。她与主角的“闪婚”设定，迅速确立了他们的CP关系，也为后续的情感发展奠定了基础。她的核心驱动力是“逃避联姻”和“拯救世界”，这让她在个人命运与世界命运之间找到了平衡点。她的角色弧光是“从逃亡者到拯救世界的王宫魔法师”，展现了她的成长与担当。\n\n希斯作为主要反派，必须强大且神秘。我设定她是“海雯的姑姑”和“邪恶魔法师”，这种亲缘关系增加了故事的复杂性和情感张力。她的核心动机是“毁灭世界”，这与失落文明的诅咒紧密相关。她的角色弧光是“从天才魔法师到毁灭者，最终选择离开”，为故事的结局增添了悲剧色彩。\n\n林晓雪则作为连接现实世界的桥梁，她的“学霸”设定让她能够为异世界提供现代知识，体现“异界科学流”和“文明碰撞”的标签。\n\n通过这些角色的设计，我希望构建一个充满张力、情感丰富、并能共同推动宏大叙事的角色群像。"])
-    character_cards: List[CharacterCard] = Field(description="核心角色卡片列表，仅在此生成跨卷长期影响的核心角色")
+    volume_count: int = Field(description="預期小說的分卷數,通常設置爲3~6卷")
+    character_thinking: str = Field(description="角色設計思考過程",examples=["示例輸出，僅供學習思考方式，不要被具體內容影響：在設計角色時，我秉持着“多樣性與互補性”的原則，確保每個核心角色都能在故事中發揮獨特的作用，並與主角團形成緊密的聯繫。\n\n首先是主角王小明。他作爲“穿越者”，必須具備現代人的思維和適應能力。我設定他是一名劍道高手，這既能讓他快速融入異世界，又能與異世界的“劍術”體系相呼應。他的核心驅動力是“高額酬金”和“守護海雯”，這讓他從一個旁觀者逐漸轉變爲異世界的參與者和守護者。他的成長弧光將是“從現實世界的普通人到異世界的救世主”，這與“進化流”的標籤緊密相連。\n\n女主角海雯是故事的引路人。她必須是異世界的核心人物，擁有強大的魔法天賦和獨特的背景。我設定她是“天才魔法師”和“王族聯姻的逃犯”，這爲她提供了最初的困境和行動動機。她與主角的“閃婚”設定，迅速確立了他們的CP關係，也爲後續的情感發展奠定了基礎。她的核心驅動力是“逃避聯姻”和“拯救世界”，這讓她在個人命運與世界命運之間找到了平衡點。她的角色弧光是“從逃亡者到拯救世界的王宮魔法師”，展現了她的成長與擔當。\n\n希斯作爲主要反派，必須強大且神祕。我設定她是“海雯的姑姑”和“邪惡魔法師”，這種親緣關係增加了故事的複雜性和情感張力。她的核心動機是“毀滅世界”，這與失落文明的詛咒緊密相關。她的角色弧光是“從天才魔法師到毀滅者，最終選擇離開”，爲故事的結局增添了悲劇色彩。\n\n林曉雪則作爲連接現實世界的橋樑，她的“學霸”設定讓她能夠爲異世界提供現代知識，體現“異界科學流”和“文明碰撞”的標籤。\n\n通過這些角色的設計，我希望構建一個充滿張力、情感豐富、並能共同推動宏大敘事的角色羣像。"])
+    character_cards: List[CharacterCard] = Field(description="核心角色卡片列表，僅在此生成跨卷長期影響的核心角色")
     
-    # organization_thinking:str=Field(description="组织/势力/阵营设计思考过程，注意与scene区分")
-    # organization_cards: List[OrganizationCard] = Field(description="核心组织/势力/阵营卡片列表，仅在此生成跨卷长期影响的核心组织。注意与scene_cards区分")
+    # organization_thinking:str=Field(description="組織/勢力/陣營設計思考過程，注意與scene區分")
+    # organization_cards: List[OrganizationCard] = Field(description="核心組織/勢力/陣營卡片列表，僅在此生成跨卷長期影響的核心組織。注意與scene_cards區分")
     
-    scene_thinking: str = Field(description="场景设计思考过程",examples=["示例输出，仅供学习思考方式，不要被具体内容影响：在设计地图和场景时，我遵循了从局部到全局、从已知到未知、层层递进的原则，以确保故事的节奏感和世界观的逐步展开。我的核心思路是：每个场景不仅是故事发生的地点，更是推动剧情、展现角色成长、揭示世界观秘密的关键。\n\n**第一卷：初入异世与初步探索**\n我首先设置了蓝星（现实世界）作为故事的起点和主角的“已知世界”，这让读者有代入感。然后通过“墨兰塔”和“兰特王国(明月城)”引入异世界的核心地域，这里是魔法与剑并存的典型场景，也是初期冲突的爆发点。墨兰塔作为魔法师的圣地，既是海雯的背景，也为主角学习魔法提供了场所。明月城则代表了异世界的政治中心和战争前线。这些场景的作用是让主角初步适应异世界，展现其适应能力和初步实力提升，并引出主要势力。\n\n**第二卷：势力发展与联盟建立**\n随着剧情发展，我需要更广阔的舞台来展现主角团的势力扩张和宏大计划。因此，引入“兰特王国（惊鸿之城）”作为新的盟友基地，这里将成为公主复国和建立同盟的战略中心。同时，为了展现战争的全面性，我设计了“高栏联邦（临崖城/中部哨塔/日出山）”作为重要的战场和政治博弈地，通过这里的冲突来推动联盟的形成。解放“明月城”则是这一卷的高潮，标志着复国计划的关键一步。这些场景的作用是让主角团从被动应战转变为主动出击，展现其战略眼光和领导力，并促成同盟的建立。\n\n**第三卷：统一战争与古老秘密的揭示**\n进入第三卷，故事重心转向统一异世界大陆和揭示更深层次的秘密。因此，我将场景扩展到“日月国”和“圣瓦伦帝国（特西斯丁堡）”。日月国是联军推进的必经之地，通过这里的战役展现主角团的强大力量。圣瓦伦帝国首都“特西斯丁堡”是最终决战的地点，它的陷落标志着旧秩序的终结。这些场景的作用是完成统一大业，同时揭示世界观的深层秘密，为最终的危机埋下伏笔。\n\n**第四卷：末日危机与最终抉择**\n最后一卷，世界面临毁灭，场景设计围绕“拯救”和“终结”展开。“临崖城”和“惊鸿之城”再次出现，但这次它们承载的是收集王族之血和科技求生的希望。最终的“起源之地/燃烧的山巅”是决战的舞台，这里是诅咒的源头，也是解咒的关键。这些场景的作用是集中所有线索，完成最终的救赎，并让主角团做出关于归属的最终选择，为整个故事画上句号。"])
-    scene_cards: List[SceneCard] = Field(description="主要地图/场景/副本卡片列表，仅在此生成跨卷长期影响的核心地图/场景。注意与organization_cards联系，例如某个地图是某个组织/势力的活动范围则需要标明。")
+    scene_thinking: str = Field(description="場景設計思考過程",examples=["示例輸出，僅供學習思考方式，不要被具體內容影響：在設計地圖和場景時，我遵循了從局部到全局、從已知到未知、層層遞進的原則，以確保故事的節奏感和世界觀的逐步展開。我的核心思路是：每個場景不僅是故事發生的地點，更是推動劇情、展現角色成長、揭示世界觀祕密的關鍵。\n\n**第一卷：初入異世與初步探索**\n我首先設置了藍星（現實世界）作爲故事的起點和主角的“已知世界”，這讓讀者有代入感。然後通過“墨蘭塔”和“蘭特王國(明月城)”引入異世界的核心地域，這裏是魔法與劍並存的典型場景，也是初期衝突的爆發點。墨蘭塔作爲魔法師的聖地，既是海雯的背景，也爲主角學習魔法提供了場所。明月城則代表了異世界的政治中心和戰爭前線。這些場景的作用是讓主角初步適應異世界，展現其適應能力和初步實力提升，並引出主要勢力。\n\n**第二卷：勢力發展與聯盟建立**\n隨着劇情發展，我需要更廣闊的舞臺來展現主角團的勢力擴張和宏大計劃。因此，引入“蘭特王國（驚鴻之城）”作爲新的盟友基地，這裏將成爲公主復國和建立同盟的戰略中心。同時，爲了展現戰爭的全面性，我設計了“高欄聯邦（臨崖城/中部哨塔/日出山）”作爲重要的戰場和政治博弈地，通過這裏的衝突來推動聯盟的形成。解放“明月城”則是這一卷的高潮，標誌着復國計劃的關鍵一步。這些場景的作用是讓主角團從被動應戰轉變爲主動出擊，展現其戰略眼光和領導力，並促成同盟的建立。\n\n**第三卷：統一戰爭與古老祕密的揭示**\n進入第三卷，故事重心轉向統一異世界大陸和揭示更深層次的祕密。因此，我將場景擴展到“日月國”和“聖瓦倫帝國（特西斯丁堡）”。日月國是聯軍推進的必經之地，通過這裏的戰役展現主角團的強大力量。聖瓦倫帝國首都“特西斯丁堡”是最終決戰的地點，它的陷落標誌着舊秩序的終結。這些場景的作用是完成統一大業，同時揭示世界觀的深層祕密，爲最終的危機埋下伏筆。\n\n**第四卷：末日危機與最終抉擇**\n最後一卷，世界面臨毀滅，場景設計圍繞“拯救”和“終結”展開。“臨崖城”和“驚鴻之城”再次出現，但這次它們承載的是收集王族之血和科技求生的希望。最終的“起源之地/燃燒的山巔”是決戰的舞臺，這裏是詛咒的源頭，也是解咒的關鍵。這些場景的作用是集中所有線索，完成最終的救贖，並讓主角團做出關於歸屬的最終選擇，爲整個故事畫上句號。"])
+    scene_cards: List[SceneCard] = Field(description="主要地圖/場景/副本卡片列表，僅在此生成跨卷長期影響的核心地圖/場景。注意與organization_cards聯繫，例如某個地圖是某個組織/勢力的活動範圍則需要標明。")
 
 
 # === Step 4: Volume Outline Schemas===
 
 class CharacterAction(BaseModel):
-    """角色卡，涵盖了各种信息"""
-    name: str = Field(description="角色名称")
-    description: str = Field(description="以第一视角讲述该角色在这卷内的主要事迹")
+    """角色卡，涵蓋了各種信息"""
+    name: str = Field(description="角色名稱")
+    description: str = Field(description="以第一視角講述該角色在這卷內的主要事蹟")
 
 class StoryLine(BaseModel):
-    """故事线信息"""
-    story_type: Literal['主线', '辅线'] = Field(description="故事线类型")
-    name: str = Field(description="用一个简单的名称表示该线")
-    overview: str = Field(description="故事线内容概述，需要详略得当，涉及到的所有场景、角色等元素都应在这个概述中体现到。")
+    """故事線信息"""
+    story_type: Literal['主線', '輔線'] = Field(description="故事線類型")
+    name: str = Field(description="用一個簡單的名稱表示該線")
+    overview: str = Field(description="故事線內容概述，需要詳略得當，涉及到的所有場景、角色等元素都應在這個概述中體現到。")
 
 
 class VolumeOutline(BaseModel):
     """
-    分卷大纲的核心数据模型
+    分卷大綱的核心數據模型
     """
-    volume_number: Optional[int] = Field(description="第几卷")
-    thinking: Optional[str] = Field(description="根据提供的世界观、人物、地图/副本,思考本卷要如何展开,需要设计什么主线/辅线?如何推动剧情发展?",examples=["示例输出，仅供学习思考方式，不要被具体内容影响：本卷作为开篇，我的核心思考是如何迅速确立主角“无限复活”的金手指特性，并将其与残酷的异世大陆背景相结合，制造强烈的生存压迫感，从而驱动主角从绝境中崛起。我需要设计一个循序渐进的成长路径，让主角从一个濒死之人，通过每次复活积累经验和知识，逐步适应环境，并最终在A市站稳脚跟，积累原始资本，建立初步势力。同时，为了后续的宏大叙事，我必须在这一卷中埋下世界观的伏笔，例如社会阶层的固化、更高文明的操控等，通过主角的视角逐步揭示。在人物塑造上，我将引入一群性格各异的伙伴，他们既是主角的助力，也能通过他们的视角反衬主角的强大和特殊。爽点方面，主角利用金手指的“先知”优势，在股市和冒险中实现降维打击，以及最终对早期反派的复仇，都将是重要的爽点设计。"])
-    main_target: StoryLine = Field(description="根据thinking设计主线目标,要让主角发展到什么地步?需描述准确数据")
-    branch_line: Optional[List[StoryLine]] = Field(description="该卷的辅线或支线,包含1~3条核心辅线")
-    character_thinking: Optional[str] = Field(description="结合overview、提供的角色信息,如性格、核心驱动力、角色弧光等,思考在该卷要驱动角色实体们做什么事?要让哪些角色出场?是否要引入辅助角色?",examples=["示例输出，仅学习思考方式，不要被具体内容影响：在本卷中，我将重点驱动主角，让他充分利用“无限复活”的能力，从一个绝境中的幸存者，逐步成长为A市的领袖。他将通过反复试错来学习战斗技巧、社会规则，并利用信息差在股市中快速积累财富。我还需要引入孙清雨、王火、韩天等核心配角，让他们在主角的成长过程中扮演重要的辅助角色：孙清雨作为主角的第一个伙伴和忠实追随者，将见证并参与主角的早期崛起；王火则提供技术支持，并成为主角“复活”秘密的知情人；韩天则在装备改造和技术研发上提供关键帮助。这些角色的出场和互动，不仅能推动剧情发展，也能丰富主角的人设，展现他智谋超群、善于利用资源的特点。同时，林森作为本卷的主要反派，将是主角初期反抗旧秩序的具象化目标，他的存在将不断刺激主角变强和复仇。"])
-    new_character_cards: Optional[List[CharacterCard]] = Field(default=None, description="如有新增关键角色，在此补充其信息，life_span为短期。非必要尽量不引入新角色")
-    new_scene_cards: Optional[List[SceneCard]]= Field(default=None, description="如有新增关键场景/地图/副本，在此补充其信息，life_span为短期，非必要尽量不引入新场景")
-    # stage_lines: Optional[List[StageLine]] = Field(default=[], description="设计该卷的详细故事脉络，按阶段来划分，注意切分故事阶段时详略得当，每个阶段章节跨度不要太大,最好不超过30章")
-    stage_count:int=Field(description="预期该卷的阶段剧情，将该卷的剧情分为n个阶段来叙述，通常为4~6个")
-    character_action_list: Optional[List[CharacterAction]] = Field( description="根据卷内设计，概述关键角色实体的行动与变化")
-    entity_snapshot: Optional[List[str]] = Field(description="卷末时，关键实体（角色为主）快照状态信息，，包括等级/修为境界、财富、功法等准确信息，以便收束剧情")
+    volume_number: Optional[int] = Field(description="第幾卷")
+    thinking: Optional[str] = Field(description="根據提供的世界觀、人物、地圖/副本,思考本卷要如何展開,需要設計什麼主線/輔線?如何推動劇情發展?",examples=["示例輸出，僅供學習思考方式，不要被具體內容影響：本卷作爲開篇，我的核心思考是如何迅速確立主角“無限復活”的金手指特性，並將其與殘酷的異世大陸背景相結合，製造強烈的生存壓迫感，從而驅動主角從絕境中崛起。我需要設計一個循序漸進的成長路徑，讓主角從一個瀕死之人，通過每次復活積累經驗和知識，逐步適應環境，並最終在A市站穩腳跟，積累原始資本，建立初步勢力。同時，爲了後續的宏大敘事，我必須在這一卷中埋下世界觀的伏筆，例如社會階層的固化、更高文明的操控等，通過主角的視角逐步揭示。在人物塑造上，我將引入一羣性格各異的夥伴，他們既是主角的助力，也能通過他們的視角反襯主角的強大和特殊。爽點方面，主角利用金手指的“先知”優勢，在股市和冒險中實現降維打擊，以及最終對早期反派的復仇，都將是重要的爽點設計。"])
+    main_target: StoryLine = Field(description="根據thinking設計主線目標,要讓主角發展到什麼地步?需描述準確數據")
+    branch_line: Optional[List[StoryLine]] = Field(description="該卷的輔線或支線,包含1~3條核心輔線")
+    character_thinking: Optional[str] = Field(description="結合overview、提供的角色信息,如性格、核心驅動力、角色弧光等,思考在該卷要驅動角色實體們做什麼事?要讓哪些角色出場?是否要引入輔助角色?",examples=["示例輸出，僅學習思考方式，不要被具體內容影響：在本卷中，我將重點驅動主角，讓他充分利用“無限復活”的能力，從一個絕境中的倖存者，逐步成長爲A市的領袖。他將通過反覆試錯來學習戰鬥技巧、社會規則，並利用信息差在股市中快速積累財富。我還需要引入孫清雨、王火、韓天等核心配角，讓他們在主角的成長過程中扮演重要的輔助角色：孫清雨作爲主角的第一個夥伴和忠實追隨者，將見證並參與主角的早期崛起；王火則提供技術支持，併成爲主角“復活”祕密的知情人；韓天則在裝備改造和技術研發上提供關鍵幫助。這些角色的出場和互動，不僅能推動劇情發展，也能豐富主角的人設，展現他智謀超羣、善於利用資源的特點。同時，林森作爲本卷的主要反派，將是主角初期反抗舊秩序的具象化目標，他的存在將不斷刺激主角變強和復仇。"])
+    new_character_cards: Optional[List[CharacterCard]] = Field(default=None, description="如有新增關鍵角色，在此補充其信息，life_span爲短期。非必要儘量不引入新角色")
+    new_scene_cards: Optional[List[SceneCard]]= Field(default=None, description="如有新增關鍵場景/地圖/副本，在此補充其信息，life_span爲短期，非必要儘量不引入新場景")
+    # stage_lines: Optional[List[StageLine]] = Field(default=[], description="設計該卷的詳細故事脈絡，按階段來劃分，注意切分故事階段時詳略得當，每個階段章節跨度不要太大,最好不超過30章")
+    stage_count:int=Field(description="預期該卷的階段劇情，將該卷的劇情分爲n個階段來敘述，通常爲4~6個")
+    character_action_list: Optional[List[CharacterAction]] = Field( description="根據卷內設計，概述關鍵角色實體的行動與變化")
+    entity_snapshot: Optional[List[str]] = Field(description="卷末時，關鍵實體（角色爲主）快照狀態信息，，包括等級/修爲境界、財富、功法等準確信息，以便收束劇情")
 
 class WritingGuide(BaseModel):
     """
-    写作指南，用于指导AI在特定卷中创作时需要注意的细节。
+    寫作指南，用於指導AI在特定卷中創作時需要注意的細節。
     """
-    volume_number: int = Field(description="该写作指南对应的卷号")
-    content: str = Field(description="AI根据方法论生成的、用于指导本卷写作的具体内容。字数控制在1000字以内。",min_length=100)
+    volume_number: int = Field(description="該寫作指南對應的卷號")
+    content: str = Field(description="AI根據方法論生成的、用於指導本卷寫作的具體內容。字數控制在1000字以內。",min_length=100)
 
 
 class ReviewResultCardContent(BaseModel):
-    review_target_card_id: int = Field(description="被审核卡片 ID")
-    review_target_title: str = Field(description="被审核卡片标题")
-    review_target_type: Literal['card'] = Field(default='card', description="被审核目标类型")
-    review_type: Literal['chapter', 'stage', 'card', 'custom'] = Field(description="审核类型")
-    review_profile: str = Field(description="审核 profile code")
-    review_target_field: Optional[str] = Field(default=None, description="被审核字段路径")
-    quality_gate: Literal['pass', 'revise', 'block'] = Field(description="审核结论")
-    review_markdown: str = Field(description="审核结果正文，使用 markdown 格式")
-    prompt_name: str = Field(description="审核所使用的提示词名称")
-    llm_config_id: Optional[int] = Field(default=None, description="审核使用的模型配置")
-    reviewed_at: str = Field(description="审核时间（ISO 字符串）")
-    target_snapshot: Optional[str] = Field(default=None, description="被审核内容快照")
-    meta: Optional[dict[str, Any]] = Field(default_factory=dict, description="扩展元数据")
+    review_target_card_id: int = Field(description="被審核卡片 ID")
+    review_target_title: str = Field(description="被審核卡片標題")
+    review_target_type: Literal['card'] = Field(default='card', description="被審核目標類型")
+    review_type: Literal['chapter', 'stage', 'card', 'custom'] = Field(description="審核類型")
+    review_profile: str = Field(description="審核 profile code")
+    review_target_field: Optional[str] = Field(default=None, description="被審核字段路徑")
+    quality_gate: Literal['pass', 'revise', 'block'] = Field(description="審核結論")
+    review_markdown: str = Field(description="審核結果正文，使用 markdown 格式")
+    prompt_name: str = Field(description="審核所使用的提示詞名稱")
+    llm_config_id: Optional[int] = Field(default=None, description="審核使用的模型配置")
+    reviewed_at: str = Field(description="審核時間（ISO 字符串）")
+    target_snapshot: Optional[str] = Field(default=None, description="被審核內容快照")
+    meta: Optional[dict[str, Any]] = Field(default_factory=dict, description="擴展元數據")
 
 class ChapterOutline(BaseModel):
-    """章节大纲"""
-    volume_number: int = Field(description="卷号，如果没有找到，则设置为0")
-    stage_number:int=Field(description="该章节属于第几个阶段，从1开始")
-    title: str= Field(description="章节标题")
-    chapter_number: int = Field(description="章节序号")
+    """章節大綱"""
+    volume_number: int = Field(description="卷號，如果沒有找到，則設置爲0")
+    stage_number:int=Field(description="該章節屬於第幾個階段，從1開始")
+    title: str= Field(description="章節標題")
+    chapter_number: int = Field(description="章節序號")
     
-    overview: str = Field(description="章节细纲,详略得当，避免过于单薄。如果主角有了显著的提升，则相关信息不能省略，需要准确数据描述出来(如实力大幅提升、经济或资源大幅增长了多少)。",min_length=100)
+    overview: str = Field(description="章節細綱,詳略得當，避免過於單薄。如果主角有了顯著的提升，則相關信息不能省略，需要準確數據描述出來(如實力大幅提升、經濟或資源大幅增長了多少)。",min_length=100)
     entity_list: List[str] = Field(
-        description="章节中出场的重要实体列表，只能从上下文提供的组织/角色/场景卡实体中选择，不得新增、自创；实体名称必须是纯名称（不得包含括号/备注）。注意,为了精简上下文，避免实体列表中出现该章节未出场的冗余实体",
+        description="章節中出場的重要實體列表，只能從上下文提供的組織/角色/場景卡實體中選擇，不得新增、自創；實體名稱必須是純名稱（不得包含括號/備註）。注意,爲了精簡上下文，避免實體列表中出現該章節未出場的冗餘實體",
     )
 
     
 
 class StageLine(BaseModel):
-    """故事按阶段划分的信息"""
-    volume_number:int=Field(description="该故事阶段属于第几卷")
-    stage_number:int=Field(description="该故事阶段是第几个阶段，从1开始")
-    stage_name: str = Field(description="用一个名称或一句话简单概述这个阶段")
-    reference_chapter: Tuple[int, int] = Field(description="该部分剧情的起始和结束章节号,跨度通常为10~20章左右")
-    analysis: Optional[str] = Field(description="以一个经验丰富的网文写手代入作者第一人称视角,'我'是如何思考设置这部分的剧情的,该部分剧情对于分卷的主线/辅线起到什么作用?该阶段剧情的爽点是什么？末尾是否设置钩子/悬念？")
-    overview: Optional[str] = Field(description="这个阶段剧情内容具体概述，需要详略得当，涉及到的主要实体，如角色、场景/地图、组织等元素都应在这个概述中体现到。另外，若主角有了显著提升（如提升了主角多少实力或地位、增长了主角多少财富或资源之类的），则相关信息需要准确数据描述，不能省略")
-    chapter_outline_list:Optional[List[ChapterOutline]]=Field(description="根据reference_chapter、overview生成所需的章节大纲。注意章节大纲的标题不要包含”第x章这种前缀")
-    entity_snapshot: Optional[List[str]] = Field(description="阶段末时，关键实体（角色为主）快照状态信息，包括等级/修为境界、财富、功法等准确信息，以便收束剧情，确保最后一个阶段时，剧情发展能够使得实体状态收束到该卷末的实体状态。")
+    """故事按階段劃分的信息"""
+    volume_number:int=Field(description="該故事階段屬於第幾卷")
+    stage_number:int=Field(description="該故事階段是第幾個階段，從1開始")
+    stage_name: str = Field(description="用一個名稱或一句話簡單概述這個階段")
+    reference_chapter: Tuple[int, int] = Field(description="該部分劇情的起始和結束章節號,跨度通常爲10~20章左右")
+    analysis: Optional[str] = Field(description="以一個經驗豐富的網文寫手代入作者第一人稱視角,'我'是如何思考設置這部分的劇情的,該部分劇情對於分卷的主線/輔線起到什麼作用?該階段劇情的爽點是什麼？末尾是否設置鉤子/懸念？")
+    overview: Optional[str] = Field(description="這個階段劇情內容具體概述，需要詳略得當，涉及到的主要實體，如角色、場景/地圖、組織等元素都應在這個概述中體現到。另外，若主角有了顯著提升（如提升了主角多少實力或地位、增長了主角多少財富或資源之類的），則相關信息需要準確數據描述，不能省略")
+    chapter_outline_list:Optional[List[ChapterOutline]]=Field(description="根據reference_chapter、overview生成所需的章節大綱。注意章節大綱的標題不要包含”第x章這種前綴")
+    entity_snapshot: Optional[List[str]] = Field(description="階段末時，關鍵實體（角色爲主）快照狀態信息，包括等級/修爲境界、財富、功法等準確信息，以便收束劇情，確保最後一個階段時，劇情發展能夠使得實體狀態收束到該卷末的實體狀態。")
     @model_validator(mode="after")
     def validate_chapter_outline_coverage(self):
         # Allow empty list for workflow post-processing cleanup.
@@ -195,14 +195,14 @@ class StageLine(BaseModel):
 # === Step 6: Batch Chapter Outline Schemas===
 
 class Chapter(BaseModel):
-    volume_number: int = Field( description="卷号，如果没有找到，则设置为0")
-    stage_number: int=Field(description="该章节属于第几个阶段，从1开始")
-    title: str = Field(description="章节标题")
-    chapter_number: int = Field(description="章节序号")
+    volume_number: int = Field( description="卷號，如果沒有找到，則設置爲0")
+    stage_number: int=Field(description="該章節屬於第幾個階段，從1開始")
+    title: str = Field(description="章節標題")
+    chapter_number: int = Field(description="章節序號")
 
     entity_list: List[str] = Field(
-        description="章节中参与的重要实体列表，只能从提供的实体中选择；name 必须是纯名称（不得包含括号/备注）",
+        description="章節中參與的重要實體列表，只能從提供的實體中選擇；name 必須是純名稱（不得包含括號/備註）",
     )
-    content:Optional[str]=Field(default="",description="章节正文内容")
+    content:Optional[str]=Field(default="",description="章節正文內容")
     
 

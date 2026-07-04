@@ -1,4 +1,4 @@
-import { ref, watch, type Ref } from 'vue'
+﻿import { ref, watch, type Ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 import type { AssistantChatSession, AssistantPanelMessage } from '@renderer/types/assistantPanel'
@@ -16,7 +16,7 @@ function createEmptySession(projectId: number): AssistantChatSession {
   return {
     id: `session_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`,
     projectId,
-    title: '新对话',
+    title: '新對話',
     createdAt: Date.now(),
     updatedAt: Date.now(),
     messages: [],
@@ -98,7 +98,7 @@ export function useAssistantSessionHistory(options: UseAssistantSessionHistoryOp
         projectId,
       }
 
-      if (sessionToSave.title === '新对话') {
+      if (sessionToSave.title === '新對話') {
         const firstUserMessage = options.messages.value.find(item => item.role === 'user')
         if (firstUserMessage) {
           sessionToSave.title =
@@ -186,15 +186,15 @@ export function useAssistantSessionHistory(options: UseAssistantSessionHistoryOp
         writeActiveSessionId(projectId, currentSession.value.id)
       }
 
-      ElMessage.success('已删除会话')
+      ElMessage.success('已刪除會話')
     } catch {
-      ElMessage.error('删除会话失败')
+      ElMessage.error('刪除會話失敗')
     }
   }
 
   function handleDeleteSession(sessionId: string): void {
-    ElMessageBox.confirm('确定要删除这个对话吗？', '确认删除', {
-      confirmButtonText: '删除',
+    ElMessageBox.confirm('確定要刪除這個對話嗎？', '確認刪除', {
+      confirmButtonText: '刪除',
       cancelButtonText: '取消',
       type: 'warning',
     })
@@ -213,9 +213,9 @@ export function useAssistantSessionHistory(options: UseAssistantSessionHistoryOp
     const hour = 60 * minute
     const day = 24 * hour
 
-    if (diff < minute) return '刚刚'
-    if (diff < hour) return `${Math.floor(diff / minute)}分钟前`
-    if (diff < day) return `${Math.floor(diff / hour)}小时前`
+    if (diff < minute) return '剛剛'
+    if (diff < hour) return `${Math.floor(diff / minute)}分鐘前`
+    if (diff < day) return `${Math.floor(diff / hour)}小時前`
     if (diff < 7 * day) return `${Math.floor(diff / day)}天前`
 
     const date = new Date(timestamp)

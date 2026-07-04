@@ -1,4 +1,4 @@
-<template>
+﻿<template>
 	<div class="chapter-tools-panel">
 		<div class="panel-toolbar">
 			<el-popover
@@ -13,7 +13,7 @@
 						<template #icon>
 							<el-icon><Setting /></el-icon>
 						</template>
-						模型：{{ selectedModelName || '未设置' }}
+						模型：{{ selectedModelName || '未設置' }}
 					</el-button>
 				</template>
 
@@ -21,7 +21,7 @@
 					<el-form-item label="模型">
 						<el-select
 							v-model="editingConfig.llm_config_id"
-							placeholder="选择模型"
+							placeholder="選擇模型"
 							filterable
 							style="width: 100%;"
 							:teleported="false"
@@ -34,19 +34,19 @@
 							/>
 						</el-select>
 					</el-form-item>
-					<el-form-item label="温度">
+					<el-form-item label="溫度">
 						<el-input-number v-model="editingConfig.temperature" :min="0" :max="2" :step="0.1" />
 					</el-form-item>
 					<el-form-item label="最大tokens">
 						<el-input-number v-model="editingConfig.max_tokens" :min="256" :max="32768" :step="256" />
 					</el-form-item>
-					<el-form-item label="超时(秒)">
+					<el-form-item label="超時(秒)">
 						<el-input-number v-model="editingConfig.timeout" :min="10" :max="600" :step="10" />
 					</el-form-item>
 					<el-form-item>
 						<div class="config-actions">
 							<el-button type="primary" size="small" @click="saveConfig">保存</el-button>
-							<el-button size="small" @click="resetEditingConfigToPreset">重置为预设</el-button>
+							<el-button size="small" @click="resetEditingConfigToPreset">重置爲預設</el-button>
 						</div>
 					</el-form-item>
 				</el-form>
@@ -55,14 +55,14 @@
 
 		<div v-if="isBusy" class="busy-banner">
 			<el-icon class="busy-icon is-loading"><Loading /></el-icon>
-			<span>正在{{ runningActionLabel }}，完成后会自动打开预览。</span>
+			<span>正在{{ runningActionLabel }}，完成後會自動打開預覽。</span>
 		</div>
 
 		<el-card class="tool-card" shadow="never">
 			<template #header>
 				<div class="card-header">
 					<el-icon><User /></el-icon>
-					<span>角色动态信息</span>
+					<span>角色動態信息</span>
 				</div>
 			</template>
 			<div class="card-body">
@@ -73,7 +73,7 @@
 					:disabled="isBusy && runningAction !== 'dynamic'"
 					@click="handleExtractDynamicInfo"
 				>
-					提取角色动态
+					提取角色動態
 				</el-button>
 			</div>
 		</el-card>
@@ -82,7 +82,7 @@
 			<template #header>
 				<div class="card-header">
 					<el-icon><Connection /></el-icon>
-					<span>关系提取入图</span>
+					<span>關係提取入圖</span>
 				</div>
 			</template>
 			<div class="card-body">
@@ -93,7 +93,7 @@
 					:disabled="isBusy && runningAction !== 'relations'"
 					@click="handleExtractRelations"
 				>
-					提取关系入图
+					提取關係入圖
 				</el-button>
 			</div>
 		</el-card>
@@ -102,7 +102,7 @@
 			<template #header>
 				<div class="card-header">
 					<el-icon><Box /></el-icon>
-					<span>拓展记忆</span>
+					<span>拓展記憶</span>
 				</div>
 			</template>
 			<div class="card-body">
@@ -115,7 +115,7 @@
 						:disabled="isBusy && runningAction !== 'scene_state'"
 						@click="handleExtractSceneState"
 					>
-						提取场景状态
+						提取場景狀態
 					</el-button>
 					<el-button
 						type="primary"
@@ -125,7 +125,7 @@
 						:disabled="isBusy && runningAction !== 'organization_state'"
 						@click="handleExtractOrganizationState"
 					>
-						提取组织状态
+						提取組織狀態
 					</el-button>
 					<el-button
 						type="primary"
@@ -135,7 +135,7 @@
 						:disabled="isBusy && runningAction !== 'item_state'"
 						@click="handleExtractItemState"
 					>
-						提取物品状态
+						提取物品狀態
 					</el-button>
 					<el-button
 						type="primary"
@@ -202,15 +202,15 @@ const selectedModelName = computed(() => {
 const runningActionLabel = computed(() => {
 	switch (runningAction.value) {
 		case 'dynamic':
-			return '提取角色动态'
+			return '提取角色動態'
 		case 'relations':
-			return '提取关系入图'
+			return '提取關係入圖'
 		case 'scene_state':
-			return '提取场景状态'
+			return '提取場景狀態'
 		case 'organization_state':
-			return '提取组织状态'
+			return '提取組織狀態'
 		case 'item_state':
-			return '提取物品状态'
+			return '提取物品狀態'
 		case 'concept_state':
 			return '提取概念掌握'
 		default:
@@ -282,7 +282,7 @@ function resetEditingConfigToPreset() {
 function saveConfig() {
 	const nextConfig = sanitizeConfig(editingConfig)
 	if (!nextConfig.llm_config_id) {
-		ElMessage.warning('请先选择模型')
+		ElMessage.warning('請先選擇模型')
 		return
 	}
 	Object.assign(extractConfig, nextConfig)
@@ -293,7 +293,7 @@ function saveConfig() {
 
 function buildExtractOptions(): ChapterExtractRunOptions | null {
 	if (!extractConfig.llm_config_id) {
-		ElMessage.warning('请先选择模型')
+		ElMessage.warning('請先選擇模型')
 		return null
 	}
 	return {

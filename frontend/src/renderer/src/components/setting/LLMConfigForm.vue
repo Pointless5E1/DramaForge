@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <el-form :model="form" ref="formRef" :rules="rules" label-width="140px" autocomplete="off">
     <div style="height: 0; overflow: hidden; position: absolute; opacity: 0;">
       <input type="text" autocomplete="username" tabindex="-1">
@@ -6,7 +6,7 @@
     </div>
 
     <el-form-item label="提供商" prop="provider">
-      <el-select v-model="form.provider" placeholder="请选择提供商">
+      <el-select v-model="form.provider" placeholder="請選擇提供商">
         <el-option label="OpenAI兼容" value="openai_compatible" />
         <el-option label="OpenAI" value="openai" />
         <el-option label="Google" value="google" />
@@ -14,8 +14,8 @@
       </el-select>
     </el-form-item>
 
-    <el-form-item label="显示名称" prop="display_name">
-      <el-input v-model="form.display_name" placeholder="可选，留空时自动设置为模型名称" />
+    <el-form-item label="顯示名稱" prop="display_name">
+      <el-input v-model="form.display_name" placeholder="可選，留空時自動設置爲模型名稱" />
     </el-form-item>
 
     <el-form-item label="API Base" prop="api_base">
@@ -32,45 +32,45 @@
         v-model="form.api_key"
         type="password"
         :input-props="{ autocomplete: 'new-password', name: 'api_key_no_fill' }"
-        placeholder="API密钥将直接保存在后端"
+        placeholder="API密鑰將直接保存在後端"
         show-password
       />
     </el-form-item>
 
-    <el-form-item label="模型名称" prop="model_name">
+    <el-form-item label="模型名稱" prop="model_name">
       <div style="display: flex; width: 100%; gap: 10px; align-items: center;">
         <el-autocomplete
           v-model="form.model_name"
           :fetch-suggestions="querySearch"
-          placeholder="输入或选择模型名称"
+          placeholder="輸入或選擇模型名稱"
           style="flex: 1; width: 100%;"
           clearable
         />
         <el-button
           :loading="loadingModels"
           :icon="Refresh"
-          title="获取模型列表"
+          title="獲取模型列表"
           @click="handleFetchModels"
         >
-          获取
+          獲取
         </el-button>
       </div>
     </el-form-item>
 
-    <el-form-item v-if="isOpenAIProvider" label="协议与兼容">
+    <el-form-item v-if="isOpenAIProvider" label="協議與兼容">
       <div class="transport-settings">
         <div class="transport-summary">
           <div class="transport-copy">
-            <div class="transport-title">多数平台只需 API Base</div>
-            <div class="transport-desc">非标准网关再展开兼容设置。</div>
+            <div class="transport-title">多數平臺只需 API Base</div>
+            <div class="transport-desc">非標準網關再展開兼容設置。</div>
           </div>
           <el-button text type="primary" @click="showAdvancedTransport = !showAdvancedTransport">
-            {{ showAdvancedTransport ? '收起设置' : '兼容设置' }}
+            {{ showAdvancedTransport ? '收起設置' : '兼容設置' }}
           </el-button>
         </div>
 
         <div v-if="showAdvancedTransport" class="transport-panel">
-          <el-form-item label="协议模式" label-width="96px" class="inline-item">
+          <el-form-item label="協議模式" label-width="96px" class="inline-item">
             <el-select v-model="form.api_protocol">
               <el-option label="Chat 模式" value="chat_completions" />
               <el-option label="Responses 模式" value="responses" />
@@ -78,25 +78,25 @@
           </el-form-item>
 
           <div class="transport-rare-toggle">
-            <span class="rare-toggle-text">以下字段仅少数兼容网关需要。</span>
+            <span class="rare-toggle-text">以下字段僅少數兼容網關需要。</span>
             <el-button text @click="showRareTransportFields = !showRareTransportFields">
-              {{ showRareTransportFields ? '隐藏字段' : '更多字段' }}
+              {{ showRareTransportFields ? '隱藏字段' : '更多字段' }}
             </el-button>
           </div>
 
           <div v-if="showRareTransportFields" class="rare-transport-grid">
-            <el-form-item label="自定义请求路径" label-width="96px" class="inline-item">
+            <el-form-item label="自定義請求路徑" label-width="96px" class="inline-item">
               <el-input
                 v-model="form.custom_request_path"
-                placeholder="可选，如 /v1/gateway"
+                placeholder="可選，如 /v1/gateway"
                 :disabled="!isOpenAIProvider"
               />
             </el-form-item>
 
-            <el-form-item label="模型列表路径" label-width="96px" class="inline-item">
+            <el-form-item label="模型列表路徑" label-width="96px" class="inline-item">
               <el-input
                 v-model="form.models_path"
-                placeholder="可选，默认 /models"
+                placeholder="可選，默認 /models"
                 :disabled="!isOpenAIProvider"
               />
             </el-form-item>
@@ -104,7 +104,7 @@
             <el-form-item label="User-Agent" label-width="96px" class="inline-item">
               <el-input
                 v-model="form.user_agent"
-                placeholder="可选，自定义请求头 User-Agent"
+                placeholder="可選，自定義請求頭 User-Agent"
                 :disabled="!isOpenAIProvider"
               />
             </el-form-item>
@@ -118,7 +118,7 @@
       <span style="margin-left: 8px; color: #888">-1 表示不限</span>
     </el-form-item>
 
-    <el-form-item label="调用次数上限" prop="call_limit">
+    <el-form-item label="調用次數上限" prop="call_limit">
       <el-input-number v-model="form.call_limit" :min="-1" />
       <span style="margin-left: 8px; color: #888">-1 表示不限</span>
     </el-form-item>
@@ -126,8 +126,8 @@
     <el-form-item label="模型能力">
       <div class="capability-panel">
         <div class="capability-actions">
-          <el-button :loading="capabilityLoading" @click="handleCapabilityTest(false)">完整能力检测</el-button>
-          <el-button :loading="capabilityLoading" type="warning" plain @click="handleCapabilityTest(true)">尝试兼容修复</el-button>
+          <el-button :loading="capabilityLoading" @click="handleCapabilityTest(false)">完整能力檢測</el-button>
+          <el-button :loading="capabilityLoading" type="warning" plain @click="handleCapabilityTest(true)">嘗試兼容修復</el-button>
           <el-button
             v-if="capabilityResult"
             type="primary"
@@ -135,7 +135,7 @@
             :disabled="!canApplyCapabilityRecommendation"
             @click="applyCapabilityRecommendation"
           >
-            应用推荐配置
+            應用推薦配置
           </el-button>
         </div>
 
@@ -164,8 +164,8 @@
         </div>
 
         <div v-if="capabilityResult" class="recommendation">
-          <div>推荐用途：{{ overallText(capabilityResult.overall) }}</div>
-          <div>推荐修复：{{ recommendationText }}</div>
+          <div>推薦用途：{{ overallText(capabilityResult.overall) }}</div>
+          <div>推薦修復：{{ recommendationText }}</div>
         </div>
       </div>
     </el-form-item>
@@ -173,7 +173,7 @@
     <el-form-item>
       <el-button @click="handleCancel">取消</el-button>
       <el-button type="primary" @click="handleSubmit">保存</el-button>
-      <el-button @click="handleTest">测试连接</el-button>
+      <el-button @click="handleTest">測試連接</el-button>
     </el-form-item>
   </el-form>
 </template>
@@ -241,26 +241,26 @@ const capabilityTestItems = computed(() => {
   if (!tests) return []
   return [
     { key: 'models_list', label: '模型列表', result: tests.models_list },
-    { key: 'basic_chat', label: '基础连接', result: tests.basic_chat },
-    { key: 'review', label: '普通审核', result: tests.review },
-    { key: 'stream', label: '流式输出', result: tests.stream },
-    { key: 'structured', label: '结构化输出', result: tests.structured },
-    { key: 'native_tools', label: '原生工具调用', result: tests.native_tools },
+    { key: 'basic_chat', label: '基礎連接', result: tests.basic_chat },
+    { key: 'review', label: '普通審核', result: tests.review },
+    { key: 'stream', label: '流式輸出', result: tests.stream },
+    { key: 'structured', label: '結構化輸出', result: tests.structured },
+    { key: 'native_tools', label: '原生工具調用', result: tests.native_tools },
     { key: 'react_tools', label: 'ReAct 工具模式', result: tests.react_tools },
   ]
 })
 
 const recommendationText = computed(() => {
   const mode = capabilityResult.value?.recommended_mode
-  if (!mode) return '暂无'
-  if (!basicChatPassed.value) return '需先修复基础连接'
+  if (!mode) return '暫無'
+  if (!basicChatPassed.value) return '需先修復基礎連接'
   const parts: string[] = []
-  if (mode.disable_stream) parts.push('关闭流式')
-  if (mode.assistant_mode === 'react') parts.push('灵感助手使用 ReAct')
-  if (mode.assistant_mode === 'plain') parts.push('仅普通对话/审核')
-  if (mode.api_protocol !== form.api_protocol) parts.push(`切换协议为 ${mode.api_protocol}`)
-  if (mode.use_default_user_agent && mode.recommended_user_agent) parts.push(`补 User-Agent: ${mode.recommended_user_agent}`)
-  return parts.length ? parts.join('；') : '无需兼容修复'
+  if (mode.disable_stream) parts.push('關閉流式')
+  if (mode.assistant_mode === 'react') parts.push('靈感助手使用 ReAct')
+  if (mode.assistant_mode === 'plain') parts.push('僅普通對話/審核')
+  if (mode.api_protocol !== form.api_protocol) parts.push(`切換協議爲 ${mode.api_protocol}`)
+  if (mode.use_default_user_agent && mode.recommended_user_agent) parts.push(`補 User-Agent: ${mode.recommended_user_agent}`)
+  return parts.length ? parts.join('；') : '無需兼容修復'
 })
 
 const querySearch = (queryString: string, cb: any) => {
@@ -271,11 +271,11 @@ const querySearch = (queryString: string, cb: any) => {
 }
 
 const rules = reactive<FormRules>({
-  provider: [{ required: true, message: '请选择提供商', trigger: 'change' }],
-  model_name: [{ required: true, message: '请输入模型名称', trigger: 'blur' }],
-  api_key: [{ required: true, message: '请输入API Key', trigger: 'blur' }],
-  token_limit: [{ required: true, message: '请输入Token上限', trigger: 'blur' }],
-  call_limit: [{ required: true, message: '请输入调用次数上限', trigger: 'blur' }],
+  provider: [{ required: true, message: '請選擇提供商', trigger: 'change' }],
+  model_name: [{ required: true, message: '請輸入模型名稱', trigger: 'blur' }],
+  api_key: [{ required: true, message: '請輸入API Key', trigger: 'blur' }],
+  token_limit: [{ required: true, message: '請輸入Token上限', trigger: 'blur' }],
+  call_limit: [{ required: true, message: '請輸入調用次數上限', trigger: 'blur' }],
 })
 
 watch(
@@ -353,7 +353,7 @@ function buildTransportPayload() {
 async function handleSubmit() {
   const valid = await formRef.value?.validate().catch(() => false)
   if (!valid) {
-    ElMessage.warning('请检查输入项是否填写正确')
+    ElMessage.warning('請檢查輸入項是否填寫正確')
     return
   }
 
@@ -370,7 +370,7 @@ async function handleSubmit() {
 
 async function handleFetchModels() {
   if (!form.api_key) {
-    ElMessage.warning('请先输入API Key')
+    ElMessage.warning('請先輸入API Key')
     return
   }
 
@@ -385,12 +385,12 @@ async function handleFetchModels() {
     } as any)
     fetchedModels.value = models
     if (models.length > 0) {
-      ElMessage.success(`成功获取 ${models.length} 个模型`)
+      ElMessage.success(`成功獲取 ${models.length} 個模型`)
     } else {
-      ElMessage.info('未获取到模型列表')
+      ElMessage.info('未獲取到模型列表')
     }
   } catch (e: any) {
-    ElMessage.error(`获取模型列表失败: ${e?.message || e}`)
+    ElMessage.error(`獲取模型列表失敗: ${e?.message || e}`)
   } finally {
     loadingModels.value = false
   }
@@ -409,16 +409,16 @@ async function handleTest() {
       api_key: form.api_key,
       ...buildTransportPayload(),
     } as any)
-    ElMessage.success('连接成功')
+    ElMessage.success('連接成功')
   } catch (e: any) {
-    ElMessage.error(`连接失败：${e?.message || e}`)
+    ElMessage.error(`連接失敗：${e?.message || e}`)
   }
 }
 
 async function handleCapabilityTest(tryRepair: boolean) {
   const valid = await formRef.value?.validate().catch(() => false)
   if (!valid) {
-    ElMessage.warning('请先填写必要的模型配置')
+    ElMessage.warning('請先填寫必要的模型配置')
     return
   }
 
@@ -443,13 +443,13 @@ async function handleCapabilityTest(tryRepair: boolean) {
         emit('refresh')
         ElMessage.success('兼容配置已保存')
       } else {
-        ElMessage.success('已应用兼容配置，请点击保存')
+        ElMessage.success('已應用兼容配置，請點擊保存')
       }
     } else {
-      ElMessage.success(tryRepair ? '兼容修复检测完成' : '能力检测完成')
+      ElMessage.success(tryRepair ? '兼容修復檢測完成' : '能力檢測完成')
     }
   } catch (e: any) {
-    ElMessage.error(`能力检测失败：${e?.message || e}`)
+    ElMessage.error(`能力檢測失敗：${e?.message || e}`)
   } finally {
     capabilityLoading.value = false
   }
@@ -458,11 +458,11 @@ async function handleCapabilityTest(tryRepair: boolean) {
 function applyCapabilityRecommendation() {
   if (!capabilityResult.value) return
   if (!canApplyCapabilityRecommendation.value) {
-    ElMessage.warning('基础连接未通过，不能应用为普通写作/审核配置')
+    ElMessage.warning('基礎連接未通過，不能應用爲普通寫作/審核配置')
     return
   }
   applyCapabilityRecommendationToForm()
-  ElMessage.success('已应用到当前表单，请保存后生效')
+  ElMessage.success('已應用到當前表單，請保存後生效')
 }
 
 function applyCapabilityRecommendationToForm() {
@@ -494,23 +494,23 @@ function statusTagType(status: string) {
 }
 
 function statusText(status: string) {
-  if (status === 'pass') return '通过'
-  if (status === 'skip') return '跳过'
-  return '失败'
+  if (status === 'pass') return '通過'
+  if (status === 'skip') return '跳過'
+  return '失敗'
 }
 
 function tagType(tag: string) {
-  if (tag.includes('失败') || tag.includes('拦截') || tag.includes('不可用')) return 'danger'
-  if (tag.includes('建议') || tag.includes('修复') || tag.includes('仅普通')) return 'warning'
+  if (tag.includes('失敗') || tag.includes('攔截') || tag.includes('不可用')) return 'danger'
+  if (tag.includes('建議') || tag.includes('修復') || tag.includes('僅普通')) return 'warning'
   return 'success'
 }
 
 function overallText(overall: string) {
   const map: Record<string, string> = {
     full: '全功能',
-    writing_review_only: '写作审核可用',
+    writing_review_only: '寫作審核可用',
     react_assistant: 'ReAct助手可用',
-    plain_only: '仅普通聊天',
+    plain_only: '僅普通聊天',
     unusable: '不可用',
     unknown: '未知',
   }

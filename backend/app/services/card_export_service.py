@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 from dataclasses import dataclass
@@ -21,7 +21,7 @@ class CardExportPayload:
 
 
 class CardExportService:
-    """项目卡片导出服务（范围筛选 + 格式序列化）。"""
+    """項目卡片導出服務（範圍篩選 + 格式序列化）。"""
 
     _MEDIA_TYPES = {
         "txt": "text/plain; charset=utf-8",
@@ -39,7 +39,7 @@ class CardExportService:
 
         cards = self._load_cards(project_id=project_id, request=request)
         if not cards:
-            raise BusinessException("当前条件下没有可导出的卡片", status_code=404)
+            raise BusinessException("當前條件下沒有可導出的卡片", status_code=404)
 
         exported_at = datetime.now()
         if request.format == "json":
@@ -73,7 +73,7 @@ class CardExportService:
                 raise BusinessException("scope=single 缺少 card_id", status_code=400)
             card = next((item for item in ordered_cards if item.id == request.card_id), None)
             if not card:
-                raise BusinessException("目标卡片不存在或不属于当前项目", status_code=404)
+                raise BusinessException("目標卡片不存在或不屬於當前項目", status_code=404)
             return [card]
 
         if request.scope == "type":
@@ -81,7 +81,7 @@ class CardExportService:
                 raise BusinessException("scope=type 缺少 card_type_id", status_code=400)
             card_type = self.db.get(CardType, request.card_type_id)
             if not card_type:
-                raise BusinessException("卡片类型不存在", status_code=404)
+                raise BusinessException("卡片類型不存在", status_code=404)
             return [card for card in ordered_cards if card.card_type_id == request.card_type_id]
 
         return ordered_cards
@@ -168,11 +168,11 @@ class CardExportService:
     ) -> str:
         lines: List[str] = [
             "NovelForge Card Export",
-            f"项目: {project.name}",
-            f"导出范围: {self._scope_text(request, cards)}",
-            f"导出格式: {request.format}",
-            f"导出时间: {exported_at.isoformat()}",
-            f"卡片数量: {len(cards)}",
+            f"項目: {project.name}",
+            f"導出範圍: {self._scope_text(request, cards)}",
+            f"導出格式: {request.format}",
+            f"導出時間: {exported_at.isoformat()}",
+            f"卡片數量: {len(cards)}",
             "",
         ]
 
@@ -181,10 +181,10 @@ class CardExportService:
                 [
                     "=" * 72,
                     f"[{index}] {card.title}",
-                    f"类型: {self._card_type_name(card)}",
+                    f"類型: {self._card_type_name(card)}",
                     f"ID: {card.id}",
-                    f"父级ID: {card.parent_id}",
-                    f"创建时间: {card.created_at.isoformat() if card.created_at else ''}",
+                    f"父級ID: {card.parent_id}",
+                    f"創建時間: {card.created_at.isoformat() if card.created_at else ''}",
                     "-" * 72,
                     self._format_content(card.content),
                     "",
@@ -201,22 +201,22 @@ class CardExportService:
         exported_at: datetime,
     ) -> str:
         lines: List[str] = [
-            "# NovelForge 卡片导出",
+            "# NovelForge 卡片導出",
             "",
-            f"- 项目：{project.name}",
-            f"- 导出范围：{self._scope_text(request, cards)}",
-            f"- 导出格式：{request.format}",
-            f"- 导出时间：{exported_at.isoformat()}",
-            f"- 卡片数量：{len(cards)}",
+            f"- 項目：{project.name}",
+            f"- 導出範圍：{self._scope_text(request, cards)}",
+            f"- 導出格式：{request.format}",
+            f"- 導出時間：{exported_at.isoformat()}",
+            f"- 卡片數量：{len(cards)}",
             "",
         ]
 
         for index, card in enumerate(cards, start=1):
             lines.append(f"## {index}. {card.title}")
-            lines.append(f"- 类型：{self._card_type_name(card)}")
+            lines.append(f"- 類型：{self._card_type_name(card)}")
             lines.append(f"- ID：{card.id}")
-            lines.append(f"- 父级ID：{card.parent_id}")
-            lines.append(f"- 创建时间：{card.created_at.isoformat() if card.created_at else ''}")
+            lines.append(f"- 父級ID：{card.parent_id}")
+            lines.append(f"- 創建時間：{card.created_at.isoformat() if card.created_at else ''}")
             lines.append("")
             text_content = self._extract_text_content(card.content)
             if text_content is not None:
@@ -234,12 +234,12 @@ class CardExportService:
             return "全部卡片"
         if request.scope == "single":
             if cards:
-                return f"单个卡片（{cards[0].title}）"
-            return "单个卡片"
+                return f"單個卡片（{cards[0].title}）"
+            return "單個卡片"
         if request.scope == "type":
             if cards:
-                return f"类型卡片（{self._card_type_name(cards[0])}）"
-            return "类型卡片"
+                return f"類型卡片（{self._card_type_name(cards[0])}）"
+            return "類型卡片"
         return request.scope
 
     def _card_to_dict(self, card: Card) -> Dict[str, Any]:
@@ -262,7 +262,7 @@ class CardExportService:
 
     def _format_content(self, content: Any) -> str:
         if content is None:
-            return "(空内容)"
+            return "(空內容)"
         text_content = self._extract_text_content(content)
         if text_content is not None:
             return text_content

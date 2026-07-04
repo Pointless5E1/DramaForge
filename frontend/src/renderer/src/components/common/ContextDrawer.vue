@@ -1,9 +1,9 @@
-<template>
+﻿<template>
   <el-drawer v-model="visible" :with-header="false" size="36%" append-to-body>
     <div class="drawer-wrapper">
       <div class="drawer-header">
         <h3>上下文注入</h3>
-        <el-button text @click="visible=false">关闭</el-button>
+        <el-button text @click="visible=false">關閉</el-button>
       </div>
 
       <div class="section">
@@ -22,13 +22,13 @@
             </el-button>
           </div>
         </div>
-        <el-input v-model="aiContext" type="textarea" :rows="8" placeholder="在此编辑上下文模板，支持 @ 引用" class="context-area" :spellcheck="false" />
+        <el-input v-model="aiContext" type="textarea" :rows="8" placeholder="在此編輯上下文模板，支持 @ 引用" class="context-area" :spellcheck="false" />
         <div class="chips">
           <el-tag v-for="(t, i) in tokens" :key="i" closable @close="removeToken(t)">@{{ t }}</el-tag>
         </div>
         <div class="actions">
           <el-button size="small" @click="$emit('open-selector', { kind: activeContextTemplateKind, text: aiContext })">插入引用 @</el-button>
-          <el-button size="small" type="primary" @click="apply">应用到卡片</el-button>
+          <el-button size="small" type="primary" @click="apply">應用到卡片</el-button>
         </div>
       </div>
     </div>
@@ -92,7 +92,7 @@ function removeToken(token: string) {
 
 function apply() { emit('apply-context', { kind: activeContextTemplateKind.value, text: aiContext.value }) }
 
-// 在抽屉中输入 @ 时弹出选择器
+// 在抽屜中輸入 @ 時彈出選擇器
 let drawerTextarea: HTMLTextAreaElement | null = null
 watch(() => visible.value, (v) => {
   if (v) {

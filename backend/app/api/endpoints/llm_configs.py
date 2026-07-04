@@ -1,4 +1,4 @@
-from datetime import datetime
+﻿from datetime import datetime
 from typing import List
 
 import httpx
@@ -54,7 +54,7 @@ def delete_llm_config_endpoint(config_id: int, session: Session = Depends(get_se
     return ApiResponse(message="LLM Config deleted successfully")
 
 
-@router.post("/get-models", response_model=ApiResponse[List[str]], summary="获取模型列表")
+@router.post("/get-models", response_model=ApiResponse[List[str]], summary="獲取模型列表")
 async def get_models_endpoint(request: LLMGetModelsRequest):
     provider = (request.provider or "").lower()
     models: list[str] = []
@@ -69,7 +69,7 @@ async def get_models_endpoint(request: LLMGetModelsRequest):
                 user_agent=request.user_agent,
             )
             if not transport["models_url"]:
-                raise ValueError("缺少 api_base，无法获取模型列表")
+                raise ValueError("缺少 api_base，無法獲取模型列表")
 
             headers = {
                 "Authorization": f"Bearer {request.api_key}",
@@ -97,12 +97,12 @@ async def get_models_endpoint(request: LLMGetModelsRequest):
 
         return ApiResponse(data=models)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"获取模型列表失败: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"獲取模型列表失敗: {str(e)}")
 
 
-@router.post("/test", response_model=ApiResponse, summary="测试 LLM 连接")
+@router.post("/test", response_model=ApiResponse, summary="測試 LLM 連接")
 async def test_llm_connection_endpoint(connection_data: LLMConnectionTest):
-    """使用临时传输配置构建 ChatModel 并执行最小调用。"""
+    """使用臨時傳輸配置構建 ChatModel 並執行最小調用。"""
     try:
         model = build_chat_model_from_payload(
             provider=connection_data.provider,
@@ -116,7 +116,7 @@ async def test_llm_connection_endpoint(connection_data: LLMConnectionTest):
         await model.ainvoke("ping")
         return ApiResponse(message="Connection successful")
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"连接测试失败: {e}")
+        raise HTTPException(status_code=400, detail=f"連接測試失敗: {e}")
 
 
 @router.post("/capability-test", response_model=ApiResponse[LLMCapabilityTestResult], summary="LLM capability test")
@@ -124,7 +124,7 @@ async def capability_test_endpoint(request: LLMCapabilityTestRequest, session: S
     try:
         result = await run_capability_test(request)
     except Exception as exc:
-        raise HTTPException(status_code=400, detail=f"能力检测失败: {exc}")
+        raise HTTPException(status_code=400, detail=f"能力檢測失敗: {exc}")
 
     basic_chat = (result.get("tests") or {}).get("basic_chat") or {}
     recommended = result.get("recommended_mode") or {}
@@ -156,7 +156,7 @@ async def capability_test_endpoint(request: LLMCapabilityTestRequest, session: S
     return ApiResponse(data=result)
 
 
-@router.post("/{config_id}/reset-usage", response_model=ApiResponse, summary="重置统计（输入/输出 token 与调用次数）")
+@router.post("/{config_id}/reset-usage", response_model=ApiResponse, summary="重置統計（輸入/輸出 token 與調用次數）")
 def reset_llm_usage(config_id: int, session: Session = Depends(get_session)):
     ok = llm_config_service.reset_usage(session, config_id)
     if not ok:
@@ -164,7 +164,7 @@ def reset_llm_usage(config_id: int, session: Session = Depends(get_session)):
     return ApiResponse(message="Usage reset")
 
 
-@router.post("/{config_id}/copy", response_model=ApiResponse[LLMConfigRead], summary="复制 LLM 配置")
+@router.post("/{config_id}/copy", response_model=ApiResponse[LLMConfigRead], summary="複製 LLM 配置")
 def copy_llm_config_endpoint(config_id: int, session: Session = Depends(get_session)):
     config = llm_config_service.copy_llm_config(session=session, config_id=config_id)
     if not config:

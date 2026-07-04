@@ -1,15 +1,15 @@
-<template>
+﻿<template>
   <div class="editor-layout">
-    <!-- 左侧卡片导航树 -->
+    <!-- 左側卡片導航樹 -->
     <el-aside class="sidebar card-navigation-sidebar" :style="{ width: leftSidebarDisplayWidth + 'px' }" @contextmenu.prevent="onSidebarContextMenu">
       <div class="sidebar-header">
-        <h3 class="sidebar-title">创作卡片</h3>
+        <h3 class="sidebar-title">創作卡片</h3>
         
       </div>
 
-      <!-- 上半区（类型列表 + 自由卡片库） -->
+      <!-- 上半區（類型列表 + 自由卡片庫） -->
       <div class="types-pane" :style="{ height: typesPaneHeight + 'px' }" @dragover.prevent @drop="onTypesPaneDrop">
-        <div class="pane-title">已有卡片类型</div>
+        <div class="pane-title">已有卡片類型</div>
         <el-scrollbar class="types-scroll">
           <ul class="types-list">
             <li v-for="t in cardStore.cardTypes" :key="t.id" class="type-item" draggable="true"
@@ -19,15 +19,15 @@
           </ul>
         </el-scrollbar>
       </div>
-      <!-- 内部分割条（垂直） -->
+      <!-- 內部分割條（垂直） -->
       <div class="inner-resizer" @mousedown="startResizingInner"></div>
 
-      <!-- 下半区：项目卡片树 -->
+      <!-- 下半區：項目卡片樹 -->
       <div class="cards-pane" :style="{ height: `calc(100% - ${typesPaneHeight + innerResizerThickness}px)` }" @dragover.prevent @drop="onCardsPaneDrop">
         <div class="cards-title">
           <div class="cards-title-head">
-            <div class="cards-title-text">当前项目：{{ projectStore.currentProject?.name }}</div>
-            <div v-if="selectedCardIds.length > 0" class="cards-selection-chip">已选 {{ selectedCardIds.length }}</div>
+            <div class="cards-title-text">當前項目：{{ projectStore.currentProject?.name }}</div>
+            <div v-if="selectedCardIds.length > 0" class="cards-selection-chip">已選 {{ selectedCardIds.length }}</div>
           </div>
           <div class="cards-title-actions">
             <el-button
@@ -48,10 +48,10 @@
               :icon="Delete"
               @click="batchDeleteCards"
             >
-              删除选中 ({{ selectedCardIds.length }})
+              刪除選中 ({{ selectedCardIds.length }})
             </el-button>
-            <el-button v-if="!isFreeProject" class="toolbar-action toolbar-action-secondary" size="small" :icon="Upload" @click="openImportFreeCards">导入卡片</el-button>
-            <el-button class="toolbar-action toolbar-action-secondary" :class="{ 'toolbar-action-secondary--solo': isFreeProject }" size="small" :icon="Download" @click="openExportDialog">导出卡片</el-button>
+            <el-button v-if="!isFreeProject" class="toolbar-action toolbar-action-secondary" size="small" :icon="Upload" @click="openImportFreeCards">導入卡片</el-button>
+            <el-button class="toolbar-action toolbar-action-secondary" :class="{ 'toolbar-action-secondary--solo': isFreeProject }" size="small" :icon="Download" @click="openExportDialog">導出卡片</el-button>
           </div>
         </div>
         
@@ -66,7 +66,7 @@
            />
         </div>
 
-        <!-- 搜索结果 -->
+        <!-- 搜索結果 -->
         <div v-if="isSearching" class="search-results-list" v-loading="searchLoading">
            <div 
              v-for="card in searchResults" 
@@ -77,7 +77,7 @@
               <el-icon class="card-icon"><component :is="getIconByCardType(card.card_type?.name)" /></el-icon>
               <span class="search-item-title">{{ card.title }}</span>
            </div>
-           <el-empty v-if="!searchLoading && searchResults.length === 0" description="无搜索结果" :image-size="60" />
+           <el-empty v-if="!searchLoading && searchResults.length === 0" description="無搜索結果" :image-size="60" />
         </div>
 
         <template v-else>
@@ -118,25 +118,25 @@
                     <template v-if="!data.__isGroup">
                       <el-dropdown-item command="create-child" :disabled="selectedCardIds.length > 1">新建子卡片</el-dropdown-item>
                       <el-dropdown-item command="rename" :disabled="selectedCardIds.length > 1">重命名</el-dropdown-item>
-                      <el-dropdown-item command="edit-structure" :disabled="selectedCardIds.length > 1">结构编辑</el-dropdown-item>
-                      <el-dropdown-item command="add-as-reference" :disabled="selectedCardIds.length > 1">添加为引用</el-dropdown-item>
-                      <el-dropdown-item v-if="selectedCardIds.length > 1" command="batch-delete" divided>删除选中的卡片 ({{ selectedCardIds.length }})</el-dropdown-item>
-                      <el-dropdown-item v-else command="delete" divided>删除卡片</el-dropdown-item>
+                      <el-dropdown-item command="edit-structure" :disabled="selectedCardIds.length > 1">結構編輯</el-dropdown-item>
+                      <el-dropdown-item command="add-as-reference" :disabled="selectedCardIds.length > 1">添加爲引用</el-dropdown-item>
+                      <el-dropdown-item v-if="selectedCardIds.length > 1" command="batch-delete" divided>刪除選中的卡片 ({{ selectedCardIds.length }})</el-dropdown-item>
+                      <el-dropdown-item v-else command="delete" divided>刪除卡片</el-dropdown-item>
                     </template>
                     <template v-else>
                       <el-dropdown-item command="create-child-in-group">新建子卡片</el-dropdown-item>
-                      <el-dropdown-item command="delete-group" divided>删除该分组下所有卡片</el-dropdown-item>
+                      <el-dropdown-item command="delete-group" divided>刪除該分組下所有卡片</el-dropdown-item>
                     </template>
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>
             </template>
           </el-tree>
-          <el-empty v-else description="暂无卡片" :image-size="80"></el-empty>
+          <el-empty v-else description="暫無卡片" :image-size="80"></el-empty>
         </template>
       </div>
 
-      <!-- 空白区域右键菜单（手动触发） -->
+      <!-- 空白區域右鍵菜單（手動觸發） -->
       <span ref="blankMenuRef" class="blank-menu-ref" :style="{ position: 'fixed', left: blankMenuX + 'px', top: blankMenuY + 'px', width: '1px', height: '1px' }"></span>
       <el-dropdown v-model:visible="blankMenuVisible" trigger="manual">
         <span></span>
@@ -148,38 +148,38 @@
       </el-dropdown>
     </el-aside>
     
-    <!-- 拖拽条 -->
+    <!-- 拖拽條 -->
     <div v-if="isLeftSidebarVisible" class="resizer left-resizer" @mousedown="startResizing('left')"></div>
 
-    <!-- 中栏主内容区 -->
+    <!-- 中欄主內容區 -->
     <el-main class="main-content">
       <el-tabs v-model="activeTab" type="border-card" class="main-tabs">
-        <el-tab-pane label="卡片库" name="market">
+        <el-tab-pane label="卡片庫" name="market">
           <CardMarket @edit-card="handleEditCard" />
         </el-tab-pane>
-        <el-tab-pane label="编辑器" name="editor">
+        <el-tab-pane label="編輯器" name="editor">
           <template v-if="activeCard">
             <CardEditorHost :card="activeCard" :prefetched="prefetchedContext" />
           </template>
-          <el-empty v-else description="请从左侧选择一个卡片进行编辑" />
+          <el-empty v-else description="請從左側選擇一個卡片進行編輯" />
         </el-tab-pane>
-        <el-tab-pane label="关系图管理" name="relation-graph">
+        <el-tab-pane label="關係圖管理" name="relation-graph">
           <RelationGraphPanel :refresh-seq="relationGraphRefreshSeq" />
         </el-tab-pane>
       </el-tabs>
     </el-main>
 
-    <!-- 右侧助手面板分隔条与面板 -->
+    <!-- 右側助手面板分隔條與面板 -->
     <div class="resizer right-resizer" @mousedown="startResizing('right')"></div>
     <el-aside class="sidebar assistant-sidebar" :style="{ width: rightSidebarWidth + 'px' }">
-      <!-- 章节正文卡片：显示4个Tab -->
+      <!-- 章節正文卡片：顯示4個Tab -->
       <template v-if="showRightSidebarTabs">
         <el-tabs v-model="activeRightTab" type="card" class="right-tabs">
           <el-tab-pane label="助手" name="assistant">
             <AssistantPanel
               :resolved-context="assistantResolvedContext"
               :llm-config-id="assistantParams.llm_config_id as any"
-              :prompt-name="'灵感对话'"
+              :prompt-name="'靈感對話'"
               :temperature="assistantParams.temperature as any"
               :max_tokens="assistantParams.max_tokens as any"
               :timeout="assistantParams.timeout as any"
@@ -195,7 +195,7 @@
           </el-tab-pane>
           
           <template v-if="isChapterContent">
-          <el-tab-pane label="参与实体" name="context">
+          <el-tab-pane label="參與實體" name="context">
             <ContextPanel 
               :project-id="projectStore.currentProject?.id"
               :prefetched="prefetchedContext"
@@ -211,7 +211,7 @@
             <ChapterToolsPanel />
           </el-tab-pane>
           
-          <el-tab-pane label="大纲" name="outline">
+          <el-tab-pane label="大綱" name="outline">
             <OutlinePanel 
               :active-card="activeCard"
               :volume-number="chapterVolumeNumber"
@@ -220,7 +220,7 @@
           </el-tab-pane>
           </template>
           
-          <el-tab-pane label="审核结果" name="review-history">
+          <el-tab-pane label="審核結果" name="review-history">
             <ReviewHistoryPanel
               :target-card-id="reviewTargetCardIdForSidebar"
             />
@@ -228,12 +228,12 @@
         </el-tabs>
       </template>
       
-      <!-- 其他卡片：仅显示助手 -->
+      <!-- 其他卡片：僅顯示助手 -->
       <AssistantPanel
         v-else
         :resolved-context="assistantResolvedContext"
         :llm-config-id="assistantParams.llm_config_id as any"
-        :prompt-name="'灵感对话'"
+        :prompt-name="'靈感對話'"
         :temperature="assistantParams.temperature as any"
         :max_tokens="assistantParams.max_tokens as any"
         :timeout="assistantParams.timeout as any"
@@ -247,13 +247,13 @@
         @jump-to-card="handleJumpToCard"
       />
     </el-aside>
-    <el-tooltip :content="isLeftSidebarVisible ? '收起左侧导航' : '展开左侧导航'" placement="right">
+    <el-tooltip :content="isLeftSidebarVisible ? '收起左側導航' : '展開左側導航'" placement="right">
       <button
         type="button"
         class="sidebar-edge-toggle"
         :class="{ 'is-collapsed': !isLeftSidebarVisible }"
         :style="{ left: `${leftSidebarToggleOffset}px` }"
-        :aria-label="isLeftSidebarVisible ? '收起左侧导航' : '展开左侧导航'"
+        :aria-label="isLeftSidebarVisible ? '收起左側導航' : '展開左側導航'"
         @click="toggleLeftSidebar"
       >
         <el-icon class="sidebar-edge-toggle__icon">
@@ -263,14 +263,14 @@
     </el-tooltip>
   </div>
 
-  <!-- 新建卡片对话框 -->
-  <el-dialog v-model="isCreateCardDialogVisible" title="新建创作卡片" width="500px">
+  <!-- 新建卡片對話框 -->
+  <el-dialog v-model="isCreateCardDialogVisible" title="新建創作卡片" width="500px">
     <el-form :model="newCardForm" label-position="top">
-      <el-form-item label="卡片标题">
-        <el-input v-model="newCardForm.title" placeholder="请输入卡片标题"></el-input>
+      <el-form-item label="卡片標題">
+        <el-input v-model="newCardForm.title" placeholder="請輸入卡片標題"></el-input>
       </el-form-item>
-      <el-form-item label="卡片类型">
-        <el-select v-model="newCardForm.card_type_id" placeholder="请选择卡片类型" style="width: 100%">
+      <el-form-item label="卡片類型">
+        <el-select v-model="newCardForm.card_type_id" placeholder="請選擇卡片類型" style="width: 100%">
           <el-option
             v-for="type in cardStore.cardTypes"
             :key="type.id"
@@ -279,14 +279,14 @@
           ></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="父级卡片 (可选)">
+      <el-form-item label="父級卡片 (可選)">
                 <el-tree-select
            v-model="newCardForm.parent_id"
            :data="cardTree"
            :props="treeSelectProps"
            check-strictly
            :render-after-expand="false"
-           placeholder="选择父级卡片"
+           placeholder="選擇父級卡片"
            clearable
            style="width: 100%"
          />
@@ -294,18 +294,18 @@
     </el-form>
     <template #footer>
       <el-button @click="isCreateCardDialogVisible = false">取消</el-button>
-      <el-button type="primary" @click="handleCreateCard">创建</el-button>
+      <el-button type="primary" @click="handleCreateCard">創建</el-button>
     </template>
   </el-dialog>
 
-  <!-- 导入卡片对话框 -->
-  <el-dialog v-model="importDialog.visible" title="导入卡片" width="900px" class="nf-import-dialog">
+  <!-- 導入卡片對話框 -->
+  <el-dialog v-model="importDialog.visible" title="導入卡片" width="900px" class="nf-import-dialog">
     <div style="display:flex; gap:12px; align-items:center; margin-bottom:8px; flex-wrap: wrap;">
-      <el-select v-model="importDialog.sourcePid" placeholder="来源项目" style="width:220px" @change="onImportSourceChange($event as any)">
+      <el-select v-model="importDialog.sourcePid" placeholder="來源項目" style="width:220px" @change="onImportSourceChange($event as any)">
         <el-option v-for="p in importDialog.projects" :key="p.id" :label="p.name" :value="p.id" />
       </el-select>
-      <el-input v-model="importDialog.search" placeholder="搜索来源卡片标题..." clearable style="flex:1; min-width: 200px" />
-      <el-select v-model="importFilter.types" multiple collapse-tags placeholder="类型筛选" style="min-width:220px;" :max-collapse-tags="2">
+      <el-input v-model="importDialog.search" placeholder="搜索來源卡片標題..." clearable style="flex:1; min-width: 200px" />
+      <el-select v-model="importFilter.types" multiple collapse-tags placeholder="類型篩選" style="min-width:220px;" :max-collapse-tags="2">
         <el-option v-for="t in cardStore.cardTypes" :key="t.id" :label="t.name" :value="t.id!" />
       </el-select>
       <el-tree-select
@@ -314,7 +314,7 @@
         :props="treeSelectProps"
         check-strictly
         :render-after-expand="false"
-        placeholder="目标父级 (可选)"
+        placeholder="目標父級 (可選)"
         clearable
         popper-class="nf-tree-select-popper"
         style="width: 300px"
@@ -322,17 +322,17 @@
     </div>
     <el-table :data="filteredImportCards" height="360px" border @selection-change="onImportSelectionChange">
       <el-table-column type="selection" width="48" />
-      <el-table-column label="标题" prop="title" min-width="220" />
-      <el-table-column label="类型" min-width="160">
+      <el-table-column label="標題" prop="title" min-width="220" />
+      <el-table-column label="類型" min-width="160">
         <template #default="{ row }">{{ row.card_type?.name }}</template>
       </el-table-column>
-      <el-table-column label="创建时间" min-width="160">
+      <el-table-column label="創建時間" min-width="160">
         <template #default="{ row }">{{ (row as any).created_at }}</template>
       </el-table-column>
     </el-table>
     <template #footer>
       <el-button @click="importDialog.visible = false">取消</el-button>
-      <el-button type="primary" :disabled="!selectedImportIds.length" @click="confirmImportCards">导入所选</el-button>
+      <el-button type="primary" :disabled="!selectedImportIds.length" @click="confirmImportCards">導入所選</el-button>
     </template>
   </el-dialog>
 
@@ -398,12 +398,12 @@ import type { AssistantRef, ChapterExcerptRef, ReviewResultRef } from '@renderer
  type CardRead = components['schemas']['CardRead']
  type CardCreate = components['schemas']['CardCreate']
 
- // 导入卡片对话框状态
+ // 導入卡片對話框狀態
  const importDialog = ref<{ visible: boolean; search: string; parentId: number | null; sourcePid: number | null; projects: Array<{id:number; name:string}> }>({ visible: false, search: '', parentId: null, sourcePid: null, projects: [] })
  const importSourceCards = ref<CardRead[]>([])
  const selectedImportIds = ref<number[]>([])
  
- // 过滤：类型 + 标题
+ // 過濾：類型 + 標題
  const importFilter = ref<{ types: number[] }>({ types: [] })
  
  const filteredImportCards = computed(() => {
@@ -428,16 +428,16 @@ async function openImportFreeCards() {
      selectedImportIds.value = []
      await onImportSourceChange(importDialog.value.sourcePid as any)
      importDialog.value.visible = true
-   } catch { ElMessage.error('加载来源项目失败') }
+   } catch { ElMessage.error('加載來源項目失敗') }
  }
 
 function openExportDialog() {
   if (!projectStore.currentProject?.id) {
-    ElMessage.warning('请先选择项目')
+    ElMessage.warning('請先選擇項目')
     return
   }
   if ((cards.value || []).length === 0) {
-    ElMessage.warning('当前项目暂无可导出的卡片')
+    ElMessage.warning('當前項目暫無可導出的卡片')
     return
   }
   exportDialogVisible.value = true
@@ -462,9 +462,9 @@ function openExportDialog() {
        await copyCard(id, { target_project_id: pid, parent_id: targetParent as any })
      }
      await cardStore.fetchCards(pid)
-     ElMessage.success('已导入所选卡片')
+     ElMessage.success('已導入所選卡片')
      importDialog.value.visible = false
-   } catch { ElMessage.error('导入失败') }
+   } catch { ElMessage.error('導入失敗') }
  }
 
  // Props
@@ -481,17 +481,17 @@ function openExportDialog() {
  const assistantStore = useAssistantStore()
  const isFreeProject = computed(() => (projectStore.currentProject?.name || '') === '__free__')
 
-  // --- 前端自动分组器 ---
- // 当某节点的直接子卡片中，任一“类型的数量 > 2”时，为该类型创建一个虚拟分组节点；
- // 其余数量 <= 2 的类型保持原样显示（即使整个父节点下只有一种类型，只要该类型数量>2也要分组）。
- // 该结构完全在前端进行，不影响后端数据
+  // --- 前端自動分組器 ---
+ // 當某節點的直接子卡片中，任一“類型的數量 > 2”時，爲該類型創建一個虛擬分組節點；
+ // 其餘數量 <= 2 的類型保持原樣顯示（即使整個父節點下只有一種類型，只要該類型數量>2也要分組）。
+ // 該結構完全在前端進行，不影響後端數據
  interface TreeNode { id: number | string; title: string; children?: TreeNode[]; card_type?: { name: string }; __isGroup?: boolean; __groupType?: string }
 
 
  function buildGroupedNodes(nodes: any[]): any[] {
   return nodes.map(n => {
     const node: TreeNode = { ...n }
-    // 分组节点自身不再参与分组逻辑，直接递归其子节点
+    // 分組節點自身不再參與分組邏輯，直接遞歸其子節點
     if ((n as any).__isGroup) {
       if (Array.isArray(n.children) && n.children.length > 0) {
         node.children = buildGroupedNodes(n.children as any)
@@ -499,10 +499,10 @@ function openExportDialog() {
       return node
     }
     if (Array.isArray(n.children) && n.children.length > 0) {
-      // 统计子节点类型数量
+      // 統計子節點類型數量
       const byType: Record<string, any[]> = {}
       n.children.forEach((c: any) => {
-        const typeName = c.card_type?.name || '未知类型'
+        const typeName = c.card_type?.name || '未知類型'
         if (!byType[typeName]) byType[typeName] = []
         byType[typeName].push(c)
       })
@@ -511,21 +511,21 @@ function openExportDialog() {
         types.forEach(t => {
           const list = byType[t]
         if (list.length > 2) {
-            // 创建虚拟分组节点（id 使用字符串避免冲突）
+            // 創建虛擬分組節點（id 使用字符串避免衝突）
             grouped.push({
               id: `group:${n.id}:${t}`,
               title: `${t}`,
               __isGroup: true,
               __groupType: t,
-              __parentCardId: n.id,  // 保存实际父卡片ID
+              __parentCardId: n.id,  // 保存實際父卡片ID
               children: list.map(x => ({ ...x }))
             })
           } else {
-          // 数量为 1 或 2，直接平铺
+          // 數量爲 1 或 2，直接平鋪
           grouped.push(...list)
           }
         })
-      // 递归对子树继续处理（分组节点与普通节点都递归其 children）
+      // 遞歸對子樹繼續處理（分組節點與普通節點都遞歸其 children）
       node.children = grouped.map((x: any) => {
         const copy = { ...x }
         if (Array.isArray(copy.children) && copy.children.length > 0) {
@@ -538,7 +538,7 @@ function openExportDialog() {
   })
 }
 
-// 基于原始 cardTree 计算带分组的树
+// 基於原始 cardTree 計算帶分組的樹
 const groupedTree = computed(() => buildGroupedNodes(cardTree.value as unknown as any[]))
 
 // Local State
@@ -554,11 +554,11 @@ const newCardForm = reactive<Partial<CardCreate>>({
   parent_id: '' as any
 })
 
-// 卡片多选状态
+// 卡片多選狀態
 const selectedCardIds = ref<number[]>([])
 const lastSelectedCardId = ref<number | null>(null)
 
-// 空白区域菜单状态
+// 空白區域菜單狀態
 const blankMenuVisible = ref(false)
 const blankMenuX = ref(0)
 const blankMenuY = ref(0)
@@ -598,17 +598,17 @@ function toggleLeftSidebar() {
   isLeftSidebarVisible.value = !isLeftSidebarVisible.value
 }
   
- // 统一 TreeSelect 样式/属性，确保选项可见
+ // 統一 TreeSelect 樣式/屬性，確保選項可見
  const treeSelectProps = {
    value: 'id',
    label: 'title',
    children: 'children'
  } as const
  
- // 内部垂直分割：类型/卡片高度
+ // 內部垂直分割：類型/卡片高度
  const typesPaneHeight = ref(180)
  const innerResizerThickness = 6
- // 左侧宽度拖拽沿用 useSidebarResizer.startResizing('left')
+ // 左側寬度拖拽沿用 useSidebarResizer.startResizing('left')
 
  function startResizingInner() {
    const startY = (event as MouseEvent).clientY
@@ -626,7 +626,7 @@ function toggleLeftSidebar() {
    window.addEventListener('mouseup', onUp)
  }
 
-// 拖拽：从类型到卡片区域创建新实例
+// 拖拽：從類型到卡片區域創建新實例
 function onTypeDragStart(t: any) {
   try { (event as DragEvent).dataTransfer?.setData('application/x-card-type-id', String(t.id)) } catch {}
 }
@@ -634,58 +634,58 @@ async function onCardsPaneDrop(e: DragEvent) {
  try {
    const typeId = e.dataTransfer?.getData('application/x-card-type-id')
    if (typeId) {
-     // 从类型列表拖拽到空白区域，在根创建新卡片
+     // 從類型列表拖拽到空白區域，在根創建新卡片
      newCardForm.title = (cardStore.cardTypes.find(ct => ct.id === Number(typeId))?.name || '新卡片')
      newCardForm.card_type_id = Number(typeId)
      newCardForm.parent_id = '' as any
      handleCreateCard()
      return
    }
-   // 从 __free__ 项目跨项目拖拽复制到空白区域
+   // 從 __free__ 項目跨項目拖拽複製到空白區域
    const freeCardId = e.dataTransfer?.getData('application/x-free-card-id')
    if (freeCardId) {
      await copyCard(Number(freeCardId), { target_project_id: projectStore.currentProject!.id, parent_id: null as any })
      await cardStore.fetchCards(projectStore.currentProject!.id)
-     ElMessage.success('已复制自由卡片到根目录')
+     ElMessage.success('已複製自由卡片到根目錄')
      return
    }
-   // 注意：同项目内的卡片拖拽现在由 el-tree 的原生拖拽处理（handleNodeDrop）
+   // 注意：同項目內的卡片拖拽現在由 el-tree 的原生拖拽處理（handleNodeDrop）
  } catch {}
 }
 
-// 从卡片实例提升为类型：在上半区松手
+// 從卡片實例提升爲類型：在上半區鬆手
 async function onTypesPaneDrop(e: DragEvent) {
  try {
    const cardIdStr = e.dataTransfer?.getData('application/x-card-id')
    const cardId = cardIdStr ? Number(cardIdStr) : NaN
    if (!cardId || Number.isNaN(cardId)) return
-   // 读取该卡片的有效 schema
+   // 讀取該卡片的有效 schema
    const resp = await getCardSchema(cardId)
    const effective = resp?.effective_schema || resp?.json_schema
-   if (!effective) { ElMessage.warning('该卡片暂无可用结构，无法生成类型'); return }
-   // 默认名称：卡片标题或“新类型”
+   if (!effective) { ElMessage.warning('該卡片暫無可用結構，無法生成類型'); return }
+   // 默認名稱：卡片標題或“新類型”
    const old = cards.value.find(c => (c as any).id === cardId)
-   const defaultName = (old?.title || '新类型') as string
-   const { value } = await ElMessageBox.prompt('从该实例创建卡片类型，请输入类型名称：', '创建卡片类型', {
+   const defaultName = (old?.title || '新類型') as string
+   const { value } = await ElMessageBox.prompt('從該實例創建卡片類型，請輸入類型名稱：', '創建卡片類型', {
      inputValue: defaultName,
-     confirmButtonText: '创建',
+     confirmButtonText: '創建',
      cancelButtonText: '取消',
-     inputValidator: (v:string) => v.trim().length > 0 || '名称不能为空'
+     inputValidator: (v:string) => v.trim().length > 0 || '名稱不能爲空'
    })
    const finalName = String(value).trim()
-   await createCardType({ name: finalName, description: `${finalName}的默认卡片类型`, json_schema: effective } as any)
-   ElMessage.success('已从实例创建卡片类型')
+   await createCardType({ name: finalName, description: `${finalName}的默認卡片類型`, json_schema: effective } as any)
+   ElMessage.success('已從實例創建卡片類型')
    await cardStore.fetchCardTypes()
  } catch (err) {
-   // 用户取消或错误忽略
+   // 用戶取消或錯誤忽略
  }
 }
 
 // ===== el-tree 原生拖拽功能 =====
 
-// 控制哪些节点可以被拖拽
+// 控制哪些節點可以被拖拽
 function handleAllowDrag(draggingNode: any): boolean {
-  // 分组节点不允许拖拽
+  // 分組節點不允許拖拽
   if (draggingNode.data.__isGroup) {
     return false
   }
@@ -693,18 +693,18 @@ function handleAllowDrag(draggingNode: any): boolean {
 }
 
 // 控制拖拽放置的位置
-// type: 'prev' | 'inner' | 'next' 表示放置在目标节点的前/内/后
+// type: 'prev' | 'inner' | 'next' 表示放置在目標節點的前/內/後
 function handleAllowDrop(draggingNode: any, dropNode: any, type: 'prev' | 'inner' | 'next'): boolean {
-  // 分组节点只允许作为"inner"目标（即将卡片放入分组内）
+  // 分組節點只允許作爲"inner"目標（即將卡片放入分組內）
   if (dropNode.data.__isGroup) {
     return type === 'inner'
   }
   
-  // 普通卡片节点允许所有放置方式
+  // 普通卡片節點允許所有放置方式
   return true
 }
 
-// 处理拖拽完成
+// 處理拖拽完成
 async function handleNodeDrop(
   draggingNode: any,
   dropNode: any,
@@ -715,9 +715,9 @@ async function handleNodeDrop(
     const draggedCard = draggingNode.data
     const targetCard = dropNode.data
     
-    // 如果是拖到分组内，设置 parent_id 为 null（根级）
+    // 如果是拖到分組內，設置 parent_id 爲 null（根級）
     if (targetCard.__isGroup && dropType === 'inner') {
-      // 计算根级的下一个 display_order
+      // 計算根級的下一個 display_order
       const rootCards = cards.value.filter(c => c.parent_id === null)
       const maxOrder = rootCards.length > 0 ? Math.max(...rootCards.map(c => c.display_order || 0)) : -1
       
@@ -725,26 +725,26 @@ async function handleNodeDrop(
         parent_id: null,
         display_order: maxOrder + 1
       }, { skipHooks: true })
-      ElMessage.success(`已将「${draggedCard.title}」移到根级`)
+      ElMessage.success(`已將「${draggedCard.title}」移到根級`)
       await cardStore.fetchCards(projectStore.currentProject!.id)
       
-      // 记录移动操作（包含层级变化信息）
+      // 記錄移動操作（包含層級變化信息）
       assistantStore.recordOperation(projectStore.currentProject!.id, {
         type: 'move',
         cardId: draggedCard.id,
         cardTitle: draggedCard.title,
         cardType: draggedCard.card_type?.name || 'Unknown',
-        detail: '从子卡片移到根级'
+        detail: '從子卡片移到根級'
       })
       
-      // 更新项目结构
+      // 更新項目結構
       updateProjectStructureContext(activeCard.value?.id)
       return
     }
     
-    // 如果是拖到卡片内部（成为子卡片）
+    // 如果是拖到卡片內部（成爲子卡片）
     if (dropType === 'inner') {
-      // 计算目标卡片的子卡片的下一个 display_order
+      // 計算目標卡片的子卡片的下一個 display_order
       const children = cards.value.filter(c => c.parent_id === targetCard.id)
       const maxOrder = children.length > 0 ? Math.max(...children.map(c => c.display_order || 0)) : -1
       
@@ -752,58 +752,58 @@ async function handleNodeDrop(
         parent_id: targetCard.id,
         display_order: maxOrder + 1
       }, { skipHooks: true })
-      ElMessage.success(`已将「${draggedCard.title}」设为「${targetCard.title}」的子卡片`)
+      ElMessage.success(`已將「${draggedCard.title}」設爲「${targetCard.title}」的子卡片`)
       await cardStore.fetchCards(projectStore.currentProject!.id)
       
-      // 记录移动操作（包含层级变化信息）
+      // 記錄移動操作（包含層級變化信息）
       assistantStore.recordOperation(projectStore.currentProject!.id, {
         type: 'move',
         cardId: draggedCard.id,
         cardTitle: draggedCard.title,
         cardType: draggedCard.card_type?.name || 'Unknown',
-        detail: `设为「${targetCard.title}」(${targetCard.card_type?.name || 'Unknown'} #${targetCard.id})的子卡片`
+        detail: `設爲「${targetCard.title}」(${targetCard.card_type?.name || 'Unknown'} #${targetCard.id})的子卡片`
       })
       
-      // 更新项目结构
+      // 更新項目結構
       updateProjectStructureContext(activeCard.value?.id)
       return
     }
     
-    // 如果是拖到卡片前/后（同级排序）
+    // 如果是拖到卡片前/後（同級排序）
     const newParentId = targetCard.parent_id || null
     
-    // 获取同级的所有卡片，按 display_order 排序（不包括拖拽的卡片）
+    // 獲取同級的所有卡片，按 display_order 排序（不包括拖拽的卡片）
     const siblings = cards.value
       .filter(c => (c.parent_id || null) === newParentId && c.id !== draggedCard.id)
       .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
     
-    // 找到目标卡片在同级中的位置
+    // 找到目標卡片在同級中的位置
     const targetIndex = siblings.findIndex(c => c.id === targetCard.id)
     
-    // 构建新的顺序数组（插入拖拽的卡片）
+    // 構建新的順序數組（插入拖拽的卡片）
     let newSiblings = [...siblings]
     if (dropType === 'before') {
-      // 插入到目标卡片之前
+      // 插入到目標卡片之前
       newSiblings.splice(targetIndex, 0, draggedCard)
     } else {
-      // 插入到目标卡片之后
+      // 插入到目標卡片之後
       newSiblings.splice(targetIndex + 1, 0, draggedCard)
     }
     
-    // 批量更新所有受影响卡片的 display_order（使用批量API）
+    // 批量更新所有受影響卡片的 display_order（使用批量API）
     const updates: Array<{ card_id: number; display_order: number; parent_id?: number | null }> = []
     
     newSiblings.forEach((card, index) => {
       if (card.id === draggedCard.id) {
-        // 拖拽的卡片需要同时更新 parent_id 和 display_order
+        // 拖拽的卡片需要同時更新 parent_id 和 display_order
         updates.push({
           card_id: card.id,
           display_order: index,
           parent_id: newParentId
         })
       } else if (card.display_order !== index) {
-        // 其他卡片只需要更新 display_order（如果有变化）
-        // ⚠️ 重要：必须传递 parent_id，否则后端会错误地将其设置为 null！
+        // 其他卡片只需要更新 display_order（如果有變化）
+        // ⚠️ 重要：必須傳遞 parent_id，否則後端會錯誤地將其設置爲 null！
         updates.push({
           card_id: card.id,
           display_order: index,
@@ -812,31 +812,31 @@ async function handleNodeDrop(
       }
     })
     
-    // 调用批量更新API
+    // 調用批量更新API
     if (updates.length > 0) {
       const { batchReorderCards } = await import('@renderer/api/cards')
       await batchReorderCards({ updates })
     }
     
-    ElMessage.success(`已调整「${draggedCard.title}」的位置`)
+    ElMessage.success(`已調整「${draggedCard.title}」的位置`)
     await cardStore.fetchCards(projectStore.currentProject!.id)
     
-    // 记录移动操作（包含位置和父级信息）
-    const targetCardTitle = targetCard?.title || '根目录'
-    const positionText = dropType === 'before' ? '之前' : '之后'
-    let moveDetail = `移动到「${targetCardTitle}」${positionText}`
+    // 記錄移動操作（包含位置和父級信息）
+    const targetCardTitle = targetCard?.title || '根目錄'
+    const positionText = dropType === 'before' ? '之前' : '之後'
+    let moveDetail = `移動到「${targetCardTitle}」${positionText}`
     
-    // 如果改变了父级，特别标注
+    // 如果改變了父級，特別標註
     if (draggedCard.parent_id !== newParentId) {
-      // 优化：创建 Map 避免多次 find（仅在父级变化时）
+      // 優化：創建 Map 避免多次 find（僅在父級變化時）
       const cardMap = new Map(cards.value.map(c => [(c as any).id, c.title]))
       const oldParentName = draggedCard.parent_id 
         ? cardMap.get(draggedCard.parent_id) || '未知' 
-        : '根目录'
+        : '根目錄'
       const newParentName = newParentId 
         ? cardMap.get(newParentId) || '未知' 
-        : '根目录'
-      moveDetail += ` (从「${oldParentName}」移到「${newParentName}」)`
+        : '根目錄'
+      moveDetail += ` (從「${oldParentName}」移到「${newParentName}」)`
     }
     
     assistantStore.recordOperation(projectStore.currentProject!.id, {
@@ -847,21 +847,21 @@ async function handleNodeDrop(
       detail: moveDetail
     })
     
-    // 立即更新项目结构，让灵感助手感知层级变化
+    // 立即更新項目結構，讓靈感助手感知層級變化
     updateProjectStructureContext(activeCard.value?.id)
     
   } catch (err: any) {
-    console.error('拖拽失败:', err)
-    ElMessage.error(err?.message || '拖拽失败')
-    // 刷新以恢复状态
+    console.error('拖拽失敗:', err)
+    ElMessage.error(err?.message || '拖拽失敗')
+    // 刷新以恢復狀態
     await cardStore.fetchCards(projectStore.currentProject!.id)
-    // 即使失败也更新结构
+    // 即使失敗也更新結構
     updateProjectStructureContext(activeCard.value?.id)
   }
 }
 
-// --- 拖拽：从外部（类型列表、自由卡片）到卡片树 ---
-// 注意：el-tree 内部的卡片拖拽由 handleNodeDrop 处理，这里只处理外部拖入
+// --- 拖拽：從外部（類型列表、自由卡片）到卡片樹 ---
+// 注意：el-tree 內部的卡片拖拽由 handleNodeDrop 處理，這裏只處理外部拖入
 
 function getDraggedTypeId(e: DragEvent): number | null {
  try {
@@ -872,14 +872,14 @@ function getDraggedTypeId(e: DragEvent): number | null {
 }
 
 async function onExternalDropToNode(e: DragEvent, nodeData: any) {
- // 只处理从类型列表或跨项目的拖拽，不处理树内部的卡片拖拽
+ // 只處理從類型列表或跨項目的拖拽，不處理樹內部的卡片拖拽
  const typeId = getDraggedTypeId(e)
  if (typeId) {
-   // 从类型列表拖拽创建新卡片
+   // 從類型列表拖拽創建新卡片
    if (nodeData?.__isGroup) return
    const newCard = await cardStore.addCard({ title: '新建卡片', card_type_id: typeId, parent_id: nodeData?.id } as any)
    
-   //  记录创建操作
+   //  記錄創建操作
    if (newCard && projectStore.currentProject?.id) {
      const cardType = cardStore.cardTypes.find(ct => ct.id === typeId)
      assistantStore.recordOperation(projectStore.currentProject.id, {
@@ -894,31 +894,31 @@ async function onExternalDropToNode(e: DragEvent, nodeData: any) {
  }
  
  try {
-   // 处理从 __free__ 跨项目拖拽复制
+   // 處理從 __free__ 跨項目拖拽複製
    const freeCardId = e.dataTransfer?.getData('application/x-free-card-id')
    if (freeCardId) {
      if (nodeData?.__isGroup) return
      await copyCard(Number(freeCardId), { target_project_id: projectStore.currentProject!.id, parent_id: Number(nodeData?.id) })
      await cardStore.fetchCards(projectStore.currentProject!.id)
-     ElMessage.success('已复制自由卡片到该节点下')
+     ElMessage.success('已複製自由卡片到該節點下')
      return
    }
  } catch (err) {
-   console.error('外部拖拽失败:', err)
+   console.error('外部拖拽失敗:', err)
  }
 }
 
  // --- Methods ---
 
-// 点击行为对"分组节点"不做打开编辑，仅用于展开/折叠。对实际卡片才触发编辑。
+// 點擊行爲對"分組節點"不做打開編輯，僅用於展開/摺疊。對實際卡片才觸發編輯。
 function handleNodeClick(data: any) {
   if (data.__isGroup) return
   
-  // 确保点击的卡片被选中（用于UI高亮），同时覆盖 handleCardClick 中的清空操作
+  // 確保點擊的卡片被選中（用於UI高亮），同時覆蓋 handleCardClick 中的清空操作
   selectedCardIds.value = [data.id]
   lastSelectedCardId.value = data.id
 
-  // 章节正文现在也在中栏编辑器中打开
+  // 章節正文現在也在中欄編輯器中打開
   cardStore.setActiveCard(data.id)
   assistantSelectionCleared.value = false
   activeTab.value = 'editor'
@@ -929,7 +929,7 @@ function handleNodeClick(data: any) {
     const title = (full?.title || data.title || '') as string
     const content = (full?.content || (data as any).content || {})
     if (pid && data?.id) {
-      // 仅追加 auto 引用：store 规则会保留已存在的 manual，不会被 auto 覆盖
+      // 僅追加 auto 引用：store 規則會保留已存在的 manual，不會被 auto 覆蓋
       assistantStore.addAutoRef({
         refType: 'card',
         projectId: pid,
@@ -942,9 +942,9 @@ function handleNodeClick(data: any) {
   } catch {}
 }
 
-// 卡片点击处理（支持多选）
+// 卡片點擊處理（支持多選）
 function handleCardClick(event: MouseEvent, data: any) {
-  // 分组节点不支持多选
+  // 分組節點不支持多選
   if (data.__isGroup) {
     handleNodeClick(data)
     return
@@ -952,14 +952,14 @@ function handleCardClick(event: MouseEvent, data: any) {
   
   const cardId = data.id
   
-  // Ctrl 键：跳跃式多选
+  // Ctrl 鍵：跳躍式多選
   if (event.ctrlKey || event.metaKey) {
     const index = selectedCardIds.value.indexOf(cardId)
     if (index > -1) {
-      // 取消选中
+      // 取消選中
       selectedCardIds.value.splice(index, 1)
     } else {
-      // 添加选中
+      // 添加選中
       selectedCardIds.value.push(cardId)
     }
     lastSelectedCardId.value = cardId
@@ -967,9 +967,9 @@ function handleCardClick(event: MouseEvent, data: any) {
     return
   }
   
-  // Shift 键：连续多选
+  // Shift 鍵：連續多選
   if (event.shiftKey && lastSelectedCardId.value !== null) {
-    // 获取所有可见的卡片ID（扁平化树结构）
+    // 獲取所有可見的卡片ID（扁平化樹結構）
     const flatCards: number[] = []
     function flattenTree(nodes: any[]) {
       for (const node of nodes) {
@@ -983,7 +983,7 @@ function handleCardClick(event: MouseEvent, data: any) {
     }
     flattenTree(groupedTree.value)
     
-    // 找到起始和结束位置
+    // 找到起始和結束位置
     const startIndex = flatCards.indexOf(lastSelectedCardId.value)
     const endIndex = flatCards.indexOf(cardId)
     
@@ -991,7 +991,7 @@ function handleCardClick(event: MouseEvent, data: any) {
       const minIndex = Math.min(startIndex, endIndex)
       const maxIndex = Math.max(startIndex, endIndex)
       
-      // 选中范围内的所有卡片
+      // 選中範圍內的所有卡片
       selectedCardIds.value = flatCards.slice(minIndex, maxIndex + 1)
     }
     
@@ -999,30 +999,30 @@ function handleCardClick(event: MouseEvent, data: any) {
     return
   }
   
-  // 普通点击：交由 handleNodeClick 处理选中和激活
+  // 普通點擊：交由 handleNodeClick 處理選中和激活
   handleNodeClick(data)
 }
 
-// 判断卡片是否被选中
+// 判斷卡片是否被選中
 function isCardSelected(cardId: number): boolean {
   return selectedCardIds.value.includes(cardId)
 }
 
-// 批量删除卡片
+// 批量刪除卡片
 async function batchDeleteCards() {
   if (selectedCardIds.value.length === 0) {
-    ElMessage.warning('请先选择要删除的卡片')
+    ElMessage.warning('請先選擇要刪除的卡片')
     return
   }
   
   try {
     await ElMessageBox.confirm(
-      `确认删除选中的 ${selectedCardIds.value.length} 个卡片？此操作不可恢复`,
-      '批量删除确认',
+      `確認刪除選中的 ${selectedCardIds.value.length} 個卡片？此操作不可恢復`,
+      '批量刪除確認',
       { type: 'warning' }
     )
     
-    // 记录删除的卡片信息
+    // 記錄刪除的卡片信息
     const deletedCards = selectedCardIds.value.map(id => {
       const card = cards.value.find(c => (c as any).id === id)
       return {
@@ -1032,17 +1032,17 @@ async function batchDeleteCards() {
       }
     })
     
-    // 如果当前激活的卡片在删除列表中，先清空激活状态
+    // 如果當前激活的卡片在刪除列表中，先清空激活狀態
     if (activeCard.value && selectedCardIds.value.includes((activeCard.value as any).id)) {
       cardStore.setActiveCard(null as any)
     }
     
-    // 优化：过滤掉会被级联删除的子卡片
-    // 只删除顶层卡片（即不是其他选中卡片的子孙的卡片）
+    // 優化：過濾掉會被級聯刪除的子卡片
+    // 只刪除頂層卡片（即不是其他選中卡片的子孫的卡片）
     const selectedSet = new Set(selectedCardIds.value)
     const cardsToDelete: number[] = []
     
-    // 检查一个卡片是否是另一个选中卡片的子孙
+    // 檢查一個卡片是否是另一個選中卡片的子孫
     function isDescendantOfSelected(cardId: number): boolean {
       const card = cards.value.find(c => (c as any).id === cardId)
       if (!card) return false
@@ -1050,7 +1050,7 @@ async function batchDeleteCards() {
       let parentId = (card as any).parent_id
       while (parentId) {
         if (selectedSet.has(parentId)) {
-          return true  // 是某个选中卡片的子孙
+          return true  // 是某個選中卡片的子孫
         }
         const parent = cards.value.find(c => (c as any).id === parentId)
         if (!parent) break
@@ -1059,26 +1059,26 @@ async function batchDeleteCards() {
       return false
     }
     
-    // 只保留顶层卡片（不是其他选中卡片的子孙）
+    // 只保留頂層卡片（不是其他選中卡片的子孫）
     for (const cardId of selectedCardIds.value) {
       if (!isDescendantOfSelected(cardId)) {
         cardsToDelete.push(cardId)
       }
     }
     
-    // 批量删除（只删除顶层卡片，子卡片会被后端级联删除）
+    // 批量刪除（只刪除頂層卡片，子卡片會被後端級聯刪除）
     let successCount = 0
     for (const cardId of cardsToDelete) {
       try {
         await cardStore.removeCard(cardId)
         successCount++
       } catch (error: any) {
-        console.error(`删除卡片 ${cardId} 失败:`, error)
-        ElMessage.error(`删除卡片失败: ${error.message || '未知错误'}`)
+        console.error(`刪除卡片 ${cardId} 失敗:`, error)
+        ElMessage.error(`刪除卡片失敗: ${error.message || '未知錯誤'}`)
       }
     }
     
-    // 记录删除操作（记录所有选中的卡片，包括被级联删除的）
+    // 記錄刪除操作（記錄所有選中的卡片，包括被級聯刪除的）
     if (projectStore.currentProject?.id) {
       for (const card of deletedCards) {
         assistantStore.recordOperation(projectStore.currentProject.id, {
@@ -1090,17 +1090,17 @@ async function batchDeleteCards() {
       }
     }
     
-    // 清空选中状态
+    // 清空選中狀態
     selectedCardIds.value = []
     lastSelectedCardId.value = null
     
-    ElMessage.success(`已删除 ${selectedCardIds.value.length || deletedCards.length} 个卡片`)
+    ElMessage.success(`已刪除 ${selectedCardIds.value.length || deletedCards.length} 個卡片`)
   } catch (e) {
-    // 用户取消
+    // 用戶取消
   }
 }
 
-// 兜底：当 activeCard 改变时也自动注入一次
+// 兜底：當 activeCard 改變時也自動注入一次
 watch(activeCard, (c) => {
  try {
    if (!c) return
@@ -1115,49 +1115,49 @@ watch(activeCard, (c) => {
     content: (c as any).content || {},
   })
    
-   //  更新卡片上下文（用于灵感助手工具调用）
+   //  更新卡片上下文（用於靈感助手工具調用）
    assistantStore.updateActiveCard(c as any, pid)
    
-   //  更新项目结构（当前卡片变化时）
+   //  更新項目結構（當前卡片變化時）
    updateProjectStructureContext((c as any)?.id)
  } catch (err) {
-   console.error('🔄 [Editor] 更新卡片上下文失败:', err)
+   console.error('🔄 [Editor] 更新卡片上下文失敗:', err)
  }
 })
 
-//  监听项目切换，初始化结构和操作历史
+//  監聽項目切換，初始化結構和操作歷史
 watch(() => projectStore.currentProject, (newProject) => {
   if (!newProject?.id) return
   
-  // 切换项目时重置搜索
+  // 切換項目時重置搜索
   searchQuery.value = ''
   searchResults.value = []
 
   try {
-    // 加载操作历史
+    // 加載操作歷史
     assistantStore.loadOperations(newProject.id)
     
-    // 更新卡片类型列表
+    // 更新卡片類型列表
     assistantStore.updateProjectCardTypes(cardStore.cardTypes.map(ct => ct.name))
     
-    // 构建项目结构
+    // 構建項目結構
     updateProjectStructureContext(activeCard.value?.id)
   } catch (err) {
-    console.error('📦 [Editor] 初始化助手上下文失败:', err)
+    console.error('📦 [Editor] 初始化助手上下文失敗:', err)
   }
 }, { immediate: true })
 
-//  监听卡片数量变化（新增/删除），自动更新项目结构
-// 优化：只监听数量变化，层级变化由拖拽操作手动触发
+//  監聽卡片數量變化（新增/刪除），自動更新項目結構
+// 優化：只監聽數量變化，層級變化由拖拽操作手動觸發
 watch(() => cards.value.length, () => {
   try {
     updateProjectStructureContext(activeCard.value?.id)
   } catch (err) {
-    console.error('🔄 [Editor] 更新项目结构失败:', err)
+    console.error('🔄 [Editor] 更新項目結構失敗:', err)
   }
 })
 
-//  统一更新项目结构的函数
+//  統一更新項目結構的函數
 function updateProjectStructureContext(currentCardId?: number) {
   const project = projectStore.currentProject
   if (!project?.id) return
@@ -1176,8 +1176,8 @@ function onNodeExpand(_: any, node: any) {
 }
 
 function onNodeCollapse(_: any, node: any) {
-  // 递归移除该节点及其所有子节点的展开状态
-  // 这样可以防止刷新数据时，一下子节点触发父节点自动展开
+  // 遞歸移除該節點及其所有子節點的展開狀態
+  // 這樣可以防止刷新數據時，一下子節點觸發父節點自動展開
   const removeRecursively = (n: any) => {
     if (n.key) {
       editorStore.removeExpandedKey(String(n.key))
@@ -1196,7 +1196,7 @@ function handleEditCard(cardId: number) {
 
 async function handleCreateCard() {
   if (!newCardForm.title || !newCardForm.card_type_id) {
-    ElMessage.warning('请填写卡片标题和类型');
+    ElMessage.warning('請填寫卡片標題和類型');
     return;
   }
   const payload: any = {
@@ -1205,7 +1205,7 @@ async function handleCreateCard() {
   }
   const newCard = await cardStore.addCard(payload as CardCreate);
   
-  //  记录创建操作
+  //  記錄創建操作
   if (newCard && projectStore.currentProject?.id) {
     const cardType = cardStore.cardTypes.find(ct => ct.id === newCardForm.card_type_id)
     assistantStore.recordOperation(projectStore.currentProject.id, {
@@ -1221,49 +1221,49 @@ async function handleCreateCard() {
   Object.assign(newCardForm, { title: '', card_type_id: undefined, parent_id: '' as any });
 }
 
-// 根据卡片类型返回图标组件
+// 根據卡片類型返回圖標組件
 function getIconByCardType(typeName?: string) {
-  // 约定：若后端默认类型名称变更，可在此映射中调整
+  // 約定：若後端默認類型名稱變更，可在此映射中調整
   switch (typeName) {
-    case '作品标签':
+    case '作品標籤':
       return CollectionTag
     case '金手指':
       return MagicStick
-    case '一句话梗概':
+    case '一句話梗概':
       return ChatLineRound
-    case '故事大纲':
+    case '故事大綱':
       return List
-    case '世界观设定':
+    case '世界觀設定':
       return Connection
-    case '核心蓝图':
+    case '核心藍圖':
       return Tickets
-    case '分卷大纲':
+    case '分卷大綱':
       return Notebook
-    case '章节大纲':
+    case '章節大綱':
       return Document
     case '角色卡':
       return User
-    case '场景卡':
+    case '場景卡':
       return OfficeBuilding
-    case '组织卡':
+    case '組織卡':
       return Connection
     case '物品卡':
       return Box
     case '概念卡':
       return CollectionTag
-    case '文件夹':
+    case '文件夾':
       return Folder
     default:
-      return Document // 通用默认图标
+      return Document // 通用默認圖標
   }
 }
 
-// 右键菜单命令处理（新建子卡片、删除卡片）
+// 右鍵菜單命令處理（新建子卡片、刪除卡片）
 function handleContextCommand(command: string, data: any) {
   if (command === 'create-child') {
     openCreateChild(data.id)
   } else if (command === 'create-child-in-group') {
-    // 分组节点：使用实际父卡片ID，并预设卡片类型
+    // 分組節點：使用實際父卡片ID，並預設卡片類型
     openCreateChildInGroup(data.__parentCardId, data.__groupType)
   } else if (command === 'delete') {
     deleteNode(data.id, data.title)
@@ -1293,7 +1293,7 @@ function handleContextCommand(command: string, data: any) {
         cardTitle: title,
         content,
       }, 'manual')
-      ElMessage.success('已添加为引用')
+      ElMessage.success('已添加爲引用')
     } catch {}
   }
 }
@@ -1324,12 +1324,12 @@ function openCreateCardDialog(options?: { title?: string; cardTypeName?: string;
   blankMenuVisible.value = false
 }
 
-// 打开"新建卡片"对话框并预填父ID
+// 打開"新建卡片"對話框並預填父ID
 function openCreateChild(parentId: number) {
   openCreateCardDialog({ parentId })
 }
 
-// 打开"新建卡片"对话框（分组节点专用）：预填父ID和卡片类型
+// 打開"新建卡片"對話框（分組節點專用）：預填父ID和卡片類型
 function openCreateChildInGroup(parentId: number, groupType: string) {
   openCreateCardDialog({ parentId, cardTypeName: groupType })
 }
@@ -1347,7 +1347,7 @@ function onOpenCreateCardEvent(e: Event) {
   })
 }
 
-// 空白处右键：仅当未命中节点时显示菜单
+// 空白處右鍵：僅當未命中節點時顯示菜單
 function onSidebarContextMenu(e: MouseEvent) {
   const target = e.target as HTMLElement
   if (target.closest('.custom-tree-node')) return
@@ -1356,25 +1356,25 @@ function onSidebarContextMenu(e: MouseEvent) {
   blankMenuVisible.value = true
 }
 
-// 删除卡片（确认）
+// 刪除卡片（確認）
 async function deleteNode(cardId: number, title: string) {
   try {
-    await ElMessageBox.confirm(`确认删除卡片「${title}」？此操作不可恢复`, '删除确认', { type: 'warning' })
+    await ElMessageBox.confirm(`確認刪除卡片「${title}」？此操作不可恢復`, '刪除確認', { type: 'warning' })
     
-    //  删除前记录卡片信息
+    //  刪除前記錄卡片信息
     const card = cards.value.find(c => (c as any).id === cardId)
     const cardType = card ? ((card as any).card_type?.name || 'Unknown') : 'Unknown'
     
-    // 如果删除的是当前激活的卡片，先清空激活状态
+    // 如果刪除的是當前激活的卡片，先清空激活狀態
     if (activeCard.value && (activeCard.value as any).id === cardId) {
       cardStore.setActiveCard(null as any)
     }
     
     try {
       await cardStore.removeCard(cardId)
-      ElMessage.success('卡片已删除')
+      ElMessage.success('卡片已刪除')
       
-      //  记录删除操作
+      //  記錄刪除操作
       if (projectStore.currentProject?.id) {
         assistantStore.recordOperation(projectStore.currentProject.id, {
           type: 'delete',
@@ -1384,22 +1384,22 @@ async function deleteNode(cardId: number, title: string) {
         })
       }
     } catch (error: any) {
-      console.error('删除卡片失败:', error)
-      ElMessage.error('删除卡片失败')
+      console.error('刪除卡片失敗:', error)
+      ElMessage.error('刪除卡片失敗')
     }
   } catch (e) {
-    // 用户取消
+    // 用戶取消
   }
 }
 
 async function deleteGroupNodes(groupData: any) {
   try {
-    const title = groupData?.title || groupData?.__groupType || '该分组'
-    await ElMessageBox.confirm(`确认删除${title}下的所有卡片？此操作不可恢复`, '删除确认', { type: 'warning' })
+    const title = groupData?.title || groupData?.__groupType || '該分組'
+    await ElMessageBox.confirm(`確認刪除${title}下的所有卡片？此操作不可恢復`, '刪除確認', { type: 'warning' })
     const directChildren: any[] = Array.isArray(groupData?.children) ? groupData.children : []
     const toDeleteOrdered: number[] = []
 
-    // 递归收集：叶子优先（先删子孙，再删父）
+    // 遞歸收集：葉子優先（先刪子孫，再刪父）
     function collectDescendantIds(parentId: number) {
       const childIds = (cards.value || []).filter((c: any) => c.parent_id === parentId).map((c: any) => c.id)
       for (const cid of childIds) collectDescendantIds(cid)
@@ -1410,7 +1410,7 @@ async function deleteGroupNodes(groupData: any) {
       collectDescendantIds(child.id)
     }
 
-    // 去重（理论上无交叉）
+    // 去重（理論上無交叉）
     const seen = new Set<number>()
     for (const id of toDeleteOrdered) {
       if (seen.has(id)) continue
@@ -1418,29 +1418,29 @@ async function deleteGroupNodes(groupData: any) {
       await cardStore.removeCard(id)
     }
   } catch (e) {
-    // 用户取消
+    // 用戶取消
   }
 }
 
 // 重命名功能
 async function renameCard(cardId: number, oldTitle: string) {
   try {
-    const { value } = await ElMessageBox.prompt('重命名会立即生效，请输入新名称：', '重命名', {
-      confirmButtonText: '确定',
+    const { value } = await ElMessageBox.prompt('重命名會立即生效，請輸入新名稱：', '重命名', {
+      confirmButtonText: '確定',
       cancelButtonText: '取消',
       inputValue: oldTitle,
-      inputPlaceholder: '请输入卡片标题',
-      inputValidator: (v:string) => v.trim().length > 0 || '标题不能为空'
+      inputPlaceholder: '請輸入卡片標題',
+      inputValidator: (v:string) => v.trim().length > 0 || '標題不能爲空'
     })
     const newTitle = String(value).trim()
     if (newTitle === oldTitle) return
-    // 默认仅更新外壳 card.title
+    // 默認僅更新外殼 card.title
     const card = (cards.value || []).find((c: any) => c.id === cardId) as any
     const payload: any = { title: newTitle }
 
-    // 仅对章节大纲 / 章节正文做「标题字段与卡片名」的绑定优化
+    // 僅對章節大綱 / 章節正文做「標題字段與卡片名」的綁定優化
     const typeName = card?.card_type?.name || ''
-    if ((typeName === '章节大纲' || typeName === '章节正文') && card?.content) {
+    if ((typeName === '章節大綱' || typeName === '章節正文') && card?.content) {
       const content: any = { ...(card.content as any) }
       content.title = newTitle
       payload.content = content
@@ -1448,7 +1448,7 @@ async function renameCard(cardId: number, oldTitle: string) {
     await cardStore.modifyCard(cardId, payload)
     ElMessage.success('已重命名')
   } catch {
-    // 用户取消或失败
+    // 用戶取消或失敗
   }
 }
 
@@ -1456,11 +1456,11 @@ async function renameCard(cardId: number, oldTitle: string) {
 const assistantResolvedContext = ref<string>('')
 const assistantEffectiveSchema = ref<any>(null)
 const assistantSelectionCleared = ref<boolean>(false)
-const assistantParams = ref<{ llm_config_id: number | null; prompt_name: string | null; temperature: number | null; max_tokens: number | null; timeout: number | null }>({ llm_config_id: null, prompt_name: '灵感对话', temperature: null, max_tokens: null, timeout: null })
+const assistantParams = ref<{ llm_config_id: number | null; prompt_name: string | null; temperature: number | null; max_tokens: number | null; timeout: number | null }>({ llm_config_id: null, prompt_name: '靈感對話', temperature: null, max_tokens: null, timeout: null })
 
-// 判断当前是否为章节正文卡片
+// 判斷當前是否爲章節正文卡片
 const isChapterContent = computed(() => {
-  return activeCard.value?.card_type?.name === '章节正文'
+  return activeCard.value?.card_type?.name === '章節正文'
 })
 
 const showRightSidebarTabs = computed(() => {
@@ -1470,7 +1470,7 @@ const showRightSidebarTabs = computed(() => {
 const reviewTargetCardIdForSidebar = computed<number | null>(() => {
   const card = activeCard.value as any
   if (!card) return null
-  if (card?.card_type?.name === '内容审核卡片') {
+  if (card?.card_type?.name === '內容審核卡片') {
     const target = Number(card?.content?.review_target_card_id || 0)
     return Number.isFinite(target) && target > 0 ? target : null
   }
@@ -1483,7 +1483,7 @@ const rightSidebarTabNames = computed(() => {
   return ['assistant', 'review-history']
 })
 
-// 章节信息提取
+// 章節信息提取
 const chapterVolumeNumber = computed(() => {
   if (!isChapterContent.value) return null
   const content: any = activeCard.value?.content || {}
@@ -1506,7 +1506,7 @@ const chapterParticipants = computed(() => {
   return []
 })
 
-// 自动装配章节上下文（首次进入章节正文时）
+// 自動裝配章節上下文（首次進入章節正文時）
 watch(isChapterContent, async (val) => {
   if (val && activeCard.value) {
     await assembleChapterContext()
@@ -1519,7 +1519,7 @@ watch(rightSidebarTabNames, (tabNames) => {
   }
 }, { immediate: true })
 
-// 当卡片仓库内容发生变化时，若当前仍在章节正文卡片上，则重新装配上下文
+// 當卡片倉庫內容發生變化時，若當前仍在章節正文卡片上，則重新裝配上下文
 watch(cards, async () => {
   if (isChapterContent.value && activeCard.value) {
     await assembleChapterContext()
@@ -1544,19 +1544,19 @@ async function assembleChapterContext() {
   }
 }
 
-// 当右侧“参与实体”面板中手动增删参与者时，将变更写回当前章节卡片的内容
+// 當右側“參與實體”面板中手動增刪參與者時，將變更寫回當前章節卡片的內容
 async function handleContextParticipantsUpdate(names: string[]) {
   try {
     if (!isChapterContent.value || !activeCard.value) return
     const card = activeCard.value as any
     const content: any = { ...(card.content || {}) }
-    // 仅以名称列表作为实体列表的来源（对象形态后续仍可由分析流程补全）
+    // 僅以名稱列表作爲實體列表的來源（對象形態後續仍可由分析流程補全）
     const normalized = (names || [])
       .map(n => (typeof n === 'string' ? n.trim() : String(n || '')).trim())
       .filter(Boolean)
     content.entity_list = normalized
     await cardStore.modifyCard(card.id, { content } as any)
-    // modifyCard 成功后，cards watcher 会触发 assembleChapterContext 使用新的参与者
+    // modifyCard 成功後，cards watcher 會觸發 assembleChapterContext 使用新的參與者
   } catch (e) {
     console.error('Failed to update participants on card:', e)
   }
@@ -1571,9 +1571,9 @@ async function refreshAssistantContext() {
   try {
     const card = assistantSelectionCleared.value ? null : (activeCard.value as any)
     if (!card) { assistantResolvedContext.value = ''; assistantEffectiveSchema.value = null; return }
-    // 计算上下文（沿用 contextResolver）
+    // 計算上下文（沿用 contextResolver）
     const { resolveTemplate } = await import('@renderer/services/contextResolver')
-    // 使用卡片当前保存的 ai_context_template 和 content
+    // 使用卡片當前保存的 ai_context_template 和 content
     const resolved = resolveTemplate({
       template: card.ai_context_template || '',
       cards: cards.value,
@@ -1581,16 +1581,16 @@ async function refreshAssistantContext() {
       assembledContext: prefetchedContext.value,
     })
     assistantResolvedContext.value = resolved
-    // 读取有效 Schema
+    // 讀取有效 Schema
     const resp = await getCardSchema(card.id)
     assistantEffectiveSchema.value = resp?.effective_schema || resp?.json_schema || null
-    // 读取有效 AI 参数（保障 llm_config_id 存在）
+    // 讀取有效 AI 參數（保障 llm_config_id 存在）
     try {
       const ai = await getCardAIParams(card.id)
       const eff = (ai?.effective_params || {}) as any
       assistantParams.value = {
         llm_config_id: eff.llm_config_id ?? null,
-        prompt_name: (eff.prompt_name ?? '灵感对话') as any,
+        prompt_name: (eff.prompt_name ?? '靈感對話') as any,
         temperature: eff.temperature ?? null,
         max_tokens: eff.max_tokens ?? null,
         timeout: eff.timeout ?? null,
@@ -1600,7 +1600,7 @@ async function refreshAssistantContext() {
       const p = (card?.ai_params || {}) as any
       assistantParams.value = {
         llm_config_id: p.llm_config_id ?? null,
-        prompt_name: (p.prompt_name ?? '灵感对话') as any,
+        prompt_name: (p.prompt_name ?? '靈感對話') as any,
         temperature: p.temperature ?? null,
         max_tokens: p.max_tokens ?? null,
         timeout: p.timeout ?? null,
@@ -1630,7 +1630,7 @@ const assistantFinalize = async (summary: string) => {
     if (!card) return
     const evt = new CustomEvent('nf:assistant-finalize', { detail: { cardId: card.id, summary } })
     window.dispatchEvent(evt)
-    ElMessage.success('已发送定稿要点到编辑器页')
+    ElMessage.success('已發送定稿要點到編輯器頁')
   } catch {}
 }
 
@@ -1667,13 +1667,13 @@ async function onAssistantFinalize(e: CustomEvent) {
     if (!card) return
     const summary: string = (e as any)?.detail?.summary || ''
     const llmId = assistantParams.value.llm_config_id
-    const promptName = (assistantParams.value.prompt_name || '内容生成') as string
+    const promptName = (assistantParams.value.prompt_name || '內容生成') as string
     const schema = assistantEffectiveSchema.value
-    if (!llmId) { ElMessage.warning('请先为该卡片选择模型'); return }
-    if (!schema) { ElMessage.warning('未获取到有效 Schema，无法定稿'); return }
-    // 组装定稿输入：上下文 + 定稿要点
+    if (!llmId) { ElMessage.warning('請先爲該卡片選擇模型'); return }
+    if (!schema) { ElMessage.warning('未獲取到有效 Schema，無法定稿'); return }
+    // 組裝定稿輸入：上下文 + 定稿要點
     const ctx = (assistantResolvedContext.value || '').trim()
-    const inputText = [ctx ? `【上下文】\n${ctx}` : '', summary ? `【定稿要点】\n${summary}` : ''].filter(Boolean).join('\n\n')
+    const inputText = [ctx ? `【上下文】\n${ctx}` : '', summary ? `【定稿要點】\n${summary}` : ''].filter(Boolean).join('\n\n')
     const result = await generateAIContent({
       input: { input_text: inputText },
       llm_config_id: llmId as any,
@@ -1685,22 +1685,22 @@ async function onAssistantFinalize(e: CustomEvent) {
     } as any)
     if (result) {
       await cardStore.modifyCard(card.id, { content: result as any })
-      ElMessage.success('已根据要点生成并写回该卡片')
+      ElMessage.success('已根據要點生成並寫回該卡片')
     } else {
-      ElMessage.error('定稿生成失败：无返回内容')
+      ElMessage.error('定稿生成失敗：無返回內容')
     }
   } catch (err) {
-    ElMessage.error('定稿生成失败')
+    ElMessage.error('定稿生成失敗')
     console.error(err)
   }
 }
 
-// 助手 chips 跳转卡片
+// 助手 chips 跳轉卡片
 async function handleJumpToCard(payload: { projectId: number; cardId: number }) {
   try {
     const curPid = projectStore.currentProject?.id
     if (curPid !== payload.projectId) {
-      // 切换项目：从全部项目列表中找到目标项目并设置
+      // 切換項目：從全部項目列表中找到目標項目並設置
       const all = await getProjects()
       const target = (all || []).find(p => p.id === payload.projectId)
       if (target) {
@@ -1708,7 +1708,7 @@ async function handleJumpToCard(payload: { projectId: number; cardId: number }) 
         await cardStore.fetchCards(target.id!)
       }
     }
-    // 激活目标卡（仅导航，不改动 injectedRefs）
+    // 激活目標卡（僅導航，不改動 injectedRefs）
     cardStore.setActiveCard(payload.cardId)
     activeTab.value = 'editor'
   } catch {}
@@ -1730,10 +1730,10 @@ onMounted(async () => {
   // Fetch initial data for the card system (like types and models)
   // Cards will be fetched automatically by the watcher in the card store
   await cardStore.fetchInitialData()
-  // 进入编辑页时也刷新一次可用模型（处理应用在其他页新增模型的场景）
+  // 進入編輯頁時也刷新一次可用模型（處理應用在其他頁新增模型的場景）
   await cardStore.fetchAvailableModels()
   
-  // 更新项目卡片类型列表（用于灵感助手工具调用）
+  // 更新項目卡片類型列表（用於靈感助手工具調用）
   try {
     const types = cardStore.cardTypes.map(t => t.name)
     assistantStore.updateProjectCardTypes(types)
@@ -1783,7 +1783,7 @@ function onSwitchRightTab(e: CustomEvent) {
   }
 }
 
- // 点击页面任意处隐藏空白菜单
+ // 點擊頁面任意處隱藏空白菜單
  document.addEventListener('click', () => (blankMenuVisible.value = false))
 
  const treeRef = ref<any>(null)
@@ -1804,7 +1804,7 @@ function onSwitchRightTab(e: CustomEvent) {
 </script>
 
 <style scoped>
-/* 让右键触发区域充满整行 */
+/* 讓右鍵觸發區域充滿整行 */
 .full-row-dropdown { display: block; width: 100%; }
 .blank-menu-ref { pointer-events: none; }
 
@@ -1813,24 +1813,24 @@ function onSwitchRightTab(e: CustomEvent) {
   height: 100%;
   width: 100%;
   position: relative;
-  background-color: var(--el-fill-color-lighter); /* 适配暗黑模式 */
+  background-color: var(--el-fill-color-lighter); /* 適配暗黑模式 */
 }
 
 .sidebar {
   display: flex;
   flex-direction: column;
-  background-color: var(--el-fill-color-lighter); /* 适配暗黑模式 */
+  background-color: var(--el-fill-color-lighter); /* 適配暗黑模式 */
   transition: width 0.2s;
   flex-shrink: 0;
   overflow: hidden;
-  border-right: none; /* 移除边框 */
+  border-right: none; /* 移除邊框 */
 }
 
 .card-navigation-sidebar {
   padding: 8px;
 }
 
-/* 顶部标题区已移除按钮，这里直接隐藏以消除空隙 */
+/* 頂部標題區已移除按鈕，這裏直接隱藏以消除空隙 */
 .sidebar-header { display: none; }
 
 .sidebar-title {
@@ -1876,7 +1876,7 @@ function onSwitchRightTab(e: CustomEvent) {
 }
 
 .main-content {
-  padding: 16px 8px; /* 留出边距 */
+  padding: 16px 8px; /* 留出邊距 */
   display: flex;
   flex-direction: column;
   background-color: transparent; /* 透明背景 */
@@ -1886,11 +1886,11 @@ function onSwitchRightTab(e: CustomEvent) {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  background-color: var(--el-bg-color); /* 适配暗黑模式 */
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); /* 轻微阴影 */
-  border-radius: 8px; /* 圆角 */
-  overflow: hidden; /* 确保内容不溢出圆角 */
-  border: none; /* 移除默认边框 */
+  background-color: var(--el-bg-color); /* 適配暗黑模式 */
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); /* 輕微陰影 */
+  border-radius: 8px; /* 圓角 */
+  overflow: hidden; /* 確保內容不溢出圓角 */
+  border: none; /* 移除默認邊框 */
 }
 
 :deep(.el-tabs__content) {
@@ -1932,7 +1932,7 @@ function onSwitchRightTab(e: CustomEvent) {
 
 .inner-resizer { height: 6px; cursor: row-resize; background: var(--el-fill-color-light); border-top: 1px solid var(--el-border-color-light); border-bottom: 1px solid var(--el-border-color-light); transition: height .12s ease, background-color .12s ease, border-color .12s ease; }
 .inner-resizer:hover { height: 8px; background: var(--el-fill-color); border-top: 1px solid var(--el-border-color); border-bottom: 1px solid var(--el-border-color); }
-/* 下半区：标题置顶并设置滚动容器 */
+/* 下半區：標題置頂並設置滾動容器 */
 .cards-pane { position: relative; padding-top: 8px; overflow: auto; overflow-x: hidden; }
 .cards-title {
   position: sticky;
@@ -2010,7 +2010,7 @@ function onSwitchRightTab(e: CustomEvent) {
   border-left: none; 
   background: transparent; 
   flex-shrink: 0; 
-  padding: 16px 8px 16px 0; /* 右侧留白 */
+  padding: 16px 8px 16px 0; /* 右側留白 */
 }
 .right-resizer { cursor: col-resize; width: 5px; background: transparent; }
 .right-resizer:hover { background: var(--el-color-primary-light-7); }
@@ -2075,7 +2075,7 @@ function onSwitchRightTab(e: CustomEvent) {
 .nf-tree-select-popper :deep(.is-current > .el-tree-node__content),
 .nf-tree-select-popper :deep(.el-tree-node__content:hover) { background: var(--el-fill-color-light); }
 
-/* 右栏Tab样式 */
+/* 右欄Tab樣式 */
 .right-tabs {
   height: 100%;
   display: flex;

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="review-result-card-editor">
     <div class="review-header">
       <div class="review-header-main">
@@ -12,11 +12,11 @@
           </div>
         </div>
         <div class="review-actions">
-          <el-button size="small" plain type="primary" @click="jumpToTarget">跳转被审核卡片</el-button>
+          <el-button size="small" plain type="primary" @click="jumpToTarget">跳轉被審核卡片</el-button>
         </div>
       </div>
       <div class="review-target">
-        审核对象：{{ targetTitle || '未命名目标' }}
+        審核對象：{{ targetTitle || '未命名目標' }}
       </div>
     </div>
 
@@ -40,7 +40,7 @@ const content = computed(() => (props.card.content || {}) as Record<string, any>
 const targetTitle = computed(() => String(content.value.review_target_title || ''))
 const reviewProfile = computed(() => String(content.value.review_profile || ''))
 const targetField = computed(() => String(content.value.review_target_field || ''))
-const reviewMarkdown = computed(() => String(content.value.review_markdown || '（暂无内容）'))
+const reviewMarkdown = computed(() => String(content.value.review_markdown || '（暫無內容）'))
 const reviewedAtText = computed(() => {
   const value = String(content.value.reviewed_at || '')
   if (!value) return ''
@@ -60,11 +60,11 @@ const reviewedAtText = computed(() => {
 const verdictLabel = computed(() => {
   switch (content.value.quality_gate) {
     case 'pass':
-      return '基本通过'
+      return '基本通過'
     case 'block':
-      return '高风险拦截'
+      return '高風險攔截'
     default:
-      return '建议修改'
+      return '建議修改'
   }
 })
 

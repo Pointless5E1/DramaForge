@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <el-card shadow="never" class="object-field-card">
     <template #header>
       <div class="card-header">
@@ -17,8 +17,8 @@
 import { defineAsyncComponent, computed } from 'vue'
 import type { JSONSchema } from '@renderer/api/schema'
 
-// 使用前向声明来处理递归组件。
-// 这在模块级别打破了循环依赖。
+// 使用前向聲明來處理遞歸組件。
+// 這在模塊級別打破了循環依賴。
 const ModelDrivenForm = defineAsyncComponent(() => import('../ModelDrivenForm.vue'))
 
 const props = defineProps<{
@@ -29,7 +29,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
-// 当 schema 未声明 properties 但数据存在时，按数据键名动态补齐，保证可渲染
+// 當 schema 未聲明 properties 但數據存在時，按數據鍵名動態補齊，保證可渲染
 const effectiveSchema = computed<JSONSchema>(() => {
   const sch = props.schema || { type: 'object' }
   const hasProps = sch && typeof sch === 'object' && (sch as any).properties && Object.keys((sch as any).properties as any).length > 0

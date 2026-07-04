@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <el-dialog
     :model-value="modelValue"
     title="引用卡片/上下文"
@@ -7,16 +7,16 @@
     @close="reset"
   >
     <div class="selector-container">
-      <!-- 左列：模式选择 + 列表区 -->
+      <!-- 左列：模式選擇 + 列表區 -->
       <div class="column left">
-        <h3>1. 选择引用方式</h3>
+        <h3>1. 選擇引用方式</h3>
         <el-radio-group v-model="mode" size="small">
-          <el-radio-button label="title">按标题</el-radio-button>
-          <el-radio-button label="type">按类型</el-radio-button>
+          <el-radio-button label="title">按標題</el-radio-button>
+          <el-radio-button label="type">按類型</el-radio-button>
           <el-radio-button label="special">特殊</el-radio-button>
         </el-radio-group>
 
-        <!-- 按标题模式：原有卡片列表 -->
+        <!-- 按標題模式：原有卡片列表 -->
         <template v-if="mode === 'title'">
           <el-input v-model="cardSearch" placeholder="搜索卡片..." clearable class="mt8" />
           <el-scrollbar class="list-container">
@@ -33,10 +33,10 @@
           </el-scrollbar>
         </template>
 
-        <!-- 按类型模式：类型选择 + 过滤方式（previous/sibling/first/last/index） + index 表达式 -->
+        <!-- 按類型模式：類型選擇 + 過濾方式（previous/sibling/first/last/index） + index 表達式 -->
         <template v-else-if="mode === 'type'">
           <div class="mt8">
-            <el-select v-model="selectedTypeName" placeholder="选择卡片类型" style="width: 100%" @change="handleTypeChange">
+            <el-select v-model="selectedTypeName" placeholder="選擇卡片類型" style="width: 100%" @change="handleTypeChange">
               <el-option v-for="t in cardTypeNames" :key="t" :label="t" :value="t" />
             </el-select>
           </div>
@@ -56,17 +56,17 @@
             </el-radio-group>
           </div>
           <div class="mt8" v-if="typeFilterMode === 'previous' && previousMode === 'global'">
-            <el-input v-model="previousCount" placeholder="可选：输入数字限制返回最近 n 个，留空=全部" />
+            <el-input v-model="previousCount" placeholder="可選：輸入數字限制返回最近 n 個，留空=全部" />
           </div>
           <div class="mt8" v-if="typeFilterMode === 'index'">
-            <el-input v-model="indexExpr" placeholder="index= 的表达式，例如 1 / last / $current.volumeNumber-1 / $self.content.volume_number-1 / filter:content.name in $self.content.entity_list" />
+            <el-input v-model="indexExpr" placeholder="index= 的表達式，例如 1 / last / $current.volumeNumber-1 / $self.content.volume_number-1 / filter:content.name in $self.content.entity_list" />
             <div class="mt8">
-              <el-checkbox v-model="advMode">高级模式</el-checkbox>
+              <el-checkbox v-model="advMode">高級模式</el-checkbox>
             </div>
             <div class="mt8 adv-grid" v-if="advMode">
               <div class="cond-list">
                 <div class="cond-item" v-for="(c, idx) in advConds" :key="idx">
-                  <el-select v-model="c.field" placeholder="选择字段" style="width: 45%">
+                  <el-select v-model="c.field" placeholder="選擇字段" style="width: 45%">
                     <el-option v-for="fp in flatFieldList" :key="fp.path" :label="fp.label + ' ('+fp.path+')'" :value="fp.path" />
                   </el-select>
                   <el-select v-model="c.op" placeholder="操作符" style="width: 12%">
@@ -76,38 +76,38 @@
                     <el-option label=">" value=">" />
                   </el-select>
                   <el-input v-model="c.rhs" placeholder='右值：$self./$parent./$current. 或 JSON/字面量' style="width: 40%" />
-                  <el-button text type="danger" @click="removeCond(idx)">删除</el-button>
+                  <el-button text type="danger" @click="removeCond(idx)">刪除</el-button>
                 </div>
                 <div class="mt8">
-                  <el-button size="small" @click="addCond">添加条件</el-button>
+                  <el-button size="small" @click="addCond">添加條件</el-button>
                 </div>
               </div>
             </div>
-            <div class="hint" v-if="advMode">将生成：index=filter:{{ advCondPreview }}</div>
+            <div class="hint" v-if="advMode">將生成：index=filter:{{ advCondPreview }}</div>
           </div>
         </template>
 
         <!-- 特殊模式：self / parent / stage:current -->
         <template v-else>
           <div class="mt8">
-            <el-select v-model="specialKey" placeholder="选择特殊引用" style="width: 100%">
-              <el-option label="self（当前卡片）" value="self" />
+            <el-select v-model="specialKey" placeholder="選擇特殊引用" style="width: 100%">
+              <el-option label="self（當前卡片）" value="self" />
               <el-option label="parent（父卡片）" value="parent" :disabled="!hasParent" />
-              <el-option label="stage:current（当前阶段）" value="stage:current" />
+              <el-option label="stage:current（當前階段）" value="stage:current" />
             </el-select>
           </div>
           <div class="mt8" v-if="specialKey === 'self' || specialKey === 'stage:current'">
-            <el-input v-model="specialPath" placeholder="可选：在此输入字段路径，如 content.volume_number" />
+            <el-input v-model="specialPath" placeholder="可選：在此輸入字段路徑，如 content.volume_number" />
           </div>
         </template>
       </div>
 
-      <!-- 右列：字段树 -->
+      <!-- 右列：字段樹 -->
       <div class="column">
         <div class="row-head">
-          <h3>2. 选择字段（可选）</h3>
+          <h3>2. 選擇字段（可選）</h3>
           <div class="right-tools">
-            <el-checkbox v-model="multiMode">多选字段</el-checkbox>
+            <el-checkbox v-model="multiMode">多選字段</el-checkbox>
           </div>
         </div>
         <el-tree
@@ -123,7 +123,7 @@
           highlight-current
         />
         <div v-else class="empty-state">
-          <p>在此选择要追加的字段路径（可选）。</p>
+          <p>在此選擇要追加的字段路徑（可選）。</p>
         </div>
       </div>
     </div>
@@ -132,12 +132,12 @@
     <template #footer>
       <div class="footer-container">
         <span class="selection-preview">
-          预览: <strong>{{ selectionPreview }}</strong>
+          預覽: <strong>{{ selectionPreview }}</strong>
         </span>
         <span class="dialog-footer">
           <el-button @click="$emit('update:modelValue', false)">取消</el-button>
           <el-button type="primary" @click="handleConfirm" :disabled="!canConfirm">
-            确认
+            確認
           </el-button>
         </span>
       </div>
@@ -161,19 +161,19 @@ interface FieldPath {
 const props = defineProps<{ modelValue: boolean; cards: CardRead[]; currentCardId?: number }>()
 const emit = defineEmits(['update:modelValue', 'confirm'])
 
-// --- 模式与选择 ---
+// --- 模式與選擇 ---
 const mode = ref<'title' | 'type' | 'special'>('title')
 
-// 当前卡片与父卡片
+// 當前卡片與父卡片
 const currentCard = computed(() => props.cards.find(c => c.id === props.currentCardId))
 const parentCard = computed(() => props.cards.find(c => c.id === (currentCard.value?.parent_id || -1)))
 const hasParent = computed(() => !!parentCard.value)
 
-// 按标题
+// 按標題
 const cardSearch = ref('')
 const selectedKard = ref<CardRead | null>(null)
 
-// 按类型
+// 按類型
 const selectedTypeName = ref<string | undefined>(undefined)
 const typeFilterMode = ref<'previous' | 'sibling' | 'first' | 'last' | 'index'>('first')
 const previousMode = ref<'global' | 'local'>('global')
@@ -181,29 +181,29 @@ const indexExpr = ref<string>('1')
 const previousCount = ref<string>('')
 
 const filterTips = {
-  first: '全局稳定排序中的第一个同类型卡片',
-  last: '全局稳定排序中的最后一个同类型卡片',
-  previous: '选择 previous 模式：全局/局部',
-  sibling: '与当前卡片同一父卡片下的同类型兄弟卡片（返回数组）',
-  index: '按表达式选择单个卡片：1、-1、$current.volumeNumber-1、$self.content.volume_number+1 等'
+  first: '全局穩定排序中的第一個同類型卡片',
+  last: '全局穩定排序中的最後一個同類型卡片',
+  previous: '選擇 previous 模式：全局/局部',
+  sibling: '與當前卡片同一父卡片下的同類型兄弟卡片（返回數組）',
+  index: '按表達式選擇單個卡片：1、-1、$current.volumeNumber-1、$self.content.volume_number+1 等'
 }
 
 const previousModeTips = {
-  global: '全局：树形先序顺序中，当前卡片之前的所有同类型卡片',
-  local: '局部：同一父卡片下，当前卡片之前的同类型兄弟卡片'
+  global: '全局：樹形先序順序中，當前卡片之前的所有同類型卡片',
+  local: '局部：同一父卡片下，當前卡片之前的同類型兄弟卡片'
 }
 
 // 特殊
 const specialKey = ref<string | undefined>(undefined)
 const specialPath = ref<string>('')
 
-// 字段树
+// 字段樹
 const treeRef = ref()
 const selectedFieldPath = ref<string | null>(null)
 const selectedFieldPaths = ref<string[]>([])
 const multiMode = ref<boolean>(false)
 const fieldPaths = ref<FieldPath[]>([])
-// 高级模式（仅 index）：多条件
+// 高級模式（僅 index）：多條件
 const advMode = ref<boolean>(false)
 type AdvCond = { field: string; op: '='|'in'|'<'|'>'; rhs: string }
 const advConds = ref<AdvCond[]>([])
@@ -220,10 +220,10 @@ const flatFieldList = computed(() => {
   return out
 })
 
-// 过滤卡片（按标题）
+// 過濾卡片（按標題）
 const filteredCards = computed(() => props.cards.filter(card => card.title.toLowerCase().includes(cardSearch.value.toLowerCase())))
 
-// 所有类型名
+// 所有類型名
 const cardTypeNames = computed(() => Array.from(new Set(props.cards.map(c => c.card_type?.name).filter(Boolean) as string[])))
 
 function buildPathSpec(): string {
@@ -234,12 +234,12 @@ function buildPathSpec(): string {
   return ''
 }
 
-// 预览字符串
+// 預覽字符串
 const selectionPreview = computed(() => {
   const pathSpec = buildPathSpec()
   if (mode.value === 'title') {
     if (!selectedKard.value) return ''
-    // 标题模式：未选字段时默认 .content
+    // 標題模式：未選字段時默認 .content
     if (!pathSpec) return `@${selectedKard.value.title}.content`
     return `@${selectedKard.value.title}${pathSpec}`
   }
@@ -258,7 +258,7 @@ const selectionPreview = computed(() => {
     else if (typeFilterMode.value === 'first') filter = '[first]'
     else if (typeFilterMode.value === 'last') filter = '[last]'
     else if (typeFilterMode.value === 'index') filter = `[index=${indexExpr.value.trim()}]`
-    // 类型模式：未选字段时默认 .content
+    // 類型模式：未選字段時默認 .content
     if (!pathSpec) return `@type:${selectedTypeName.value}${filter}.content`
     return `@type:${selectedTypeName.value}${filter}${pathSpec}`
   }
@@ -270,7 +270,7 @@ const selectionPreview = computed(() => {
     if (selectedFieldPath.value) {
       return `@${specialKey.value}${pathSpec}`
     }
-    // 特殊：parent/self 默认 .content；stage/chapters 按原规则
+    // 特殊：parent/self 默認 .content；stage/chapters 按原規則
     let s = `@${specialKey.value}`
     if (specialKey.value === 'parent' || specialKey.value === 'self') {
       s += `.content`
@@ -302,7 +302,7 @@ function removeCond(idx: number) {
   advConds.value.splice(idx, 1)
 }
 
-// 同步高级模式表达式到 indexExpr（多条件）
+// 同步高級模式表達式到 indexExpr（多條件）
 watch([advMode, advConds], () => {
   if (mode.value === 'type' && typeFilterMode.value === 'index' && advMode.value) {
     const expr = advCondPreview.value
@@ -319,10 +319,10 @@ watch(
 
 function reset() {
   mode.value = 'title'
-  // 标题模式
+  // 標題模式
   cardSearch.value = ''
   selectedKard.value = null
-  // 类型模式
+  // 類型模式
   selectedTypeName.value = undefined
   typeFilterMode.value = 'first'
   previousMode.value = 'global'
@@ -333,7 +333,7 @@ function reset() {
   // 特殊模式
   specialKey.value = undefined
   specialPath.value = ''
-  // 字段树与路径
+  // 字段樹與路徑
   selectedFieldPath.value = null
   selectedFieldPaths.value = []
   multiMode.value = false
@@ -356,7 +356,7 @@ function findCurrentStage(cards: CardRead[], currentCardId?: number): { stage: a
   const vol = typeof c?.volume_number === 'number' ? c.volume_number : undefined
   const chn = typeof c?.chapter_number === 'number' ? c.chapter_number : undefined
   if (!vol || !chn) return { stage: null }
-  const volCard = cards.find(x => (x.card_type as any)?.output_model_name === 'VolumeOutline' || x.card_type?.name === '分卷大纲')
+  const volCard = cards.find(x => (x.card_type as any)?.output_model_name === 'VolumeOutline' || x.card_type?.name === '分卷大綱')
   if (!volCard) return { stage: null, volumeNumber: vol, chapterNumber: chn }
   const vo = unwrapVolumeOutline(volCard.content || {})
   const stages = Array.isArray(vo?.stage_lines) ? vo.stage_lines : []
@@ -373,7 +373,7 @@ function findCurrentStage(cards: CardRead[], currentCardId?: number): { stage: a
 const stageFound = ref<boolean>(false)
 const stageMeta = ref<{ volume?: number; chapter?: number; name?: string } | null>(null)
 
-// 当选择特殊引用为 parent 时，自动加载父卡片 schema 并渲染字段树
+// 當選擇特殊引用爲 parent 時，自動加載父卡片 schema 並渲染字段樹
 watch(specialKey, async (key) => {
   selectedFieldPath.value = null
   selectedFieldPaths.value = []
@@ -392,13 +392,13 @@ watch(specialKey, async (key) => {
       fieldPaths.value = sch ? generateFieldPaths(sch as any) : []
     } catch { fieldPaths.value = [] }
   } else if (key === 'stage:current') {
-    // 自动定位当前章节所在阶段；若命中，则右侧展示 StageLine 字段
+    // 自動定位當前章節所在階段；若命中，則右側展示 StageLine 字段
     const { stage, volumeNumber, chapterNumber } = findCurrentStage(props.cards, props.currentCardId)
     stageFound.value = !!stage
     stageMeta.value = { volume: volumeNumber, chapter: chapterNumber, name: typeof stage?.stage_name === 'string' ? stage.stage_name : undefined }
     await schemaService.loadSchemas()
     const stageSchema = schemaService.getSchema('StageLine')
-    // 对于特殊对象，路径不加 'content.' 前缀，直接展示字段名
+    // 對於特殊對象，路徑不加 'content.' 前綴，直接展示字段名
     fieldPaths.value = stage ? (stageSchema ? generateFieldPaths(stageSchema, '') : []) : []
   } else {
     fieldPaths.value = []
@@ -418,7 +418,7 @@ async function handleCardSelect(card: CardRead) {
 }
 
 async function handleTypeChange() {
-  // 根据类型名选取任意同类型卡片以加载其 schema
+  // 根據類型名選取任意同類型卡片以加載其 schema
   selectedFieldPath.value = null
   selectedFieldPaths.value = []
   fieldPaths.value = []
@@ -473,8 +473,8 @@ function generateFieldPaths(schema: JSONSchema, prefix = 'content'): FieldPath[]
 }
 
 function handleFieldSelect(data: FieldPath) {
-  if (multiMode.value) return // 多选模式下靠复选框
-  // 单选：允许非叶子节点
+  if (multiMode.value) return // 多選模式下靠複選框
+  // 單選：允許非葉子節點
   selectedFieldPath.value = data.path
 }
 

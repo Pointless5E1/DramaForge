@@ -1,4 +1,4 @@
-"""表达式求值器（单引擎受控 eval）"""
+﻿"""表達式求值器（單引擎受控 eval）"""
 
 from __future__ import annotations
 
@@ -43,35 +43,35 @@ RESERVED_NAMES = set(keyword.kwlist) | {"True", "False", "None"}
 
 
 class ExpressionSecurityError(ValueError):
-    """表达式安全检查错误"""
+    """表達式安全檢查錯誤"""
 
 
 class _ExpressionGuard(ast.NodeVisitor):
-    """表达式 AST 守卫"""
+    """表達式 AST 守衛"""
 
     def visit_Attribute(self, node: ast.Attribute):
         if node.attr.startswith("__"):
-            raise ExpressionSecurityError(f"禁止访问双下划线属性: {node.attr}")
+            raise ExpressionSecurityError(f"禁止訪問雙下劃線屬性: {node.attr}")
         self.generic_visit(node)
 
     def visit_Name(self, node: ast.Name):
         if node.id.startswith("__"):
-            raise ExpressionSecurityError(f"禁止使用双下划线名称: {node.id}")
+            raise ExpressionSecurityError(f"禁止使用雙下劃線名稱: {node.id}")
         self.generic_visit(node)
 
     def visit_Call(self, node: ast.Call):
         if isinstance(node.func, ast.Name) and node.func.id in FORBIDDEN_FUNC_NAMES:
-            raise ExpressionSecurityError(f"禁止调用函数: {node.func.id}")
+            raise ExpressionSecurityError(f"禁止調用函數: {node.func.id}")
         self.generic_visit(node)
 
     def generic_visit(self, node: ast.AST):
         if isinstance(node, FORBIDDEN_NODE_TYPES):
-            raise ExpressionSecurityError(f"不支持的表达式语法: {type(node).__name__}")
+            raise ExpressionSecurityError(f"不支持的表達式語法: {type(node).__name__}")
         super().generic_visit(node)
 
 
 class _DependencyCollector(ast.NodeVisitor):
-    """表达式依赖变量收集器"""
+    """表達式依賴變量收集器"""
 
     def __init__(self):
         self.loaded_names: Set[str] = set()
@@ -106,7 +106,7 @@ def _parse_and_guard(expression: str) -> ast.Expression:
 
 @lru_cache(maxsize=1024)
 def _compile_expression(expression: str) -> tuple[Any, tuple[str, ...]]:
-    """编译表达式并缓存"""
+    """編譯表達式並緩存"""
     tree = _parse_and_guard(expression)
     code = compile(tree, "<workflow-expression>", "eval")
     dependencies = tuple(sorted(_analyze_tree(tree)))
@@ -114,9 +114,9 @@ def _compile_expression(expression: str) -> tuple[Any, tuple[str, ...]]:
 
 
 def validate_expression_syntax(expression: str) -> list[str]:
-    """校验表达式语法与安全规则"""
+    """校驗表達式語法與安全規則"""
     if not expression or not isinstance(expression, str):
-        return ["表达式不能为空"]
+        return ["表達式不能爲空"]
 
     try:
         _parse_and_guard(expression)
@@ -124,11 +124,11 @@ def validate_expression_syntax(expression: str) -> list[str]:
     except (SyntaxError, ExpressionSecurityError) as e:
         return [str(e)]
     except Exception as e:
-        return [f"表达式校验失败: {e}"]
+        return [f"表達式校驗失敗: {e}"]
 
 
 def get_expression_dependencies(expression: str) -> Set[str]:
-    """提取表达式依赖变量名"""
+    """提取表達式依賴變量名"""
     if not expression or not isinstance(expression, str):
         return set()
     try:
@@ -139,7 +139,7 @@ def get_expression_dependencies(expression: str) -> Set[str]:
 
 
 class ExpressionEvaluator:
-    """表达式求值器"""
+    """表達式求值器"""
 
     def __init__(self, context: Optional[Dict[str, Any]] = None):
         self.context = context or {}
@@ -155,14 +155,14 @@ class ExpressionEvaluator:
             result = eval(code, runtime_env, runtime_env)
             return unwrap_value(result)
         except Exception as e:
-            logger.error(f"表达式求值失败: {expression}, 错误: {e}")
-            raise ValueError(f"表达式求值失败: {str(e)}")
+            logger.error(f"表達式求值失敗: {expression}, 錯誤: {e}")
+            raise ValueError(f"表達式求值失敗: {str(e)}")
 
 
 def evaluate_expression(
     expression: str,
     context: Optional[Dict[str, Any]] = None
 ) -> Any:
-    """便捷函数：求值表达式"""
+    """便捷函數：求值表達式"""
     evaluator = ExpressionEvaluator(context)
     return evaluator.evaluate(expression)

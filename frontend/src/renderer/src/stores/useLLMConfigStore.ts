@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+﻿import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { listLLMConfigs, type LLMConfigRead } from '@renderer/api/setting'
@@ -15,8 +15,8 @@ export const useLLMConfigStore = defineStore('llmConfig', () => {
       const list = await listLLMConfigs()
       llmConfigs.value = list || []
     } catch (error) {
-      console.error('获取LLM配置列表失败:', error)
-      ElMessage.error('获取LLM配置列表失败')
+      console.error('獲取LLM配置列表失敗:', error)
+      ElMessage.error('獲取LLM配置列表失敗')
       throw error
     } finally {
       isLoading.value = false

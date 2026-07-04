@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <el-form-item :label="label" :prop="prop">
     <el-input-number 
       v-model="internalValue" 
@@ -37,7 +37,7 @@ watch(() => props.modelValue, (newValue) => {
 
 function handleChange(value: number | undefined) {
   if (value != null && props.schema?.type === 'integer') {
-    // 强制转为整数，避免出现小数
+    // 強制轉爲整數，避免出現小數
     const intVal = Math.floor(value)
     emit('update:modelValue', intVal)
   } else {

@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 from dataclasses import dataclass
@@ -206,7 +206,7 @@ async def _probe_review(request: LLMCapabilityTestRequest, *, user_agent: str | 
         response = await model.ainvoke(
             [
                 SystemMessage(content="Reply with one short Chinese review sentence."),
-                HumanMessage(content="这是一段测试文本。"),
+                HumanMessage(content="這是一段測試文本。"),
             ]
         )
         if not _message_text(response):
@@ -304,27 +304,27 @@ async def _probe_react_tools(request: LLMCapabilityTestRequest, *, user_agent: s
 def _make_tags(results: dict[str, ProbeResult], recommended: LLMCapabilityRecommendedMode) -> list[str]:
     tags: list[str] = []
     if results["basic_chat"].status == "pass":
-        tags.append("基础聊天可用")
+        tags.append("基礎聊天可用")
     if results["review"].status == "pass":
-        tags.append("审核可用")
+        tags.append("審核可用")
     if results["stream"].status == "pass":
         tags.append("流式可用")
     elif results["stream"].status == "fail":
-        tags.append("流式失败：建议关闭")
+        tags.append("流式失敗：建議關閉")
     if results["structured"].status == "pass":
-        tags.append("结构化输出可用")
+        tags.append("結構化輸出可用")
     elif results["structured"].status == "fail":
-        tags.append("结构化输出失败")
+        tags.append("結構化輸出失敗")
     if results["native_tools"].status == "pass":
         tags.append("原生工具可用")
     elif results["native_tools"].status == "fail":
-        tags.append("原生工具失败")
+        tags.append("原生工具失敗")
     if results["react_tools"].status == "pass":
         tags.append("ReAct可用")
     if any(item.error_type == "gateway_blocked" for item in results.values()):
-        tags.append("疑似网关/WAF拦截")
+        tags.append("疑似網關/WAF攔截")
     if results["basic_chat"].status == "pass" and results["review"].status == "pass" and recommended["assistant_mode"] == "plain":
-        tags.append("建议仅普通写作/审核")
+        tags.append("建議僅普通寫作/審核")
     return tags
 
 
@@ -343,17 +343,17 @@ def _overall(results: dict[str, ProbeResult], recommended: LLMCapabilityRecommen
 def _summary(overall: str, results: dict[str, ProbeResult], recommended: LLMCapabilityRecommendedMode) -> str:
     if overall == "unusable":
         if results["models_list"].status == "pass" and results["basic_chat"].status == "fail":
-            return "模型列表可用，但聊天请求被拦截。可尝试兼容修复。"
-        return "基础连接失败，当前配置不可用。"
+            return "模型列表可用，但聊天請求被攔截。可嘗試兼容修復。"
+        return "基礎連接失敗，當前配置不可用。"
     if overall == "full":
-        return "基础聊天、审核和原生工具调用可用。"
+        return "基礎聊天、審核和原生工具調用可用。"
     if overall == "react_assistant":
-        return "原生工具不可用，但 ReAct 工具模式可用，建议灵感助手使用 ReAct。"
+        return "原生工具不可用，但 ReAct 工具模式可用，建議靈感助手使用 ReAct。"
     if overall == "writing_review_only":
-        return "模型适合普通写作和审核，不建议使用标准工具助手。"
+        return "模型適合普通寫作和審核，不建議使用標準工具助手。"
     if recommended.get("disable_stream"):
-        return "基础聊天可用，但流式输出失败，建议关闭流式。"
-    return "模型仅通过基础聊天检测。"
+        return "基礎聊天可用，但流式輸出失敗，建議關閉流式。"
+    return "模型僅通過基礎聊天檢測。"
 
 
 async def run_capability_test(request: LLMCapabilityTestRequest) -> dict[str, Any]:
@@ -374,7 +374,7 @@ async def run_capability_test(request: LLMCapabilityTestRequest) -> dict[str, An
     results["basic_chat"] = await _probe_basic_chat(request)
 
     if request.try_repair and results["basic_chat"].status == "fail":
-        repair_notes.append(f"User-Agent=当前配置 基础连接失败：{results['basic_chat'].message}")
+        repair_notes.append(f"User-Agent=當前配置 基礎連接失敗：{results['basic_chat'].message}")
         seen_user_agents = {(request.user_agent or "").strip()}
         for candidate in REPAIR_USER_AGENT_CANDIDATES:
             if candidate in seen_user_agents:
@@ -382,14 +382,14 @@ async def run_capability_test(request: LLMCapabilityTestRequest) -> dict[str, An
             seen_user_agents.add(candidate)
             ua_basic = await _probe_basic_chat(request, user_agent=candidate)
             if ua_basic.status == "pass":
-                repair_notes.append(f"User-Agent={candidate} 修复成功")
+                repair_notes.append(f"User-Agent={candidate} 修復成功")
                 recommended["use_default_user_agent"] = True
                 recommended["recommended_user_agent"] = candidate
                 effective_user_agent = candidate
                 results["basic_chat"] = ua_basic
                 results["models_list"] = await _probe_models_list(request, user_agent=candidate)
                 break
-            repair_notes.append(f"User-Agent={candidate} 基础连接失败：{ua_basic.message}")
+            repair_notes.append(f"User-Agent={candidate} 基礎連接失敗：{ua_basic.message}")
 
     if request.try_repair and results["basic_chat"].status == "fail":
         alternate_protocol = "responses" if request.api_protocol == "chat_completions" else "chat_completions"
@@ -430,7 +430,7 @@ async def run_capability_test(request: LLMCapabilityTestRequest) -> dict[str, An
     overall = _overall(results, recommended)
     tags = _make_tags(results, recommended)
     if repair_notes:
-        tags.extend([f"修复尝试：{note}" for note in repair_notes])
+        tags.extend([f"修復嘗試：{note}" for note in repair_notes])
 
     return {
         "overall": overall,

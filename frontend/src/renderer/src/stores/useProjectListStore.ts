@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+﻿import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { components } from '@renderer/types/generated'
@@ -9,7 +9,7 @@ type ProjectCreate = components['schemas']['ProjectCreate']
 type ProjectUpdate = components['schemas']['ProjectUpdate']
 
 export const useProjectListStore = defineStore('projectList', () => {
-  // 项目列表
+  // 項目列表
   const projects = ref<Project[]>([])
   const isLoading = ref(false)
 
@@ -20,8 +20,8 @@ export const useProjectListStore = defineStore('projectList', () => {
       const list = await getProjects()
       projects.value = (list || []).filter(p => (p.name || '') !== '__free__')
     } catch (error) {
-      console.error('获取项目列表失败:', error)
-      ElMessage.error('获取项目列表失败')
+      console.error('獲取項目列表失敗:', error)
+      ElMessage.error('獲取項目列表失敗')
       throw error
     } finally {
       isLoading.value = false
@@ -32,10 +32,10 @@ export const useProjectListStore = defineStore('projectList', () => {
     try {
       const newProject = await apiCreateProject(projectData)
       await fetchProjects()
-      ElMessage.success('项目创建成功！')
+      ElMessage.success('項目創建成功！')
       return newProject
     } catch (error) {
-      ElMessage.error(`创建项目失败: ${error}`)
+      ElMessage.error(`創建項目失敗: ${error}`)
       throw error
     }
   }
@@ -43,27 +43,27 @@ export const useProjectListStore = defineStore('projectList', () => {
   async function updateProject(projectId: number, projectData: ProjectUpdate) {
     try {
       await apiUpdateProject(projectId, projectData)
-      ElMessage.success('项目更新成功！')
+      ElMessage.success('項目更新成功！')
       await fetchProjects()
     } catch (error) {
-      ElMessage.error(`更新项目失败: ${error}`)
+      ElMessage.error(`更新項目失敗: ${error}`)
       throw error
     }
   }
 
   async function deleteProject(projectId: number) {
     try {
-      // 额外前端保护：阻止删除保留项目
+      // 額外前端保護：阻止刪除保留項目
       const proj = projects.value.find(p => p.id === projectId)
       if (proj && (proj.name || '') === '__free__') {
-        ElMessage.warning('系统保留项目不可删除')
+        ElMessage.warning('系統保留項目不可刪除')
         return
       }
       await apiDeleteProject(projectId)
-      ElMessage.success('项目删除成功！')
+      ElMessage.success('項目刪除成功！')
       await fetchProjects()
     } catch (error) {
-      ElMessage.error(`删除项目失败: ${error}`)
+      ElMessage.error(`刪除項目失敗: ${error}`)
       throw error
     }
   }

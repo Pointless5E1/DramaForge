@@ -1,4 +1,4 @@
-appId: com.novelforge.app
+﻿appId: com.novelforge.app
 productName: NovelForge
 copyright: © 2025 NovelForge
 directories:
@@ -14,7 +14,7 @@ files:
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 asarUnpack:
   - backend/**
-# 将后端放到与可执行文件同级
+# 將後端放到與可執行文件同級
 extraFiles:
   - from: ../backend/dist
     to: backend
@@ -33,7 +33,7 @@ extraMetadata:
   FileDescription: NovelForge
   ProductName: NovelForge
   OriginalFilename: NovelForge.exe
-# 移除 NSIS 安装器相关配置（仅保留便携版）
+# 移除 NSIS 安裝器相關配置（僅保留便攜版）
 mac:
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:

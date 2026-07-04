@@ -1,0 +1,105 @@
+﻿# 工作流：分卷大綱
+# 功能：分卷大綱保存時，創建角色、場景、階段、寫作指南
+# 觸發器：分卷大綱卡片保存時自動觸發
+
+#@node(description="觸發器：監聽分卷大綱卡片保存")
+trigger = Trigger.CardSaved(card_type="分卷大綱")
+#</node>
+
+
+#@node(description="讀取分卷大綱")
+volume = Card.Read(card_id=trigger.card_id)
+#</node>
+
+
+#@node(description="提取新角色列表")
+new_characters = Logic.Expression(
+    expression="volume.content.new_character_cards or []"
+  )
+#</node>
+
+
+#@node(async=true, description="批量創建角色卡（異步）")
+char_cards = Card.BatchUpsert(
+    project_id=trigger.project_id,
+    parent_id=trigger.card_id,
+    card_type="角色卡",
+    title_template="{item.name}",
+    items=new_characters.result
+  )
+#</node>
+
+
+#@node(description="提取新場景列表")
+new_scenes = Logic.Expression(
+    expression="volume.content.new_scene_cards or []"
+  )
+#</node>
+
+
+#@node(async=true, description="批量創建場景卡（異步）")
+scene_cards = Card.BatchUpsert(
+    project_id=trigger.project_id,
+    parent_id=trigger.card_id,
+    card_type="場景卡",
+    title_template="{item.name}",
+    items=new_scenes.result
+  )
+#</node>
+
+
+#@node(description="生成階段列表")
+stages = Logic.Expression(
+    expression="[{'index': i, 'volume_number': volume.content.volume_number} for i in range(1, (volume.content.stage_count or 0) + 1)]"
+  )
+#</node>
+
+
+#@node(async=true, description="批量創建階段大綱（異步）")
+stage_cards = Card.BatchUpsert(
+    project_id=trigger.project_id,
+    parent_id=trigger.card_id,
+    card_type="階段大綱",
+    title_template="階段{item.index}",
+    content_template={
+      "stage_number": "{item.index}",
+      "volume_number": "{item.volume_number}"
+    },
+    items=stages.result
+  )
+#</node>
+
+
+#@node(description="創建寫作指南（包裝爲列表）")
+guide_item = Logic.Expression(
+    expression="[volume.content]"
+  )
+#</node>
+
+
+#@node(async=true, description="批量創建寫作指南（異步）")
+guide_card = Card.BatchUpsert(
+    project_id=trigger.project_id,
+    parent_id=trigger.card_id,
+    card_type="寫作指南",
+    title_template="寫作指南",
+    content_template="{item}",
+    items=guide_item.result
+  )
+#</node>
+
+
+#@node(description="等待所有異步任務完成")
+wait_result = Logic.Wait(tasks=[char_cards, scene_cards, stage_cards, guide_card])
+#</node>
+
+
+#@node(description="清空臨時列表")
+update_result = Card.Update(
+    card_id=trigger.card_id,
+    content_merge={
+      "new_character_cards": [],
+      "new_scene_cards": []
+    }
+  )
+#</node>

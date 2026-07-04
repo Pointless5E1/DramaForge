@@ -1,0 +1,309 @@
+﻿# 工作流：拆書工作流（重構版）
+# 目標：
+# 1) 先提取章節大綱並存爲“通用文本”卡片
+# 2) 按每80章上下文進行階段候選劃分
+# 3) 合併爲全書最終階段，生成階段卡片（通用文本）
+# 4) 基於階段大綱生成全局拆書分析卡片（通用文本）
+
+#@node(description="選擇當前執行的目標項目")
+project = Logic.SelectProject(project_id=10)
+#</node>
+
+
+#@node(description="選擇用於本流程的主模型配置（可在前端下拉切換）")
+llm = Logic.SelectLLM(llm_config_id=5)
+#</node>
+
+
+#@node(description="掃描小說目錄")
+novel = Novel.Load(
+    root_path="E:\\LLMProjects\\小說數據\\我的世界",
+    file_pattern=".*\\.(txt|md)$",
+    volume_pattern="第[一二三四五六七八九十0-9]+[卷部紀]",
+    chapter_pattern="第([零一二三四五六七八九十百千0-9]+)章"
+  )
+#</node>
+
+
+#@node(description="設置拆書運行參數（分塊大小、階段上限等）")
+settings = Logic.Expression(
+    expression="{'llm_config_id': llm.llm_config_id, 'chapter_chunk_size': 80, 'max_stage_count': 20, 'outline_concurrency': 30}"
+  )
+#</node>
+
+
+#@node(description="加載“章節大綱摘要”提示詞")
+chapter_outline_prompt = Prompt.Load(prompt_id="拆書_章節大綱摘要")
+#</node>
+
+
+#@node(async=true, description="異步批量提取章節大綱")
+outline_results = AI.BatchStructured(
+    llm_config_id=settings.result.llm_config_id,
+    response_model_id="通用文本",
+    prompt_template=chapter_outline_prompt.text,
+    use_instruction_flow=True,
+    concurrency=settings.result.outline_concurrency,
+    max_retries=3,
+    items=novel.chapter_list
+  )
+#</node>
+
+
+#@node(description="等待章節大綱提取完成")
+wait_outline = Logic.Wait(tasks=outline_results)
+#</node>
+
+
+#@node(description="章節摘要標準化（補齊全書順序號 chapter_no）")
+chapter_outline_items = Logic.Expression(
+    expression="[{'chapter_no': idx + 1, 'title': item.meta.title if item.meta and 'title' in item.meta else f'第{idx + 1}章', 'volume': item.meta.volume if item.meta and 'volume' in item.meta else '未分卷', 'path': item.meta.path if item.meta and 'path' in item.meta else '', 'outline': item.ai_result.content if item.ai_result and 'content' in item.ai_result else (json_stringify(item.ai_result) if item.ai_result else '')} for idx, item in enumerate(outline_results.results) if item and 'ai_result' in item and item.ai_result] if wait_outline.count > 0 else []"
+  )
+#</node>
+
+
+#@node(description="將章節摘要按 chunk_size 分塊（默認80章/塊）")
+chapter_chunks = Logic.Expression(
+    expression="[{'chunk_index': idx + 1, 'total_chunks': (len(chapter_outline_items.result) + settings.result.chapter_chunk_size - 1) // settings.result.chapter_chunk_size, 'start_chapter': chunk[0].chapter_no, 'end_chapter': chunk[-1].chapter_no, 'chapter_count': len(chunk), 'max_stage_count_for_chunk': max(1, (settings.result.max_stage_count * len(chunk) + max(1, len(chapter_outline_items.result)) - 1) // max(1, len(chapter_outline_items.result))), 'content': '\\n\\n'.join([f\"{row.title}\\n所屬分卷：{row.volume}\\n章節大綱：{row.outline}\" for row in chunk])} for idx, chunk in enumerate([chapter_outline_items.result[i:i + settings.result.chapter_chunk_size] for i in range(0, len(chapter_outline_items.result), settings.result.chapter_chunk_size)])] if chapter_outline_items.result else []"
+  )
+#</node>
+
+
+#@node(description="加載“分塊階段劃分”提示詞")
+stage_split_prompt = Prompt.Load(
+    prompt_id="拆書_階段劃分",
+    variables={
+      "total_chapters": "${len(chapter_outline_items.result)}",
+      "max_stage_count": "${settings.result.max_stage_count}"
+    }
+  )
+#</node>
+
+
+#@node(async=true, description="順序生成階段候選（每個 chunk 產出 1~N 個階段）")
+stage_chunk_results = AI.SequentialStructured(
+    llm_config_id=settings.result.llm_config_id,
+    response_model_id="BookStageChunkPlan",
+    prompt_template=stage_split_prompt.text,
+    temperature=0.6,
+    max_tokens=12000,
+    timeout=240,
+    max_retries=3,
+    use_instruction_flow=True,
+    fail_soft=True,
+    items=chapter_chunks.result
+  )
+#</node>
+
+
+#@node(description="等待階段候選完成")
+wait_stage_chunks = Logic.Wait(tasks=stage_chunk_results)
+#</node>
+
+
+#@node(description="展平成全書階段候選列表")
+stage_candidates = Logic.Expression(
+    expression="[{'stage_name': stage.stage_name, 'chapter_start': stage.chapter_start, 'chapter_end': stage.chapter_end, 'stage_outline': stage.stage_outline, 'stage_summary': (stage.stage_summary if stage and 'stage_summary' in stage else None)} for chunk in stage_chunk_results.results if chunk and 'ai_result' in chunk and chunk.ai_result and 'stages' in chunk.ai_result for stage in chunk.ai_result.stages if stage and stage.chapter_start and stage.chapter_end] if wait_stage_chunks.count > 0 else []"
+  )
+#</node>
+
+
+#@node(description="候選階段直出爲最終階段（保留分塊提取的細節，不做二次重寫）")
+final_stages = Logic.Expression(
+    expression="stage_candidates.result or []"
+  )
+#</node>
+
+
+#@node(description="去重與壓縮階段：合併相鄰重複同名階段，抑制單章重複碎片")
+final_stages_squashed = Logic.Expression(
+    expression="squash_adjacent_stages(final_stages.result)"
+  )
+#</node>
+
+
+#@node(description="階段範圍歸一化：確保 1..全書章節連續覆蓋（漏章併入上一階段）")
+final_stages_normalized = Logic.Expression(
+    expression="normalize_ranges(final_stages_squashed.result, start=1, end=len(chapter_outline_items.result))"
+  )
+#</node>
+
+
+#@node(description="組裝階段卡片內容（聚焦階段大綱，不附章節原文）")
+stage_card_items = Logic.Expression(
+    expression="[{'stage_number': idx + 1, 'stage_name': stage.stage_name, 'chapter_start': stage.chapter_start, 'chapter_end': stage.chapter_end, 'stage_title': f\"階段{idx + 1}：{stage.stage_name}\", 'content': f\"【階段名稱】\\n{stage.stage_name}\\n\\n【章節範圍】\\n第{stage.chapter_start}章 - 第{stage.chapter_end}章\\n\\n【階段劇情概述】\\n{(stage.stage_summary or '')}\\n\\n【階段大綱】\\n{stage.stage_outline}\"} for idx, stage in enumerate(final_stages_normalized.result)] if final_stages_normalized.result else []"
+  )
+#</node>
+
+
+#@node(description="創建階段卡片（通用文本）")
+stage_cards = Card.BatchUpsert(
+    project_id=project.project_id,
+    card_type="通用文本",
+    title_template="{item.stage_title}",
+    content_template={"content": "{item.content}"},
+    items=stage_card_items.result
+  )
+#</node>
+
+
+#@node(description="建立階段標題 -> 階段卡ID映射")
+stage_title_to_id = Logic.Expression(
+    expression="{card.title: card.id for card in stage_cards.cards or []}"
+  )
+#</node>
+
+
+#@node(description="組裝“階段範圍 -> 父卡ID”列表")
+stage_ranges_with_parent = Logic.Expression(
+    expression="[{'chapter_start': stage.chapter_start, 'chapter_end': stage.chapter_end, 'parent_id': stage_title_to_id.result[stage.stage_title] if stage.stage_title in stage_title_to_id.result else None} for stage in stage_card_items.result if stage and stage.chapter_start and stage.chapter_end]"
+  )
+#</node>
+
+
+#@node(description="爲章節匹配所屬階段並注入父卡ID")
+chapter_items_with_parent = Logic.Expression(
+    expression="[{'chapter_no': chapter.chapter_no, 'title': chapter.title, 'outline': chapter.outline, 'parent_id': ([range_item.parent_id for range_item in stage_ranges_with_parent.result if range_item.parent_id and chapter.chapter_no >= range_item.chapter_start and chapter.chapter_no <= range_item.chapter_end] or [None])[0]} for chapter in chapter_outline_items.result] if chapter_outline_items.result else []"
+  )
+#</node>
+
+
+#@node(description="存儲章節大綱卡片（通用文本，掛到對應階段下）")
+chapter_outline_cards = Card.BatchUpsert(
+    project_id=project.project_id,
+    card_type="通用文本",
+    title_template="{item.title}",
+    content_template={"content": "{item.outline}"},
+    parent_id="{item.parent_id}",
+    items=chapter_items_with_parent.result
+  )
+#</node>
+
+
+#@node(description="彙總階段材料，供全局拆書分析")
+stage_digest = Logic.Expression(
+    expression="'\\n\\n'.join([f\"階段{idx + 1}：{stage.stage_name}\\n章節範圍：第{stage.chapter_start}章-第{stage.chapter_end}章\\n\\n【階段概述】\\n{(stage.stage_summary or '')}\\n\\n【階段大綱】\\n{stage.stage_outline}\" for idx, stage in enumerate(final_stages_normalized.result)]) if final_stages_normalized.result else '（無階段數據）'"
+  )
+#</node>
+
+
+#@node(description="加載全案拆解提示詞（基礎畫像/核心設定/骨架結構）")
+global_profile_prompt = Prompt.Load(
+    prompt_id="拆書_全案拆解_基礎骨架",
+    variables={
+      "stage_digest": "$stage_digest.result"
+    }
+  )
+#</node>
+
+
+#@node(description="加載全案拆解提示詞（人物脈絡）")
+global_character_prompt = Prompt.Load(
+    prompt_id="拆書_全案拆解_人物脈絡",
+    variables={
+      "stage_digest": "$stage_digest.result"
+    }
+  )
+#</node>
+
+
+#@node(description="加載全案拆解提示詞（技法庫/行動指南）")
+global_action_prompt = Prompt.Load(
+    prompt_id="拆書_全案拆解_技法行動",
+    variables={
+      "stage_digest": "$stage_digest.result"
+    }
+  )
+#</node>
+
+
+#@node(async=true, description="並行生成分析文本（基礎畫像/核心設定/骨架結構）")
+global_profile_analysis = AI.LLM(
+    llm_config_id=settings.result.llm_config_id,
+    user_prompt=global_profile_prompt.text,
+    temperature=0.6,
+    max_tokens=12000,
+    timeout=240,
+    max_retry=3
+  )
+#</node>
+
+
+#@node(async=true, description="並行生成分析文本（人物脈絡）")
+global_character_analysis = AI.LLM(
+    llm_config_id=settings.result.llm_config_id,
+    user_prompt=global_character_prompt.text,
+    temperature=0.6,
+    max_tokens=12000,
+    timeout=240,
+    max_retry=3
+  )
+#</node>
+
+
+#@node(async=true, description="並行生成分析文本（技法庫/行動指南）")
+global_action_analysis = AI.LLM(
+    llm_config_id=settings.result.llm_config_id,
+    user_prompt=global_action_prompt.text,
+    temperature=0.6,
+    max_tokens=12000,
+    timeout=240,
+    max_retry=3
+  )
+#</node>
+
+
+#@node(description="等待三路全案拆解分析完成")
+wait_global_analyses = Logic.Wait(tasks=[global_profile_analysis, global_character_analysis, global_action_analysis])
+#</node>
+
+
+#@node(description="彙總分析文本（基礎畫像/核心設定/骨架結構）")
+global_profile_text = Logic.Expression(
+    expression="global_profile_analysis.response if wait_global_analyses.count >= 0 else ''"
+  )
+#</node>
+
+
+#@node(description="彙總分析文本（人物脈絡）")
+global_character_text = Logic.Expression(
+    expression="global_character_analysis.response if wait_global_analyses.count >= 0 else ''"
+  )
+#</node>
+
+
+#@node(description="彙總分析文本（技法庫/行動指南）")
+global_action_text = Logic.Expression(
+    expression="global_action_analysis.response if wait_global_analyses.count >= 0 else ''"
+  )
+#</node>
+
+
+#@node(description="保存全案拆解卡片（基礎畫像/核心設定/骨架結構）")
+global_profile_card = Card.Create(
+    project_id=project.project_id,
+    card_type="通用文本",
+    title="拆書全案拆解：基礎骨架",
+    content={"content": global_profile_text.result}
+  )
+#</node>
+
+
+#@node(description="保存全案拆解卡片（人物脈絡）")
+global_character_card = Card.Create(
+    project_id=project.project_id,
+    card_type="通用文本",
+    title="拆書全案拆解：人物脈絡",
+    content={"content": global_character_text.result}
+  )
+#</node>
+
+
+#@node(description="保存全案拆解卡片（技法庫/行動指南）")
+global_action_card = Card.Create(
+    project_id=project.project_id,
+    card_type="通用文本",
+    title="拆書全案拆解：技法行動",
+    content={"content": global_action_text.result}
+  )
+#</node>

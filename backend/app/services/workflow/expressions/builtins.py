@@ -1,4 +1,4 @@
-"""表达式执行环境（受控 builtins + helper）"""
+﻿"""表達式執行環境（受控 builtins + helper）"""
 
 from __future__ import annotations
 
@@ -35,7 +35,7 @@ ALLOWED_BUILTIN_NAMES = (
 
 @lru_cache(maxsize=1)
 def get_safe_builtins() -> Dict[str, Any]:
-    """获取安全内置函数白名单"""
+    """獲取安全內置函數白名單"""
     return {
         name: getattr(py_builtins, name)
         for name in ALLOWED_BUILTIN_NAMES
@@ -45,20 +45,20 @@ def get_safe_builtins() -> Dict[str, Any]:
 
 @lru_cache(maxsize=1)
 def get_safe_helpers() -> Dict[str, Callable]:
-    """获取表达式 helper（兼容历史函数库）"""
+    """獲取表達式 helper（兼容歷史函數庫）"""
     return get_builtin_functions()
 
 
 @lru_cache(maxsize=1)
 def get_safe_globals() -> Dict[str, Any]:
-    """构造 eval 全局变量"""
+    """構造 eval 全局變量"""
     safe_builtins = get_safe_builtins()
     safe_helpers = get_safe_helpers()
     globals_dict: Dict[str, Any] = {
         "__builtins__": safe_builtins
     }
 
-    # helper 与 builtins 同名时，以 builtins 为准
+    # helper 與 builtins 同名時，以 builtins 爲準
     for name, func in safe_helpers.items():
         if name not in safe_builtins:
             globals_dict[name] = func
@@ -68,7 +68,7 @@ def get_safe_globals() -> Dict[str, Any]:
 
 @lru_cache(maxsize=1)
 def get_safe_global_names() -> set[str]:
-    """获取全局可见名字（用于依赖提取过滤）"""
+    """獲取全局可見名字（用於依賴提取過濾）"""
     names = set(get_safe_builtins().keys())
     names.update(get_safe_helpers().keys())
     return names

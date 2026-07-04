@@ -1,5 +1,5 @@
-/**
- * 更新检测状态管理 Store
+﻿/**
+ * 更新檢測狀態管理 Store
  */
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
@@ -7,7 +7,7 @@ import type { ReleaseInfo, UpdateCheckResult } from '@renderer/services/updateSe
 import { autoCheckForUpdates, manualCheckForUpdates, getCurrentVersion } from '@renderer/services/updateService'
 
 export const useUpdateStore = defineStore('update', () => {
-  // 当前版本
+  // 當前版本
   const currentVersion = ref(getCurrentVersion())
   
   // 最新版本信息
@@ -19,29 +19,29 @@ export const useUpdateStore = defineStore('update', () => {
     return latestVersion.value !== null && releaseInfo.value !== null
   })
   
-  // 检测状态
+  // 檢測狀態
   const isChecking = ref(false)
   const lastCheckTime = ref<Date | null>(null)
   const lastCheckError = ref<string | null>(null)
   
-  // 自动检测开关（持久化到 localStorage）
+  // 自動檢測開關（持久化到 localStorage）
   const autoCheckEnabled = ref(true)
   
-  // 初始化时从 localStorage 读取设置
+  // 初始化時從 localStorage 讀取設置
   const STORAGE_KEY = 'novelforge_auto_update_enabled'
   const storedSetting = localStorage.getItem(STORAGE_KEY)
   if (storedSetting !== null) {
     autoCheckEnabled.value = storedSetting === 'true'
   }
   
-  // 监听自动检测开关变化，同步到 localStorage
+  // 監聽自動檢測開關變化，同步到 localStorage
   function setAutoCheckEnabled(enabled: boolean) {
     autoCheckEnabled.value = enabled
     localStorage.setItem(STORAGE_KEY, String(enabled))
   }
   
   /**
-   * 执行更新检测（内部方法）
+   * 執行更新檢測（內部方法）
    */
   async function performCheck(checkFn: () => Promise<UpdateCheckResult>): Promise<UpdateCheckResult> {
     isChecking.value = true
@@ -62,7 +62,7 @@ export const useUpdateStore = defineStore('update', () => {
       
       return result
     } catch (error: any) {
-      lastCheckError.value = error.message || '检测失败'
+      lastCheckError.value = error.message || '檢測失敗'
       throw error
     } finally {
       isChecking.value = false
@@ -70,37 +70,37 @@ export const useUpdateStore = defineStore('update', () => {
   }
   
   /**
-   * 自动检测更新（带重试）
+   * 自動檢測更新（帶重試）
    */
   async function autoCheck(): Promise<UpdateCheckResult> {
     return performCheck(autoCheckForUpdates)
   }
   
   /**
-   * 手动检测更新（不重试）
+   * 手動檢測更新（不重試）
    */
   async function manualCheck(): Promise<UpdateCheckResult> {
     return performCheck(manualCheckForUpdates)
   }
   
   /**
-   * 清除更新状态（用户已知晓更新后可调用）
+   * 清除更新狀態（用戶已知曉更新後可調用）
    */
   function clearUpdateNotification() {
-    // 注意：这里不清除 latestVersion 和 releaseInfo，
-    // 只是用于 UI 逻辑（比如关闭通知弹窗）
-    // 如果需要真正清除，可以在这里实现
+    // 注意：這裏不清除 latestVersion 和 releaseInfo，
+    // 只是用於 UI 邏輯（比如關閉通知彈窗）
+    // 如果需要真正清除，可以在這裏實現
   }
   
   /**
-   * 重置错误状态
+   * 重置錯誤狀態
    */
   function clearError() {
     lastCheckError.value = null
   }
   
   return {
-    // 状态
+    // 狀態
     currentVersion,
     latestVersion,
     releaseInfo,

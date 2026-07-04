@@ -1,29 +1,29 @@
-# 数据库相关
+﻿# 數據庫相關
 backend/*.db
 backend/**/*.db
 
-# Python缓存
+# Python緩存
 **/__pycache__/
 *.py[cod]
 *$py.class
 
-# Python虚拟环境
+# Python虛擬環境
 venv/
 env/
 .venv/
 .env/
 
-# Alembic相关
+# Alembic相關
 backend/alembic/versions/*.py
 !backend/alembic/versions/__init__.py
 
-# 忽略所有md文档，除了README
+# 忽略所有md文檔，除了README
 *.md
 !README.md
 !README.MD
 !CLA.md
-!贡献指南.md
-!后续规划.md
+!貢獻指南.md
+!後續規劃.md
 !rules/**/*.md
 !rules/**/*.mdc
 
@@ -44,17 +44,17 @@ docs/
 *.swo
 *~
 
-# 系统文件
+# 系統文件
 .DS_Store
 Thumbs.db
 desktop.ini
 .env
 
-# 日志文件
+# 日誌文件
 *.log
 *.log.*
 
-# 临时文件
+# 臨時文件
 *.tmp
 *.temp 
 

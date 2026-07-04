@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { ref } from 'vue'
 import LLMConfigManager from '../setting/LLMConfigManager.vue'
 import Versions from '../Versions.vue'
@@ -12,7 +12,7 @@ const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits<{ 'update:modelValue': [value: boolean]; 'close': [] }>()
 
 const activeTab = ref('llm')
-// 读取全局 store 预设的初始 tab
+// 讀取全局 store 預設的初始 tab
 import { useAppStore } from '@renderer/stores/useAppStore'
 const appStore = useAppStore()
 const updateStore = useUpdateStore()
@@ -23,7 +23,7 @@ function handleClose() {
   emit('close')
 }
 
-// 当切到 LLM 标签或首次显示时，让子组件刷新
+// 當切到 LLM 標籤或首次顯示時，讓子組件刷新
 import { onMounted, watch, nextTick } from 'vue'
 const llmManagerRef = ref()
 function emitRefreshIfLLM() {
@@ -33,7 +33,7 @@ function emitRefreshIfLLM() {
 }
 onMounted(() => emitRefreshIfLLM())
 watch(() => activeTab.value, () => emitRefreshIfLLM())
-// 对话框每次打开也刷新一次（等待子组件渲染完成）
+// 對話框每次打開也刷新一次（等待子組件渲染完成）
 watch(() => props.modelValue, async (open) => { if (open) { await nextTick(); emitRefreshIfLLM() } })
 </script>
 
@@ -41,7 +41,7 @@ watch(() => props.modelValue, async (open) => { if (open) { await nextTick(); em
   <el-dialog 
     :model-value="modelValue" 
     @update:model-value="(val) => emit('update:modelValue', val)"
-    title="应用设置" 
+    title="應用設置" 
     width="85%" 
     top="4vh"
     @close="handleClose"
@@ -51,22 +51,22 @@ watch(() => props.modelValue, async (open) => { if (open) { await nextTick(); em
         <el-tab-pane label="LLM 配置" name="llm">
           <LLMConfigManager ref="llmManagerRef" />
         </el-tab-pane>
-        <el-tab-pane label="知识库" name="knowledge">
+        <el-tab-pane label="知識庫" name="knowledge">
           <KnowledgeManager />
         </el-tab-pane>
-        <el-tab-pane label="提示词工坊" name="prompts">
+        <el-tab-pane label="提示詞工坊" name="prompts">
           <PromptWorkshop />
         </el-tab-pane>
-        <el-tab-pane label="卡片类型" name="card-types">
+        <el-tab-pane label="卡片類型" name="card-types">
           <CardTypeManager />
         </el-tab-pane>
-        <el-tab-pane label="Agent 设置" name="assistant">
+        <el-tab-pane label="Agent 設置" name="assistant">
           <AssistantSettings />
         </el-tab-pane>
         <el-tab-pane name="about">
           <template #label>
             <el-badge :is-dot="updateStore.hasUpdate" type="warning">
-              <span>关于</span>
+              <span>關於</span>
             </el-badge>
           </template>
           <Versions />

@@ -1,0 +1,86 @@
+﻿# ============================================================
+# AI 辯論測試工作流
+# ============================================================
+# 功能：測試 AI.Debate 節點的進度報告和斷點續傳
+# 主題：金錢是否是萬能的
+# 
+# 節點說明：
+# 1. Logic.SelectProject - 選擇項目（需要先在系統中創建項目）
+# 2. AI.Debate - 異步執行辯論（3輪，每輪雙方各發言一次）
+# 3. Logic.Wait - 等待辯論完成
+# 4. Card.Create - 創建兩張卡片保存辯論結果
+# ============================================================
+
+#@node(description="1. 選擇項目（請修改 project_id 爲你的實際項目ID）")
+project = Logic.SelectProject(project_id=11)
+#</node>
+
+
+#@node(async=true, description="2. AI 辯論：金錢是否是萬能的（異步執行）")
+debate = AI.Debate(
+    topic="金錢是否是萬能的",
+    context="這是一個經典的哲學辯論話題。請從多個角度深入分析，包括物質層面、精神層面、社會關係等。",
+    max_rounds=3,
+    agent_1_name="正方（金錢萬能派）",
+    agent_1_system_prompt="你是正方辯手，認爲金錢是萬能的。你需要：1. 列舉金錢能解決的各種問題 2. 強調金錢在現代社會的重要性 3. 用具體案例支持你的觀點。請保持邏輯嚴密，論據充分。",
+    agent_1_llm_config=5,
+    agent_2_name="反方（金錢有限派）",
+    agent_2_system_prompt="你是反方辯手，認爲金錢不是萬能的。你需要：1. 指出金錢無法解決的問題（如真愛、健康、時間等）2. 強調精神價值的重要性 3. 用具體案例反駁對方。請保持邏輯嚴密，論據充分。",
+    agent_2_llm_config=5,
+    temperature=0.8,
+    max_tokens=3000
+  )
+#</node>
+
+
+#@node(description="3. 等待辯論完成（必須等待異步節點）")
+wait_debate = Logic.Wait(tasks=debate)
+#</node>
+
+
+#@node(description="4. 格式化辯論完整記錄爲文本")
+format_full_log = Logic.Expression(
+    expression="'\\n\\n'.join([f\"=== 第 {log['round']} 輪 - {log['role']} ===\\n\\n【思考】\\n{log['thought']}\\n\\n【發言】\\n{log['content']}\" for log in debate.full_log]) if wait_debate.count > 0 else '辯論未完成'"
+  )
+#</node>
+
+
+#@node(description="5. 格式化辯論摘要爲文本")
+format_summary = Logic.Expression(
+    expression="f\"辯論主題：金錢是否是萬能的\\n\\n總結：\\n{debate.summary}\\n\\n完整對話記錄：\\n\\n\" + '\\n\\n'.join([f\"{msg['role']}：\\n{msg['content']}\" for msg in debate.history]) if wait_debate.count > 0 else '辯論未完成'"
+  )
+#</node>
+
+
+#@node(description="6. 創建卡片1：辯論完整記錄（包含思考過程）")
+card_full_log = Card.Create(
+    project_id=project.project_id,
+    card_type="章節正文",
+    title="AI辯論完整記錄 - 金錢是否萬能",
+    content={
+      "volume_number": 0,
+      "stage_number": 1,
+      "title": "AI辯論完整記錄 - 金錢是否萬能",
+      "chapter_number": 1,
+      "entity_list": [],
+      "content": format_full_log.result
+    }
+  )
+#</node>
+
+
+#@node(description="7. 創建卡片2：辯論摘要（僅公開發言）")
+card_summary = Card.Create(
+    project_id=project.project_id,
+    card_type="章節正文",
+    title="AI辯論摘要 - 金錢是否萬能",
+    content={
+      "volume_number": 0,
+      "stage_number": 1,
+      "title": "AI辯論摘要 - 金錢是否萬能",
+      "chapter_number": 2,
+      "entity_list": [],
+      "content": format_summary.result
+    }
+  )
+#</node>

@@ -1,4 +1,4 @@
-export type DesktopNotificationPermission = NotificationPermission | 'unsupported'
+﻿export type DesktopNotificationPermission = NotificationPermission | 'unsupported'
 export type TaskDoneNotificationPermission = DesktopNotificationPermission
 
 export type TaskDoneNotifyOptions = {
@@ -191,7 +191,7 @@ export function notifyTaskDone(options: TaskDoneNotifyOptions = {}): void {
   try {
     const {
       taskId,
-      title = '任务已完成',
+      title = '任務已完成',
       body,
       enableSound,
       enableDesktopNotification,

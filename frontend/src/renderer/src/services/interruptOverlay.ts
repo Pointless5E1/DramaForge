@@ -1,4 +1,4 @@
-let overlayEl: HTMLElement | null = null
+﻿let overlayEl: HTMLElement | null = null
 let styleEl: HTMLStyleElement | null = null
 
 export function showInterruptOverlay(text: string, onCancel: () => void) {
@@ -21,7 +21,7 @@ export function showInterruptOverlay(text: string, onCancel: () => void) {
     <div class="nf-interrupt-backdrop"></div>
     <div class="nf-interrupt-box">
       <div class="nf-interrupt-text">${text || 'AI 生成中…'}</div>
-      <button class="nf-interrupt-btn" id="nf-interrupt-btn">中断生成</button>
+      <button class="nf-interrupt-btn" id="nf-interrupt-btn">中斷生成</button>
     </div>
   `
   document.body.appendChild(overlayEl)

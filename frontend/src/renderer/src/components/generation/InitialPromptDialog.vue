@@ -1,27 +1,27 @@
-<template>
+﻿<template>
   <el-dialog
     v-model="dialogVisible"
-    title="开始生成卡片"
+    title="開始生成卡片"
     width="500px"
     :close-on-click-modal="false"
   >
     <div class="dialog-content">
       <p class="hint-text">
-        你可以提供一些生成偏好或要求（可选）
+        你可以提供一些生成偏好或要求（可選）
       </p>
       <p class="hint-subtext">
-        直接点击"开始生成"，AI 会自主决定生成内容
+        直接點擊"開始生成"，AI 會自主決定生成內容
       </p>
 
       <el-checkbox v-model="useExistingContent" class="content-option">
-        基于现有内容继续生成（如果卡片已有部分内容）
+        基於現有內容繼續生成（如果卡片已有部分內容）
       </el-checkbox>
 
       <el-input
         v-model="userPrompt"
         type="textarea"
         :rows="4"
-        placeholder="例如：年轻武者，擅长剑术，性格沉稳..."
+        placeholder="例如：年輕武者，擅長劍術，性格沉穩..."
         maxlength="500"
         show-word-limit
         @keyup.ctrl.enter="handleStartGenerate"
@@ -47,14 +47,14 @@
           取消
         </el-button>
         <el-button @click="handleSkip">
-          跳过，直接生成
+          跳過，直接生成
         </el-button>
         <el-button
           type="primary"
           :disabled="!userPrompt.trim()"
           @click="handleStartGenerate"
         >
-          开始生成
+          開始生成
         </el-button>
       </div>
     </template>
@@ -77,23 +77,23 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
-// ==================== 状态管理 ====================
+// ==================== 狀態管理 ====================
 
 const dialogVisible = ref(false)
 const userPrompt = ref('')
 const useExistingContent = ref(false)
 
-// 示例提示（根据卡片类型动态调整）
+// 示例提示（根據卡片類型動態調整）
 const examples = ref<string[]>([
-  '年轻武者，擅长剑术',
-  '神秘的魔法师，精通元素魔法',
-  '经验丰富的商人，善于谈判'
+  '年輕武者，擅長劍術',
+  '神祕的魔法師，精通元素魔法',
+  '經驗豐富的商人，善於談判'
 ])
 
 // ==================== 方法 ====================
 
 /**
- * 处理开始生成
+ * 處理開始生成
  */
 function handleStartGenerate() {
   emit('confirm', userPrompt.value.trim(), useExistingContent.value)
@@ -103,7 +103,7 @@ function handleStartGenerate() {
 }
 
 /**
- * 处理跳过
+ * 處理跳過
  */
 function handleSkip() {
   emit('confirm', '', useExistingContent.value)
@@ -113,7 +113,7 @@ function handleSkip() {
 }
 
 /**
- * 处理取消
+ * 處理取消
  */
 function handleCancel() {
   emit('cancel')
@@ -121,7 +121,7 @@ function handleCancel() {
   userPrompt.value = ''
 }
 
-// ==================== 监听 ====================
+// ==================== 監聽 ====================
 
 watch(() => props.visible, (val) => {
   dialogVisible.value = val
@@ -131,34 +131,34 @@ watch(dialogVisible, (val) => {
   emit('update:visible', val)
 })
 
-// 根据卡片类型调整示例
+// 根據卡片類型調整示例
 watch(() => props.cardTypeName, (typeName) => {
   if (!typeName) return
 
-  // 可以根据不同的卡片类型提供不同的示例
+  // 可以根據不同的卡片類型提供不同的示例
   if (typeName.includes('角色') || typeName.includes('Character')) {
     examples.value = [
-      '年轻武者，擅长剑术',
-      '神秘的魔法师，精通元素魔法',
-      '经验丰富的商人，善于谈判'
+      '年輕武者，擅長劍術',
+      '神祕的魔法師，精通元素魔法',
+      '經驗豐富的商人，善於談判'
     ]
-  } else if (typeName.includes('章节') || typeName.includes('Chapter')) {
+  } else if (typeName.includes('章節') || typeName.includes('Chapter')) {
     examples.value = [
-      '紧张刺激的战斗场景',
-      '温馨的日常对话',
-      '关键的剧情转折'
+      '緊張刺激的戰鬥場景',
+      '溫馨的日常對話',
+      '關鍵的劇情轉折'
     ]
-  } else if (typeName.includes('大纲') || typeName.includes('Outline')) {
+  } else if (typeName.includes('大綱') || typeName.includes('Outline')) {
     examples.value = [
-      '三幕式结构',
+      '三幕式結構',
       '英雄之旅模式',
-      '多线叙事'
+      '多線敘事'
     ]
   } else {
     examples.value = [
-      '简洁明了',
-      '详细完整',
-      '富有创意'
+      '簡潔明瞭',
+      '詳細完整',
+      '富有創意'
     ]
   }
 })

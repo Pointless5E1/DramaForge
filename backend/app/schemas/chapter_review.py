@@ -1,4 +1,4 @@
-from datetime import datetime
+﻿from datetime import datetime
 from typing import Any, Dict, Literal, Optional
 
 from pydantic import BaseModel, Field
@@ -10,19 +10,19 @@ TargetType = Literal["card"]
 
 
 class ReviewResultCardContent(BaseModel):
-    review_target_card_id: int = Field(description="被审核卡片 ID")
-    review_target_title: str = Field(description="被审核卡片标题")
-    review_target_type: TargetType = Field(default="card", description="被审核目标类型")
-    review_type: ReviewType = Field(default="card", description="审核类型")
-    review_profile: str = Field(description="审核 profile code")
-    review_target_field: Optional[str] = Field(default=None, description="被审核字段路径")
-    quality_gate: QualityGate = Field(description="审核结论")
-    review_markdown: str = Field(description="审核结果正文（Markdown）")
-    prompt_name: str = Field(description="使用的提示词名称")
-    llm_config_id: Optional[int] = Field(default=None, description="审核所用模型配置")
-    reviewed_at: str = Field(description="审核时间（ISO 格式字符串）")
-    target_snapshot: Optional[str] = Field(default=None, description="被审核内容快照")
-    meta: Dict[str, Any] = Field(default_factory=dict, description="扩展元数据")
+    review_target_card_id: int = Field(description="被審核卡片 ID")
+    review_target_title: str = Field(description="被審核卡片標題")
+    review_target_type: TargetType = Field(default="card", description="被審核目標類型")
+    review_type: ReviewType = Field(default="card", description="審核類型")
+    review_profile: str = Field(description="審核 profile code")
+    review_target_field: Optional[str] = Field(default=None, description="被審核字段路徑")
+    quality_gate: QualityGate = Field(description="審核結論")
+    review_markdown: str = Field(description="審核結果正文（Markdown）")
+    prompt_name: str = Field(description="使用的提示詞名稱")
+    llm_config_id: Optional[int] = Field(default=None, description="審核所用模型配置")
+    reviewed_at: str = Field(description="審核時間（ISO 格式字符串）")
+    target_snapshot: Optional[str] = Field(default=None, description="被審核內容快照")
+    meta: Dict[str, Any] = Field(default_factory=dict, description="擴展元數據")
 
 
 class ReviewResultCardRead(BaseModel):
@@ -70,9 +70,9 @@ class ReviewRunRequest(BaseModel):
     target_text: Optional[str] = None
     context_info: Optional[str] = None
     facts_info: Optional[str] = None
-    content_snapshot: Optional[str] = Field(default=None, description="可选存储的审核目标快照")
+    content_snapshot: Optional[str] = Field(default=None, description="可選存儲的審核目標快照")
     llm_config_id: int
-    prompt_name: str = Field(default="通用审核")
+    prompt_name: str = Field(default="通用審核")
     temperature: Optional[float] = None
     max_tokens: Optional[int] = None
     timeout: Optional[float] = None

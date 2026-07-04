@@ -1,10 +1,10 @@
-<template>
+﻿<template>
 	<div class="chapter-studio">
 	<div class="toolbar">
 		<div class="toolbar-row">
-			<!-- 编辑功能组 -->
+			<!-- 編輯功能組 -->
 			<div class="toolbar-group">
-				<span class="group-label">编辑</span>
+				<span class="group-label">編輯</span>
 				<el-dropdown @command="(c:any) => fontSize = c" size="small">
 					<el-button size="small">
 						{{ fontSize }}px
@@ -30,10 +30,10 @@
 					</el-button>
 					<template #dropdown>
 						<el-dropdown-menu>
-							<el-dropdown-item :command="1.4">紧凑</el-dropdown-item>
-							<el-dropdown-item :command="1.6">适中</el-dropdown-item>
-							<el-dropdown-item :command="1.8">舒适</el-dropdown-item>
-							<el-dropdown-item :command="2.0">宽松</el-dropdown-item>
+							<el-dropdown-item :command="1.4">緊湊</el-dropdown-item>
+							<el-dropdown-item :command="1.6">適中</el-dropdown-item>
+							<el-dropdown-item :command="1.8">舒適</el-dropdown-item>
+							<el-dropdown-item :command="2.0">寬鬆</el-dropdown-item>
 						</el-dropdown-menu>
 					</template>
 				</el-dropdown>
@@ -41,12 +41,12 @@
 
 			<div class="toolbar-divider"></div>
 
-			<!-- AI功能组 -->
+			<!-- AI功能組 -->
 			<div class="toolbar-group toolbar-group-ai">
 				<span class="group-label">AI</span>
 				<div class="ai-action-bar">
 					<el-button type="primary" size="small" :loading="aiLoading" :disabled="reviewLoading" @click="executeAIContinuation">
-						<el-icon><MagicStick /></el-icon> 续写
+						<el-icon><MagicStick /></el-icon> 續寫
 					</el-button>
 
 					<el-dropdown
@@ -62,7 +62,7 @@
 						<span class="review-button-label">
 							<el-icon v-if="reviewLoading" class="review-loading-icon"><Loading /></el-icon>
 							<el-icon v-else><List /></el-icon>
-							{{ reviewLoading ? '审核中...' : '审核' }}
+							{{ reviewLoading ? '審核中...' : '審核' }}
 						</span>
 						<template #dropdown>
 							<el-dropdown-menu>
@@ -88,10 +88,10 @@
 						<template #dropdown>
 							<el-dropdown-menu>
 								<el-dropdown-item command="polish" :disabled="aiLoading || reviewLoading">
-									润色（{{ currentPolishPrompt }}）
+									潤色（{{ currentPolishPrompt }}）
 								</el-dropdown-item>
 							<el-dropdown-item command="expand" :disabled="aiLoading || reviewLoading">
-								扩写（{{ currentExpandPrompt }}）
+								擴寫（{{ currentExpandPrompt }}）
 							</el-dropdown-item>
 						</el-dropdown-menu>
 					</template>
@@ -99,18 +99,18 @@
 
 					<el-popover trigger="click" width="320" popper-class="chapter-ai-prompt-popper">
 						<template #reference>
-							<el-button plain size="small">提示词</el-button>
+							<el-button plain size="small">提示詞</el-button>
 						</template>
 						<div class="prompt-settings-panel">
-							<div class="prompt-settings-title">AI 提示词</div>
+							<div class="prompt-settings-title">AI 提示詞</div>
 							<div class="prompt-settings-item">
-								<label>润色</label>
+								<label>潤色</label>
 								<el-select v-model="currentPolishPrompt" size="small" @change="handlePolishPromptChange">
 									<el-option v-for="p in polishPrompts" :key="p" :label="p" :value="p" />
 								</el-select>
 							</div>
 							<div class="prompt-settings-item">
-								<label>扩写</label>
+								<label>擴寫</label>
 								<el-select v-model="currentExpandPrompt" size="small" @change="handleExpandPromptChange">
 									<el-option v-for="p in expandPrompts" :key="p" :label="p" :value="p" />
 								</el-select>
@@ -131,7 +131,7 @@
 						:disabled="!canInterruptAiTask"
 						@click="interruptStream"
 					>
-						<el-icon><CircleClose /></el-icon> 中断
+						<el-icon><CircleClose /></el-icon> 中斷
 					</el-button>
 				</div>
 			</div>
@@ -139,15 +139,15 @@
 		<div class="toolbar-status-row">
 			<div class="toolbar-status-spacer"></div>
 			<div class="ai-status-strip">
-				<span class="status-pill">模型 · {{ selectedModelName || '未设置' }}</span>
-				<span class="status-pill">目标 · {{ activeContinuationConfig.targetWordCount }} 字</span>
+				<span class="status-pill">模型 · {{ selectedModelName || '未設置' }}</span>
+				<span class="status-pill">目標 · {{ activeContinuationConfig.targetWordCount }} 字</span>
 				<span class="status-pill">模式 · {{ formatContinuationMode(activeContinuationConfig.wordControlMode) }}</span>
 			</div>
 		</div>
 	</div>
 
 	<div class="editor-content-wrapper">
-		<!-- 标题区域 -->
+		<!-- 標題區域 -->
 	<div class="chapter-header">
 		<div class="title-section">
 			<h1
@@ -169,26 +169,26 @@
 		<div v-if="pendingAiEdit && !pendingAiEdit.generating" class="ai-replace-review-bar">
 			<span class="review-hint">
                 <template v-if="nfAssistantPatchTotal">
-                        建议 #{{ nfAssistantPatchCurrentNo }} / {{ nfAssistantPatchTotal }}：灰色为原文，蓝色为新文本
+                        建議 #{{ nfAssistantPatchCurrentNo }} / {{ nfAssistantPatchTotal }}：灰色爲原文，藍色爲新文本
                 </template>
                 <template v-else>
-                        已生成替换建议：灰色为原文，蓝色为新文本
+                        已生成替換建議：灰色爲原文，藍色爲新文本
                 </template>
         </span>
         <div class="review-actions">
-                <el-button v-if="nfAssistantPatchTotal > 1" size="small" @click="nfAssistantPatchPrev">上一条</el-button>
-                <el-button v-if="nfAssistantPatchTotal > 1" size="small" @click="nfAssistantPatchNext">下一条</el-button>
+                <el-button v-if="nfAssistantPatchTotal > 1" size="small" @click="nfAssistantPatchPrev">上一條</el-button>
+                <el-button v-if="nfAssistantPatchTotal > 1" size="small" @click="nfAssistantPatchNext">下一條</el-button>
                 <el-button type="primary" size="small" @click="nfAssistantPatchTotal ? nfAssistantPatchAcceptCurrent() : acceptPendingAiEdit()">
-                        {{ nfAssistantPatchTotal ? '接受本条' : '接受并替换' }}
+                        {{ nfAssistantPatchTotal ? '接受本條' : '接受並替換' }}
                 </el-button>
                 <el-button size="small" @click="nfAssistantPatchTotal ? nfAssistantPatchRejectCurrent() : rejectPendingAiEdit()">
-                        {{ nfAssistantPatchTotal ? '拒绝本条' : '拒绝并还原' }}
+                        {{ nfAssistantPatchTotal ? '拒絕本條' : '拒絕並還原' }}
                 </el-button>
         </div>
 		</div>
 	</div>
 
-		<!-- 右键快速编辑菜单 -->
+		<!-- 右鍵快速編輯菜單 -->
 		<Teleport to="body">
 			<div
 				v-if="contextMenu.visible"
@@ -201,14 +201,14 @@
 						size="small"
 						@click="expandContextMenu"
 					>
-						快速编辑
+						快速編輯
 					</el-button>
 					<el-button
 						size="small"
 						type="success"
 						@click="handleContextMenuReference"
 					>
-						引用到灵感助手
+						引用到靈感助手
 					</el-button>
 				</div>
 				<div v-else class="context-menu-expanded">
@@ -216,7 +216,7 @@
 						v-model="contextMenu.userRequirement"
 						:autosize="{ minRows: 2, maxRows: 4 }"
 						type="textarea"
-						placeholder="描述你的要求，如：让语气更加强硬、增加环境描写..."
+						placeholder="描述你的要求，如：讓語氣更加強硬、增加環境描寫..."
 						size="small"
 						style="margin-bottom: 8px;"
 					/>
@@ -227,7 +227,7 @@
 							:loading="aiLoading"
 							@click="handleContextMenuPolish"
 						>
-							<el-icon><Document /></el-icon> 润色
+							<el-icon><Document /></el-icon> 潤色
 						</el-button>
 						<el-button
 							type="primary"
@@ -235,7 +235,7 @@
 							:loading="aiLoading"
 							@click="handleContextMenuExpand"
 						>
-							<el-icon><MagicStick /></el-icon> 扩写
+							<el-icon><MagicStick /></el-icon> 擴寫
 						</el-button>
 						<el-button
 							size="small"
@@ -248,7 +248,7 @@
 			</div>
 		</Teleport>
 
-		<el-dialog v-model="reviewDialogVisible" title="章节审核结果" width="72%">
+		<el-dialog v-model="reviewDialogVisible" title="章節審核結果" width="72%">
 			<div v-if="reviewText" class="review-dialog-body">
 				<div class="review-overview">
 					<div class="review-overview-main">
@@ -263,26 +263,26 @@
 							{{ reviewDraft.review_profile }}
 						</span>
 					</div>
-					<p class="review-summary">这是本次审核草稿。确认后可创建或更新对应的审核结果卡片。</p>
+					<p class="review-summary">這是本次審核草稿。確認後可創建或更新對應的審核結果卡片。</p>
 				</div>
 
 				<div class="review-text-block">
 					<SimpleMarkdown
-						:markdown="reviewText || '（暂无内容）'"
+						:markdown="reviewText || '（暫無內容）'"
 						class="review-markdown"
 					/>
 				</div>
 			</div>
 			<template #footer>
 				<div class="review-dialog-footer">
-					<el-button @click="reviewDialogVisible = false">关闭</el-button>
+					<el-button @click="reviewDialogVisible = false">關閉</el-button>
 					<el-button
 						type="primary"
 						:loading="reviewCardSaving"
 						:disabled="!reviewDraft"
 						@click="handleCreateOrUpdateReviewCard"
 					>
-						{{ reviewDraft?.existing_review_card_id ? '更新审核结果卡片' : '创建审核结果卡片' }}
+						{{ reviewDraft?.existing_review_card_id ? '更新審核結果卡片' : '創建審核結果卡片' }}
 					</el-button>
 				</div>
 			</template>
@@ -296,10 +296,10 @@
 			@confirm="handleContinuationDialogConfirm"
 		/>
 
-		<el-dialog v-model="previewDialogVisible" title="动态信息预览" width="70%">
+		<el-dialog v-model="previewDialogVisible" title="動態信息預覽" width="70%">
 			<template #header>
 				<div class="preview-dialog-header">
-					<div class="preview-dialog-header__title">动态信息预览</div>
+					<div class="preview-dialog-header__title">動態信息預覽</div>
 				</div>
 			</template>
 			<div v-if="previewData">
@@ -308,7 +308,7 @@
 						type="warning"
 						:closable="false"
 						show-icon
-						title="以下角色在本章正文中被提取到了，但当前项目里还没有对应角色卡。确认更新时这些角色会被跳过；如果需要，请先手动新建对应角色卡，再回到当前预览继续确认。"
+						title="以下角色在本章正文中被提取到了，但當前項目裏還沒有對應角色卡。確認更新時這些角色會被跳過；如果需要，請先手動新建對應角色卡，再回到當前預覽繼續確認。"
 					/>
 					<div class="missing-card-list">
 						<div v-for="item in dynamicMissingCards" :key="item.key" class="missing-card-item">
@@ -324,20 +324,20 @@
 						type="info"
 						:closable="false"
 						show-icon
-						title="以下角色仍在本章参与实体里，但这次动态提取结果中没有出现。若确认他们已不再参与本章节，可将其移出本章参与实体；如果只是本章没有新的动态信息，也可以忽略。"
+						title="以下角色仍在本章參與實體裏，但這次動態提取結果中沒有出現。若確認他們已不再參與本章節，可將其移出本章參與實體；如果只是本章沒有新的動態信息，也可以忽略。"
 					/>
 					<div class="missing-card-list">
 						<div v-for="item in dynamicParticipantReviewNotices" :key="item.key" class="missing-card-item">
 							<span>{{ item.title }}</span>
 							<el-button size="small" type="warning" plain @click="removeParticipantFromCurrentChapter(item)">
-								移出本章参与实体
+								移出本章參與實體
 							</el-button>
 						</div>
 					</div>
 				</div>
 				<el-empty
 					v-if="isDynamicPreviewEmpty"
-					description="本次未提取到可写回的角色动态信息。你可以直接关闭预览，或调整提示词后重试。"
+					description="本次未提取到可寫回的角色動態信息。你可以直接關閉預覽，或調整提示詞後重試。"
 				/>
 				<div v-for="(role, roleIndex) in validDynamicPreviewRoles" :key="role.name" class="role-block">
 					<el-input
@@ -384,7 +384,7 @@
 							</el-table-column>
 							<el-table-column label="操作" width="90">
 								<template #default="scope">
-									<el-button type="danger" text size="small" @click="removePreviewItem(role.name, String(catKey), scope.$index)">删除</el-button>
+									<el-button type="danger" text size="small" @click="removePreviewItem(role.name, String(catKey), scope.$index)">刪除</el-button>
 								</template>
 							</el-table-column>
 						</el-table>
@@ -400,14 +400,14 @@
 			</div>
 			<template #footer>
 				<el-button @click="previewDialogVisible=false">取消</el-button>
-				<el-button type="primary" :loading="dynamicPreviewApplying" @click="confirmApplyUpdates">确认</el-button>
+				<el-button type="primary" :loading="dynamicPreviewApplying" @click="confirmApplyUpdates">確認</el-button>
 			</template>
 		</el-dialog>
 
-		<el-dialog v-model="relationsPreviewVisible" title="关系入图预览" width="70%">
+		<el-dialog v-model="relationsPreviewVisible" title="關係入圖預覽" width="70%">
 			<template #header>
 				<div class="preview-dialog-header">
-					<div class="preview-dialog-header__title">关系入图预览</div>
+					<div class="preview-dialog-header__title">關係入圖預覽</div>
 				</div>
 			</template>
 			<div v-if="relationsPreview">
@@ -416,7 +416,7 @@
 						type="warning"
 						:closable="false"
 						show-icon
-						title="以下关系端点在卡片树中还没有对应实体卡。确认入图仍可继续；如果你希望先补齐实体卡，可以先手动新建，再回到当前预览继续确认。"
+						title="以下關係端點在卡片樹中還沒有對應實體卡。確認入圖仍可繼續；如果你希望先補齊實體卡，可以先手動新建，再回到當前預覽繼續確認。"
 					/>
 					<div class="missing-card-list">
 						<div v-for="item in relationMissingCards" :key="item.key" class="missing-card-item">
@@ -429,10 +429,10 @@
 				</div>
 				<el-empty
 					v-if="isRelationsPreviewEmpty"
-					description="本次未提取到可入图的关系信息。你可以直接关闭预览，或调整模型参数后重试。"
+					description="本次未提取到可入圖的關係信息。你可以直接關閉預覽，或調整模型參數後重試。"
 				/>
 				<div style="margin-top: 16px" v-if="validRelationPreviewItems.length">
-					<h4>关系项</h4>
+					<h4>關係項</h4>
 					<el-table :data="validRelationPreviewItems" size="small" border class="preview-table">
 						<el-table-column label="A" width="180">
 							<template #default="{ row, $index }">
@@ -451,7 +451,7 @@
 								</div>
 							</template>
 						</el-table-column>
-						<el-table-column label="关系" width="140">
+						<el-table-column label="關係" width="140">
 							<template #default="{ row, $index }">
 								<el-select
 									v-if="isPreviewEditing(buildPreviewEditKey('relation', $index, 'kind'))"
@@ -468,7 +468,7 @@
 									class="preview-read-field"
 									@click="activatePreviewEdit(buildPreviewEditKey('relation', $index, 'kind'))"
 								>
-									{{ formatPreviewDisplayValue(row.kind, '点击选择') }}
+									{{ formatPreviewDisplayValue(row.kind, '點擊選擇') }}
 								</div>
 							</template>
 						</el-table-column>
@@ -489,7 +489,7 @@
 								</div>
 							</template>
 						</el-table-column>
-						<el-table-column label="说明" min-width="180">
+						<el-table-column label="說明" min-width="180">
 							<template #default="{ row, $index }">
 								<el-input
 									v-if="isPreviewEditing(buildPreviewEditKey('relation', $index, 'description'))"
@@ -513,24 +513,24 @@
 								</div>
 							</template>
 						</el-table-column>
-						<el-table-column label="证据">
+						<el-table-column label="證據">
 							<template #default="{ row, $index }">
 								<div
 									v-if="!isPreviewEditing(buildPreviewEditKey('relation', $index, 'evidence'))"
 									class="preview-read-field preview-read-field--multiline preview-evidence-summary"
 									@click="activatePreviewEdit(buildPreviewEditKey('relation', $index, 'evidence'))"
 								>
-									<div class="preview-read-field__line">A 对 B 称呼：{{ formatPreviewDisplayValue(row.a_to_b_addressing, '未填写') }}</div>
-									<div class="preview-read-field__line">B 对 A 称呼：{{ formatPreviewDisplayValue(row.b_to_a_addressing, '未填写') }}</div>
+									<div class="preview-read-field__line">A 對 B 稱呼：{{ formatPreviewDisplayValue(row.a_to_b_addressing, '未填寫') }}</div>
+									<div class="preview-read-field__line">B 對 A 稱呼：{{ formatPreviewDisplayValue(row.b_to_a_addressing, '未填寫') }}</div>
 									<div
-										v-for="(line, lineIndex) in formatPreviewDisplayLines(row.recent_dialogues, '点击补充近期对白')"
+										v-for="(line, lineIndex) in formatPreviewDisplayLines(row.recent_dialogues, '點擊補充近期對白')"
 										:key="`dialogue-${lineIndex}`"
 										class="preview-read-field__line"
 									>
-										对白：{{ line }}
+										對白：{{ line }}
 									</div>
 									<div
-										v-for="(line, lineIndex) in formatEventSummaryDisplayLines(row.recent_event_summaries, '点击补充近期事件摘要')"
+										v-for="(line, lineIndex) in formatEventSummaryDisplayLines(row.recent_event_summaries, '點擊補充近期事件摘要')"
 										:key="`event-${lineIndex}`"
 										class="preview-read-field__line"
 									>
@@ -544,25 +544,25 @@
 									<el-input
 										v-model="row.a_to_b_addressing"
 										size="small"
-										placeholder="A 对 B 的称呼"
+										placeholder="A 對 B 的稱呼"
 									/>
 									<el-input
 										v-model="row.b_to_a_addressing"
 										size="small"
-										placeholder="B 对 A 的称呼"
+										placeholder="B 對 A 的稱呼"
 									/>
 									<el-input
 										:model-value="joinPreviewLines(row.recent_dialogues)"
 										type="textarea"
 										:autosize="compactTextareaAutosize"
-										placeholder="每行一条对话样例"
+										placeholder="每行一條對話樣例"
 										@update:model-value="value => updatePreviewStringArray(row, 'recent_dialogues', value)"
 									/>
 									<el-input
 										:model-value="joinEventSummaryLines(row.recent_event_summaries)"
 										type="textarea"
 										:autosize="compactTextareaAutosize"
-										placeholder="每行一条近期事件摘要"
+										placeholder="每行一條近期事件摘要"
 										@update:model-value="value => updateRelationEventSummaries(row, value)"
 									/>
 								</div>
@@ -570,7 +570,7 @@
 						</el-table-column>
 						<el-table-column label="操作" width="90">
 							<template #default="{ row, $index }">
-								<el-button type="danger" text size="small" @click="removeRelationPreviewItem($index, row)">删除</el-button>
+								<el-button type="danger" text size="small" @click="removeRelationPreviewItem($index, row)">刪除</el-button>
 							</template>
 						</el-table-column>
 					</el-table>
@@ -585,7 +585,7 @@
 			</div>
 			<template #footer>
 				<el-button @click="relationsPreviewVisible=false">取消</el-button>
-				<el-button type="primary" :loading="relationsPreviewApplying" @click="confirmIngestRelationsFromPreview">确认</el-button>
+				<el-button type="primary" :loading="relationsPreviewApplying" @click="confirmIngestRelationsFromPreview">確認</el-button>
 			</template>
 		</el-dialog>
 
@@ -601,7 +601,7 @@
 						type="warning"
 						:closable="false"
 						show-icon
-						title="以下实体在本章正文中被提取到了，但当前项目里还没有对应卡片。确认写入时这些实体会被跳过；如果需要，请先手动新建对应卡片，再回到当前预览继续确认。"
+						title="以下實體在本章正文中被提取到了，但當前項目裏還沒有對應卡片。確認寫入時這些實體會被跳過；如果需要，請先手動新建對應卡片，再回到當前預覽繼續確認。"
 					/>
 					<div class="missing-card-list">
 						<div v-for="item in memoryMissingCards" :key="item.key" class="missing-card-item">
@@ -617,13 +617,13 @@
 						type="info"
 						:closable="false"
 						show-icon
-						title="以下实体仍在本章参与实体里，但这次提取结果中没有出现。若确认它们已不再参与本章节，可将其移出本章参与实体；如果只是本章没有新的状态变化，也可以忽略。"
+						title="以下實體仍在本章參與實體裏，但這次提取結果中沒有出現。若確認它們已不再參與本章節，可將其移出本章參與實體；如果只是本章沒有新的狀態變化，也可以忽略。"
 					/>
 					<div class="missing-card-list">
 						<div v-for="item in memoryParticipantReviewNotices" :key="item.key" class="missing-card-item">
 							<span>{{ item.title }} · {{ item.cardTypeName }}</span>
 							<el-button size="small" type="warning" plain @click="removeParticipantFromCurrentChapter(item)">
-								移出本章参与实体
+								移出本章參與實體
 							</el-button>
 						</div>
 					</div>
@@ -633,9 +633,9 @@
 					:description="memoryPreviewEmptyDescription"
 				/>
 				<div v-if="memoryPreviewExtractorCode === 'scene_state' && validScenePreviewItems.length" style="margin-top: 16px">
-					<h4>场景状态预览</h4>
+					<h4>場景狀態預覽</h4>
 					<el-table :data="validScenePreviewItems" size="small" border class="preview-table">
-						<el-table-column label="名称" width="150">
+						<el-table-column label="名稱" width="150">
 							<template #default="{ row, $index }">
 								<el-input
 									v-if="isPreviewEditing(buildPreviewEditKey('scene', $index, 'name'))"
@@ -652,7 +652,7 @@
 								</div>
 							</template>
 						</el-table-column>
-						<el-table-column label="简介" min-width="180">
+						<el-table-column label="簡介" min-width="180">
 							<template #default="{ row, $index }">
 								<el-input
 									v-if="isPreviewEditing(buildPreviewEditKey('scene', $index, 'description'))"
@@ -670,7 +670,7 @@
 								</div>
 							</template>
 						</el-table-column>
-						<el-table-column label="剧情作用" min-width="180">
+						<el-table-column label="劇情作用" min-width="180">
 							<template #default="{ row, $index }">
 								<el-input
 									v-if="isPreviewEditing(buildPreviewEditKey('scene', $index, 'function_in_story'))"
@@ -688,14 +688,14 @@
 								</div>
 							</template>
 						</el-table-column>
-						<el-table-column label="当前状态" min-width="220">
+						<el-table-column label="當前狀態" min-width="220">
 							<template #default="{ row, $index }">
 								<el-input
 									v-if="isPreviewEditing(buildPreviewEditKey('scene', $index, 'dynamic_state'))"
 									:model-value="joinPreviewLines(row.dynamic_state)"
 									type="textarea"
 									:autosize="compactTextareaAutosize"
-									placeholder="每行一条当前状态"
+									placeholder="每行一條當前狀態"
 									@update:model-value="value => updatePreviewStringArray(row, 'dynamic_state', value)"
 									@blur="deactivatePreviewEdit(buildPreviewEditKey('scene', $index, 'dynamic_state'))"
 								/>
@@ -710,16 +710,16 @@
 						</el-table-column>
 						<el-table-column label="操作" width="90">
 							<template #default="{ row, $index }">
-								<el-button type="danger" text size="small" @click="removeMemoryCardPreviewItem('scenes', $index, row)">删除</el-button>
+								<el-button type="danger" text size="small" @click="removeMemoryCardPreviewItem('scenes', $index, row)">刪除</el-button>
 							</template>
 						</el-table-column>
 					</el-table>
 				</div>
 
 				<div v-if="memoryPreviewExtractorCode === 'organization_state' && validOrganizationPreviewItems.length" style="margin-top: 16px">
-					<h4>组织状态预览</h4>
+					<h4>組織狀態預覽</h4>
 					<el-table :data="validOrganizationPreviewItems" size="small" border class="preview-table">
-						<el-table-column label="名称" width="150">
+						<el-table-column label="名稱" width="150">
 							<template #default="{ row, $index }">
 								<el-input
 									v-if="isPreviewEditing(buildPreviewEditKey('organization', $index, 'name'))"
@@ -736,7 +736,7 @@
 								</div>
 							</template>
 						</el-table-column>
-						<el-table-column label="简介" min-width="180">
+						<el-table-column label="簡介" min-width="180">
 							<template #default="{ row, $index }">
 								<el-input
 									v-if="isPreviewEditing(buildPreviewEditKey('organization', $index, 'description'))"
@@ -754,7 +754,7 @@
 								</div>
 							</template>
 						</el-table-column>
-						<el-table-column label="影响力" min-width="160">
+						<el-table-column label="影響力" min-width="160">
 							<template #default="{ row, $index }">
 								<el-input
 									v-if="isPreviewEditing(buildPreviewEditKey('organization', $index, 'influence'))"
@@ -772,14 +772,14 @@
 								</div>
 							</template>
 						</el-table-column>
-						<el-table-column label="对外关系" min-width="180">
+						<el-table-column label="對外關係" min-width="180">
 							<template #default="{ row, $index }">
 								<el-input
 									v-if="isPreviewEditing(buildPreviewEditKey('organization', $index, 'relationship'))"
 									:model-value="joinPreviewLines(row.relationship)"
 									type="textarea"
 									:autosize="compactTextareaAutosize"
-									placeholder="每行一条对外关系"
+									placeholder="每行一條對外關係"
 									@update:model-value="value => updatePreviewStringArray(row, 'relationship', value)"
 									@blur="deactivatePreviewEdit(buildPreviewEditKey('organization', $index, 'relationship'))"
 								/>
@@ -792,14 +792,14 @@
 								</div>
 							</template>
 						</el-table-column>
-						<el-table-column label="当前状态" min-width="220">
+						<el-table-column label="當前狀態" min-width="220">
 							<template #default="{ row, $index }">
 								<el-input
 									v-if="isPreviewEditing(buildPreviewEditKey('organization', $index, 'dynamic_state'))"
 									:model-value="joinPreviewLines(row.dynamic_state)"
 									type="textarea"
 									:autosize="compactTextareaAutosize"
-									placeholder="每行一条当前状态"
+									placeholder="每行一條當前狀態"
 									@update:model-value="value => updatePreviewStringArray(row, 'dynamic_state', value)"
 									@blur="deactivatePreviewEdit(buildPreviewEditKey('organization', $index, 'dynamic_state'))"
 								/>
@@ -814,16 +814,16 @@
 						</el-table-column>
 						<el-table-column label="操作" width="90">
 							<template #default="{ row, $index }">
-								<el-button type="danger" text size="small" @click="removeMemoryCardPreviewItem('organizations', $index, row)">删除</el-button>
+								<el-button type="danger" text size="small" @click="removeMemoryCardPreviewItem('organizations', $index, row)">刪除</el-button>
 							</template>
 						</el-table-column>
 					</el-table>
 				</div>
 
 				<div v-if="memoryPreviewExtractorCode === 'item_state' && validItemPreviewItems.length" style="margin-top: 16px">
-					<h4>物品状态预览</h4>
+					<h4>物品狀態預覽</h4>
 					<el-table :data="validItemPreviewItems" size="small" border class="preview-table">
-						<el-table-column label="名称" width="150">
+						<el-table-column label="名稱" width="150">
 							<template #default="{ row, $index }">
 								<el-input
 									v-if="isPreviewEditing(buildPreviewEditKey('item', $index, 'name'))"
@@ -840,7 +840,7 @@
 								</div>
 							</template>
 						</el-table-column>
-						<el-table-column label="类别" width="120">
+						<el-table-column label="類別" width="120">
 							<template #default="{ row, $index }">
 								<el-input
 									v-if="isPreviewEditing(buildPreviewEditKey('item', $index, 'category'))"
@@ -857,7 +857,7 @@
 								</div>
 							</template>
 						</el-table-column>
-						<el-table-column label="简介" min-width="180">
+						<el-table-column label="簡介" min-width="180">
 							<template #default="{ row, $index }">
 								<el-input
 									v-if="isPreviewEditing(buildPreviewEditKey('item', $index, 'description'))"
@@ -875,7 +875,7 @@
 								</div>
 							</template>
 						</el-table-column>
-						<el-table-column label="归属提示" width="140">
+						<el-table-column label="歸屬提示" width="140">
 							<template #default="{ row, $index }">
 								<el-input
 									v-if="isPreviewEditing(buildPreviewEditKey('item', $index, 'owner_hint'))"
@@ -893,7 +893,7 @@
 								</div>
 							</template>
 						</el-table-column>
-						<el-table-column label="当前状态" min-width="180">
+						<el-table-column label="當前狀態" min-width="180">
 							<template #default="{ row, $index }">
 								<el-input
 									v-if="isPreviewEditing(buildPreviewEditKey('item', $index, 'current_state'))"
@@ -954,7 +954,7 @@
 									:model-value="joinPreviewLines(row.important_events)"
 									type="textarea"
 									:autosize="compactTextareaAutosize"
-									placeholder="每行一条重要事件"
+									placeholder="每行一條重要事件"
 									@update:model-value="value => updatePreviewStringArray(row, 'important_events', value)"
 									@blur="deactivatePreviewEdit(buildPreviewEditKey('item', $index, 'important_events'))"
 								/>
@@ -969,16 +969,16 @@
 						</el-table-column>
 						<el-table-column label="操作" width="90">
 							<template #default="{ row, $index }">
-								<el-button type="danger" text size="small" @click="removeMemoryCardPreviewItem('items', $index, row)">删除</el-button>
+								<el-button type="danger" text size="small" @click="removeMemoryCardPreviewItem('items', $index, row)">刪除</el-button>
 							</template>
 						</el-table-column>
 					</el-table>
 				</div>
 
 				<div v-if="memoryPreviewExtractorCode === 'concept_state' && validConceptPreviewItems.length" style="margin-top: 16px">
-					<h4>概念掌握预览</h4>
+					<h4>概念掌握預覽</h4>
 					<el-table :data="validConceptPreviewItems" size="small" border class="preview-table">
-						<el-table-column label="名称" width="150">
+						<el-table-column label="名稱" width="150">
 							<template #default="{ row, $index }">
 								<el-input
 									v-if="isPreviewEditing(buildPreviewEditKey('concept', $index, 'name'))"
@@ -995,7 +995,7 @@
 								</div>
 							</template>
 						</el-table-column>
-						<el-table-column label="类别" width="120">
+						<el-table-column label="類別" width="120">
 							<template #default="{ row, $index }">
 								<el-input
 									v-if="isPreviewEditing(buildPreviewEditKey('concept', $index, 'category'))"
@@ -1012,7 +1012,7 @@
 								</div>
 							</template>
 						</el-table-column>
-						<el-table-column label="简介" min-width="180">
+						<el-table-column label="簡介" min-width="180">
 							<template #default="{ row, $index }">
 								<el-input
 									v-if="isPreviewEditing(buildPreviewEditKey('concept', $index, 'description'))"
@@ -1030,7 +1030,7 @@
 								</div>
 							</template>
 						</el-table-column>
-						<el-table-column label="规则定义" min-width="220">
+						<el-table-column label="規則定義" min-width="220">
 							<template #default="{ row, $index }">
 								<el-input
 									v-if="isPreviewEditing(buildPreviewEditKey('concept', $index, 'rule_definition'))"
@@ -1048,7 +1048,7 @@
 								</div>
 							</template>
 						</el-table-column>
-						<el-table-column label="代价" min-width="160">
+						<el-table-column label="代價" min-width="160">
 							<template #default="{ row, $index }">
 								<el-input
 									v-if="isPreviewEditing(buildPreviewEditKey('concept', $index, 'cost'))"
@@ -1091,7 +1091,7 @@
 									:model-value="joinPreviewLines(row.known_by)"
 									type="textarea"
 									:autosize="compactTextareaAutosize"
-									placeholder="每行一个已知掌握者"
+									placeholder="每行一個已知掌握者"
 									@update:model-value="value => updatePreviewStringArray(row, 'known_by', value)"
 									@blur="deactivatePreviewEdit(buildPreviewEditKey('concept', $index, 'known_by'))"
 								/>
@@ -1104,14 +1104,14 @@
 								</div>
 							</template>
 						</el-table-column>
-						<el-table-column label="克制关系" min-width="160">
+						<el-table-column label="剋制關係" min-width="160">
 							<template #default="{ row, $index }">
 								<el-input
 									v-if="isPreviewEditing(buildPreviewEditKey('concept', $index, 'counter_relations'))"
 									:model-value="joinPreviewLines(row.counter_relations)"
 									type="textarea"
 									:autosize="compactTextareaAutosize"
-									placeholder="每行一条克制关系"
+									placeholder="每行一條剋制關係"
 									@update:model-value="value => updatePreviewStringArray(row, 'counter_relations', value)"
 									@blur="deactivatePreviewEdit(buildPreviewEditKey('concept', $index, 'counter_relations'))"
 								/>
@@ -1126,7 +1126,7 @@
 						</el-table-column>
 						<el-table-column label="操作" width="90">
 							<template #default="{ row, $index }">
-								<el-button type="danger" text size="small" @click="removeMemoryCardPreviewItem('concepts', $index, row)">删除</el-button>
+								<el-button type="danger" text size="small" @click="removeMemoryCardPreviewItem('concepts', $index, row)">刪除</el-button>
 							</template>
 						</el-table-column>
 					</el-table>
@@ -1141,7 +1141,7 @@
 			</div>
 			<template #footer>
 				<el-button @click="closeMemoryPreview">取消</el-button>
-				<el-button type="primary" :loading="memoryPreviewApplying" @click="applyMemoryPreviewConfirm">确认</el-button>
+				<el-button type="primary" :loading="memoryPreviewApplying" @click="applyMemoryPreviewConfirm">確認</el-button>
 			</template>
 		</el-dialog>
 	</div>
@@ -1196,7 +1196,7 @@ const props = defineProps<{
 }>()
 
 const previewConfirmReminder =
-	'若信息提取有误，如卡片名称不准确，请手动编辑调整后再确认，避免数据回写对应卡片失败'
+	'若信息提取有誤，如卡片名稱不準確，請手動編輯調整後再確認，避免數據回寫對應卡片失敗'
 
 const emit = defineEmits<{
 	(e: 'update:chapter', value: any): void
@@ -1222,7 +1222,7 @@ const cmRoot = ref<HTMLElement | null>(null)
 const titleElement = ref<HTMLElement | null>(null)
 let view: EditorView | null = null
 
-// 自定义高亮系统
+// 自定義高亮系統
 type HighlightEffectPayload =
 	| { mode: 'single'; from: number; to: number }
 	| { mode: 'compare'; originalFrom: number; originalTo: number; previewFrom: number; previewTo: number }
@@ -1310,7 +1310,7 @@ function handleReviewContextKindChange(value: ContextTemplateKind | string) {
 	emit('update:review-context-kind', normalizeContextTemplateKind(value, 'review'))
 }
 
-// 每卡片参数
+// 每卡片參數
 const editingParams = ref<PerCardAIParams>({})
 const aiOptions = ref<AIConfigOptions | null>(null)
 async function loadAIOptions() { try { aiOptions.value = await getAIConfigOptions() } catch {} }
@@ -1325,9 +1325,9 @@ const selectedModelName = computed(() => {
 })
 const paramSummary = computed(() => {
 	const p = perCardParams.value || editingParams.value
-	const model = selectedModelName.value ? `模型:${selectedModelName.value}` : '模型:未设'
-	const prompt = p?.prompt_name ? `任务:${p.prompt_name}` : '任务:未设'
-	const t = p?.temperature != null ? `温度:${p.temperature}` : ''
+	const model = selectedModelName.value ? `模型:${selectedModelName.value}` : '模型:未設'
+	const prompt = p?.prompt_name ? `任務:${p.prompt_name}` : '任務:未設'
+	const t = p?.temperature != null ? `溫度:${p.temperature}` : ''
 	const m = p?.max_tokens != null ? `max_tokens:${p.max_tokens}` : ''
 	return [model, prompt, t, m].filter(Boolean).join(' · ')
 })
@@ -1335,7 +1335,7 @@ const paramSummary = computed(() => {
 watch(() => props.card, async (newCard) => {
 	if (!newCard) return
 	await loadAIOptions()
-	// 优先读取后端"有效参数"（类型默认或实例覆盖）
+	// 優先讀取後端"有效參數"（類型默認或實例覆蓋）
 	try {
 		const resp = await getCardAIParams(newCard.id)
 		const eff = (resp as any)?.effective_params
@@ -1345,7 +1345,7 @@ watch(() => props.card, async (newCard) => {
 			return
 		}
 	} catch {}
-	// 回退：使用本地存储或预设
+	// 回退：使用本地存儲或預設
 	const saved = perCardStore.getByCardId(newCard.id)
 	if (saved) editingParams.value = { ...saved }
 	else {
@@ -1356,7 +1356,7 @@ watch(() => props.card, async (newCard) => {
 	}
 }, { immediate: true })
 
-// 监听卡片内容变化（如灵感助手修改后），同步到编辑器
+// 監聽卡片內容變化（如靈感助手修改後），同步到編輯器
 watch(() => props.card?.content, (newContent) => {
 	if (!newContent || !view) return
 
@@ -1375,12 +1375,12 @@ watch(() => props.card?.content, (newContent) => {
 				: currentText.length,
 		}
 
-		// 只有当内容真的不同，且不是由当前编辑器触发的保存时，才更新
-		// （通过比较 originalContent 判断：如果相同说明是外部修改）
+		// 只有當內容真的不同，且不是由當前編輯器觸發的保存時，才更新
+		// （通過比較 originalContent 判斷：如果相同說明是外部修改）
 		if (newText !== currentText && newText !== originalContent.value) {
-			console.log('🔄 [CodeMirror] 检测到外部内容更新，同步到编辑器')
+			console.log('🔄 [CodeMirror] 檢測到外部內容更新，同步到編輯器')
 
-			// 更新编辑器内容
+			// 更新編輯器內容
 			setText(newText)
 
 			// 更新 localCard
@@ -1390,27 +1390,27 @@ watch(() => props.card?.content, (newContent) => {
 				word_count: newText.length
 			}
 
-			// 更新原始内容引用（避免触发 dirty）
+			// 更新原始內容引用（避免觸發 dirty）
 			originalContent.value = newText
 			isDirty.value = false
 			emit('update:dirty', false)
 
-			// 更新字数
+			// 更新字數
 			wordCount.value = computeWordCount(newText)
 
-			console.log('✅ [CodeMirror] 编辑器内容已同步')
+			console.log('✅ [CodeMirror] 編輯器內容已同步')
 			return
 		}
 
-		// 即使正文文本未变化，也要同步 entity_list 等字段，保证预览始终读取最新章节挂载实体。
+		// 即使正文文本未變化，也要同步 entity_list 等字段，保證預覽始終讀取最新章節掛載實體。
 		localCard.content = syncedContent
 	} catch (e) {
-		console.error('❌ [CodeMirror] 同步内容失败:', e)
+		console.error('❌ [CodeMirror] 同步內容失敗:', e)
 	}
 }, { deep: true })
 
 function applyAndSavePerCardParams() {
-	try { perCardStore.setForCard(props.card.id, { ...editingParams.value }); ElMessage.success('已保存到本卡片设置') } catch { ElMessage.error('保存失败') }
+	try { perCardStore.setForCard(props.card.id, { ...editingParams.value }); ElMessage.success('已保存到本卡片設置') } catch { ElMessage.error('保存失敗') }
 }
 function resetToPreset() {
 	const preset = getPresetForType(props.card.card_type?.name)
@@ -1419,8 +1419,8 @@ function resetToPreset() {
 }
 function getPresetForType(typeName?: string) : PerCardAIParams | undefined {
 	const map: Record<string, PerCardAIParams> = {
-		'章节大纲': { prompt_name: '章节大纲', llm_config_id: 1, temperature: 0.6, max_tokens: 4096, timeout: 60 },
-		'内容生成': { prompt_name: '内容生成', llm_config_id: 1, temperature: 0.7, max_tokens: 8192, timeout: 60 },
+		'章節大綱': { prompt_name: '章節大綱', llm_config_id: 1, temperature: 0.6, max_tokens: 4096, timeout: 60 },
+		'內容生成': { prompt_name: '內容生成', llm_config_id: 1, temperature: 0.7, max_tokens: 8192, timeout: 60 },
 	}
 	return map[typeName || '']
 }
@@ -1452,7 +1452,7 @@ let aiStreamCanceled = false
 const reviewAbortController = ref<AbortController | null>(null)
 const canInterruptAiTask = computed(() => aiLoading.value || reviewLoading.value || Boolean(reviewAbortController.value))
 
-// 右键菜单状态
+// 右鍵菜單狀態
 const contextMenu = reactive({
 	visible: false,
 	expanded: false,
@@ -1495,7 +1495,7 @@ function runWithPendingPreviewMutation<T>(fn: () => T): T {
 
 function ensureNoPendingAiEdit(): boolean {
 	if (pendingAiEdit.value) {
-		ElMessage.warning('请先接受或拒绝当前替换建议')
+		ElMessage.warning('請先接受或拒絕當前替換建議')
 		return false
 	}
 	return true
@@ -1504,19 +1504,19 @@ function ensureNoPendingAiEdit(): boolean {
 // 高亮管理
 const currentHighlight = ref<{ from: number; to: number } | { mode: 'compare' } | null>(null)
 
-// 设置高亮
+// 設置高亮
 function setHighlight(from: number, to: number) {
 	if (!view) return
-	// CodeMirror 不允许空范围的 decoration
+	// CodeMirror 不允許空範圍的 decoration
 	if (from >= to) {
-		console.log('⚠️ [Highlight] 跳过空范围高亮:', { from, to })
+		console.log('⚠️ [Highlight] 跳過空範圍高亮:', { from, to })
 		return
 	}
 	currentHighlight.value = { from, to }
 	view.dispatch({
 		effects: setHighlightEffect.of({ mode: 'single', from, to })
 	})
-	console.log('✨ [Highlight] 设置高亮:', { from, to })
+	console.log('✨ [Highlight] 設置高亮:', { from, to })
 }
 
 // 清除高亮
@@ -1529,10 +1529,10 @@ function clearHighlight() {
 	console.log('🧹 [Highlight] 清除高亮')
 }
 
-// 更新高亮范围（用于 AI 输出时）
+// 更新高亮範圍（用於 AI 輸出時）
 function updateHighlight(from: number, to: number) {
 	if (!view) return
-	// CodeMirror 不允许空范围的 decoration
+	// CodeMirror 不允許空範圍的 decoration
 	if (from >= to) {
 		return
 	}
@@ -1557,7 +1557,7 @@ function setCompareHighlight(originalFrom: number, originalTo: number, previewFr
 	})
 }
 
-// 跟踪原始内容以检测dirty状态
+// 跟蹤原始內容以檢測dirty狀態
 const originalContent = ref<string>('')
 const isDirty = ref(false)
 const reviewLoading = ref(false)
@@ -1575,7 +1575,7 @@ watch([previewDialogVisible, relationsPreviewVisible, memoryPreviewVisible], ([d
 		deactivatePreviewEdit()
 	}
 })
-type ManagedCardTypeName = '角色卡' | '场景卡' | '组织卡' | '物品卡' | '概念卡'
+type ManagedCardTypeName = '角色卡' | '場景卡' | '組織卡' | '物品卡' | '概念卡'
 type ManagedEntityType = 'character' | 'scene' | 'organization' | 'item' | 'concept'
 interface MissingCardNotice {
 	key: string
@@ -1591,15 +1591,15 @@ interface ParticipantReviewNotice {
 }
 const ENTITY_TYPE_TO_CARD_TYPE_NAME: Record<ManagedEntityType, ManagedCardTypeName> = {
 	character: '角色卡',
-	scene: '场景卡',
-	organization: '组织卡',
+	scene: '場景卡',
+	organization: '組織卡',
 	item: '物品卡',
 	concept: '概念卡',
 }
 const RELATION_KIND_OPTIONS = [
-	'同盟', '队友', '同门', '敌对', '亲属', '师徒', '对手', '伙伴', '上级', '下属', '指导',
-	'隶属', '成员', '领导', '创立', '拥有', '使用', '修炼', '领悟', '承载', '映射',
-	'控制', '位于', '影响', '克制', '关于', '其他',
+	'同盟', '隊友', '同門', '敵對', '親屬', '師徒', '對手', '夥伴', '上級', '下屬', '指導',
+	'隸屬', '成員', '領導', '創立', '擁有', '使用', '修煉', '領悟', '承載', '映射',
+	'控制', '位於', '影響', '剋制', '關於', '其他',
 ]
 const reviewText = ref('')
 const reviewDraft = ref<ReviewDraftResult | null>(null)
@@ -1621,15 +1621,15 @@ const continuationDialogState = reactive<{
 const memoryPreviewTitleResolved = computed(() => {
 	switch (memoryPreviewExtractorCode.value) {
 		case 'scene_state':
-			return '场景状态预览'
+			return '場景狀態預覽'
 		case 'organization_state':
-			return '组织状态预览'
+			return '組織狀態預覽'
 		case 'item_state':
-			return '物品状态预览'
+			return '物品狀態預覽'
 		case 'concept_state':
-			return '概念掌握预览'
+			return '概念掌握預覽'
 		default:
-			return '记忆预览'
+			return '記憶預覽'
 	}
 })
 
@@ -1735,30 +1735,30 @@ const isMemoryPreviewEmpty = computed(() => {
 const memoryPreviewEmptyDescription = computed(() => {
 	switch (memoryPreviewExtractorCode.value) {
 		case 'scene_state':
-			return '本次未提取到可写回的场景状态。你可以直接关闭预览，或调整提示词后重试。'
+			return '本次未提取到可寫回的場景狀態。你可以直接關閉預覽，或調整提示詞後重試。'
 		case 'organization_state':
-			return '本次未提取到可写回的组织状态。你可以直接关闭预览，或调整提示词后重试。'
+			return '本次未提取到可寫回的組織狀態。你可以直接關閉預覽，或調整提示詞後重試。'
 		case 'item_state':
-			return '本次未提取到可写回的物品状态。你可以直接关闭预览，或调整提示词后重试。'
+			return '本次未提取到可寫回的物品狀態。你可以直接關閉預覽，或調整提示詞後重試。'
 		case 'concept_state':
-			return '本次未提取到可写回的概念掌握信息。你可以直接关闭预览，或调整提示词后重试。'
+			return '本次未提取到可寫回的概念掌握信息。你可以直接關閉預覽，或調整提示詞後重試。'
 		default:
-			return '本次未提取到可写回的内容。'
+			return '本次未提取到可寫回的內容。'
 	}
 })
 
 function getMemoryExtractorDisplayLabel(extractorCode: MemoryExtractorCode): string {
 	switch (extractorCode) {
 		case 'scene_state':
-			return '场景状态'
+			return '場景狀態'
 		case 'organization_state':
-			return '组织状态'
+			return '組織狀態'
 		case 'item_state':
-			return '物品状态'
+			return '物品狀態'
 		case 'concept_state':
 			return '概念掌握'
 		default:
-			return '记忆'
+			return '記憶'
 	}
 }
 
@@ -1816,17 +1816,17 @@ function joinEventSummaryLines(values: unknown): string {
 		: ''
 }
 
-function formatPreviewDisplayValue(value: unknown, fallback = '点击修改'): string {
+function formatPreviewDisplayValue(value: unknown, fallback = '點擊修改'): string {
 	const text = String(value || '').trim()
 	return text || fallback
 }
 
-function formatPreviewDisplayLines(values: unknown, fallback = '点击补充'): string[] {
+function formatPreviewDisplayLines(values: unknown, fallback = '點擊補充'): string[] {
 	const lines = normalizePreviewLines(values)
 	return lines.length ? lines : [fallback]
 }
 
-function formatEventSummaryDisplayLines(values: unknown, fallback = '点击补充'): string[] {
+function formatEventSummaryDisplayLines(values: unknown, fallback = '點擊補充'): string[] {
 	if (Array.isArray(values)) {
 		const lines = values
 			.map(item => String(item?.summary || '').trim())
@@ -1864,20 +1864,20 @@ function isCanceledRequest(error: unknown): boolean {
 		|| candidate?.message === 'CanceledError'
 }
 
-// 字号/行距（默认 16px / 1.8）
+// 字號/行距（默認 16px / 1.8）
 const fontSize = ref<number>(16)
 const lineHeight = ref<number>(1.8)
 
-// 润色和扩写的提示词列表
+// 潤色和擴寫的提示詞列表
 const polishPrompts = ref<string[]>([])
 const expandPrompts = ref<string[]>([])
-const currentPolishPrompt = ref('润色')
-const currentExpandPrompt = ref('扩写')
+const currentPolishPrompt = ref('潤色')
+const currentExpandPrompt = ref('擴寫')
 const fontSizePx = computed(() => `${fontSize.value}px`)
 const lineHeightStr = computed(() => String(lineHeight.value))
 
 const reviewPrompts = ref<string[]>([])
-const currentReviewPrompt = ref('章节审核')
+const currentReviewPrompt = ref('章節審核')
 type PromptPickerKey = 'polish' | 'expand' | 'review'
 
 const promptPicker = reactive<Record<PromptPickerKey, { visible: boolean; keyword: string }>>({
@@ -1901,11 +1901,11 @@ function formatCategory(catKey: any) { return String(catKey) }
 function formatReviewVerdict(verdict?: QualityGate | null | string): string {
 	switch (verdict) {
 		case 'pass':
-			return '基本通过'
+			return '基本通過'
 		case 'block':
-			return '高风险拦截'
+			return '高風險攔截'
 		default:
-			return '建议修改'
+			return '建議修改'
 	}
 }
 
@@ -1928,7 +1928,7 @@ function setText(text: string) {
 }
 
 function formatContinuationMode(mode: ContinuationWordControlMode): string {
-	if (mode === 'prompt_only') return '提示词约束'
+	if (mode === 'prompt_only') return '提示詞約束'
 	return '控制模式'
 }
 
@@ -1941,12 +1941,12 @@ function buildChapterReviewTarget(
 		participants?: string[]
 	}
 ): string {
-	const lines: string[] = ['【章节信息】']
-	lines.push(`标题：${options.title || '未命名章节'}`)
-	if (options.volumeNumber != null) lines.push(`卷号：${options.volumeNumber}`)
-	if (options.chapterNumber != null) lines.push(`章节号：${options.chapterNumber}`)
-	if (options.participants?.length) lines.push(`参与实体：${options.participants.join('、')}`)
-	lines.push(`正文字数：${computeWordCount(chapterText)}`)
+	const lines: string[] = ['【章節信息】']
+	lines.push(`標題：${options.title || '未命名章節'}`)
+	if (options.volumeNumber != null) lines.push(`卷號：${options.volumeNumber}`)
+	if (options.chapterNumber != null) lines.push(`章節號：${options.chapterNumber}`)
+	if (options.participants?.length) lines.push(`參與實體：${options.participants.join('、')}`)
+	lines.push(`正文字數：${computeWordCount(chapterText)}`)
 	lines.push('', '【正文】', chapterText.trim())
 	return lines.join('\n').trim()
 }
@@ -2025,7 +2025,7 @@ function getText(): string {
 function getSelectedText(): { text: string; from: number; to: number } | null {
 	if (!view) return null
 	const { from, to } = view.state.selection.main
-	if (from === to) return null // 没有选中内容
+	if (from === to) return null // 沒有選中內容
 	return {
 		text: view.state.doc.sliceString(from, to),
 		from,
@@ -2046,10 +2046,10 @@ type EditorTaskDoneKind = 'continue' | 'polish' | 'expand' | 'review'
 
 function notifyEditorTaskDone(kind: EditorTaskDoneKind): void {
 	const map = {
-		continue: ['续写完成', '章节续写已完成。'],
-		polish: ['润色完成', '选区润色已完成。'],
-		expand: ['扩写完成', '选区扩写已完成。'],
-		review: ['审阅完成', '审阅结果已生成。'],
+		continue: ['續寫完成', '章節續寫已完成。'],
+		polish: ['潤色完成', '選區潤色已完成。'],
+		expand: ['擴寫完成', '選區擴寫已完成。'],
+		review: ['審閱完成', '審閱結果已生成。'],
 	} as const
 	const [title, body] = map[kind]
 	notifyTaskDone({
@@ -2065,10 +2065,10 @@ function appendAtEnd(delta: string) {
 	const end = view.state.doc.length
 	view.dispatch({
 		changes: { from: end, to: end, insert: delta },
-		// 滚动到文档末尾
+		// 滾動到文檔末尾
 		effects: EditorView.scrollIntoView(end, { y: "end" })
 	})
-	// 滚动到底
+	// 滾動到底
 	try {
 		const scroller = (cmRoot.value?.querySelector('.cm-scroller') as HTMLElement) || cmRoot.value
 		if (scroller) requestAnimationFrame(() => { scroller.scrollTop = scroller.scrollHeight })
@@ -2080,7 +2080,7 @@ function initEditor() {
 	if (!cmRoot.value) return
 	const initialText = String((localCard.content as any)?.content || '')
 
-	// 保存原始内容
+	// 保存原始內容
 	originalContent.value = initialText
 	isDirty.value = false
 	emit('update:dirty', false)
@@ -2089,7 +2089,7 @@ function initEditor() {
 		{
 			key: 'Enter',
 			run: (v: EditorView) => {
-				// 执行默认的换行
+				// 執行默認的換行
 				insertNewline(v)
 				return true
 			}
@@ -2114,7 +2114,7 @@ function initEditor() {
 				lineNumbers(),
 				EditorView.lineWrapping,
 				highlightField,
-				// 关键：限制编辑器高度由父容器决定，而不是根据内容自动扩展
+				// 關鍵：限制編輯器高度由父容器決定，而不是根據內容自動擴展
 				EditorView.theme({
 					"&": { height: "100%" },
 					".cm-scroller": { overflow: "auto" }
@@ -2125,11 +2125,11 @@ function initEditor() {
 					const now = Date.now()
 					if (now - lastPendingPreviewWarnAt > 1200) {
 						lastPendingPreviewWarnAt = now
-						ElMessage.warning('请先接受或拒绝当前替换建议')
+						ElMessage.warning('請先接受或拒絕當前替換建議')
 					}
 					return []
 				}),
-				// 点击编辑器时清除高亮
+				// 點擊編輯器時清除高亮
 				EditorView.domEventHandlers({
 					mousedown: (e, view) => {
 						if (pendingAiEdit.value) return false
@@ -2145,7 +2145,7 @@ function initEditor() {
 					const txt = update.state.doc.toString()
 					wordCount.value = computeWordCount(txt)
 
-					// 检测dirty状态
+					// 檢測dirty狀態
 					const newDirty = txt !== originalContent.value
 					if (newDirty !== isDirty.value) {
 						isDirty.value = newDirty
@@ -2173,16 +2173,16 @@ function initEditor() {
 			]
 		})
 	})
-	// 初始化字数
+	// 初始化字數
 	wordCount.value = computeWordCount(getText())
 	ready.value = true
 
-	// 添加右键菜单监听器到 CodeMirror 的 DOM 元素
+	// 添加右鍵菜單監聽器到 CodeMirror 的 DOM 元素
 	if (view && cmRoot.value) {
 		const editorDom = cmRoot.value.querySelector('.cm-editor') as HTMLElement
 		if (editorDom) {
 			editorDom.addEventListener('contextmenu', handleEditorContextMenu)
-			console.log('✅ [ContextMenu] 右键菜单监听器已添加')
+			console.log('✅ [ContextMenu] 右鍵菜單監聽器已添加')
 		} else {
 			console.warn('⚠️ [ContextMenu] 未找到 .cm-editor 元素')
 		}
@@ -2190,65 +2190,65 @@ function initEditor() {
 }
 
 
-// 加载可用提示词列表
+// 加載可用提示詞列表
 async function loadPrompts() {
 	try {
 		const options = await getAIConfigOptions()
 		const allPrompts = options?.prompts || []
 
-		// 获取所有提示词名称
+		// 獲取所有提示詞名稱
 		const allPromptNames = allPrompts.map(p => p.name)
-		reviewPrompts.value = allPromptNames.length > 0 ? allPromptNames : ['章节审核']
+		reviewPrompts.value = allPromptNames.length > 0 ? allPromptNames : ['章節審核']
 
-		// 润色和扩写都使用所有可用提示词
-		polishPrompts.value = allPromptNames.length > 0 ? allPromptNames : ['润色']
-		expandPrompts.value = allPromptNames.length > 0 ? allPromptNames : ['扩写']
+		// 潤色和擴寫都使用所有可用提示詞
+		polishPrompts.value = allPromptNames.length > 0 ? allPromptNames : ['潤色']
+		expandPrompts.value = allPromptNames.length > 0 ? allPromptNames : ['擴寫']
 
-		// 设置默认选中的提示词
-		if (allPromptNames.includes('润色')) {
-			currentPolishPrompt.value = '润色'
+		// 設置默認選中的提示詞
+		if (allPromptNames.includes('潤色')) {
+			currentPolishPrompt.value = '潤色'
 		} else if (allPromptNames.length > 0) {
 			currentPolishPrompt.value = allPromptNames[0]
 		}
 
-		if (allPromptNames.includes('扩写')) {
-			currentExpandPrompt.value = '扩写'
+		if (allPromptNames.includes('擴寫')) {
+			currentExpandPrompt.value = '擴寫'
 		} else if (allPromptNames.length > 0) {
 			currentExpandPrompt.value = allPromptNames[0]
 		}
 
-		if (allPromptNames.includes('章节审核')) {
-			currentReviewPrompt.value = '章节审核'
+		if (allPromptNames.includes('章節審核')) {
+			currentReviewPrompt.value = '章節審核'
 		} else if (allPromptNames.length > 0) {
 			currentReviewPrompt.value = allPromptNames[0]
 		}
 	} catch (e) {
 		console.error('Failed to load prompts:', e)
-		reviewPrompts.value = ['章节审核']
-		polishPrompts.value = ['润色']
-		expandPrompts.value = ['扩写']
+		reviewPrompts.value = ['章節審核']
+		polishPrompts.value = ['潤色']
+		expandPrompts.value = ['擴寫']
 	}
 }
 
 
-// 处理标题编辑（正文页大标题）
+// 處理標題編輯（正文頁大標題）
 async function handleTitleBlur() {
 	if (!titleElement.value) return
 	const newTitle = titleElement.value.textContent?.trim() || ''
 	if (newTitle && newTitle !== localCard.title) {
 		await saveTitle(newTitle)
 	} else {
-		// 恢复原标题
+		// 恢復原標題
 		if (titleElement.value) titleElement.value.textContent = localCard.title
 	}
 }
 
 async function handleTitleEnter() {
 	if (!titleElement.value) return
-	titleElement.value.blur() // 触发 blur 事件统一保存
+	titleElement.value.blur() // 觸發 blur 事件統一保存
 }
 
-// 保存标题：同时更新 card.title 与 content.title，保证上下文使用的 @self.content.title 为最新
+// 保存標題：同時更新 card.title 與 content.title，保證上下文使用的 @self.content.title 爲最新
 async function saveTitle(newTitle: string) {
 	try {
 		const trimmed = newTitle.trim()
@@ -2256,7 +2256,7 @@ async function saveTitle(newTitle: string) {
 		localCard.title = trimmed
 		localCard.content = {
 			...(localCard.content || {}),
-			// 仅更新 title 字段，正文内容等保持不变
+			// 僅更新 title 字段，正文內容等保持不變
 			...(localCard.content as any),
 			title: trimmed,
 		}
@@ -2265,15 +2265,15 @@ async function saveTitle(newTitle: string) {
 			content: localCard.content as any,
 		}
 		await cardStore.modifyCard(localCard.id, updatePayload)
-		ElMessage.success('标题已更新')
+		ElMessage.success('標題已更新')
 	} catch (e) {
-		ElMessage.error('标题更新失败')
-		// 恢复原标题
+		ElMessage.error('標題更新失敗')
+		// 恢復原標題
 		if (titleElement.value) titleElement.value.textContent = localCard.title
 	}
 }
 
-// 保存正文：可选接收来自父级的最新标题，一次性写入 card.title 与 content.title
+// 保存正文：可選接收來自父級的最新標題，一次性寫入 card.title 與 content.title
 async function handleSave(newTitle?: string) {
 	if (props.chapter) { emit('save'); return }
 	const effectiveTitle = (typeof newTitle === 'string' && newTitle.trim()) ? newTitle.trim() : localCard.title
@@ -2286,23 +2286,23 @@ async function handleSave(newTitle?: string) {
 		word_count: wordCount.value,
 		volume_number: (props.contextParams as any)?.volume_number ?? (localCard.content as any)?.volume_number,
 		chapter_number: (props.contextParams as any)?.chapter_number ?? (localCard.content as any)?.chapter_number,
-		// 始终把最新标题写入 content.title，供上下文模板和筛选使用
+		// 始終把最新標題寫入 content.title，供上下文模板和篩選使用
 		title: effectiveTitle || (localCard.content as any)?.title || localCard.title,
 	}
 	const updatePayload: CardUpdate = {
 		title: effectiveTitle,
 		content: nextContent as any,
-		needs_confirmation: false,  // 清除 AI 修改标记，触发工作流
+		needs_confirmation: false,  // 清除 AI 修改標記，觸發工作流
 	}
 	localCard.content = nextContent as any
 	await cardStore.modifyCard(localCard.id, updatePayload)
 
-	// 保存成功后重置dirty状态
+	// 保存成功後重置dirty狀態
 	originalContent.value = getText()
 	isDirty.value = false
 	emit('update:dirty', false)
 
-	// 返回保存的内容供历史版本使用
+	// 返回保存的內容供歷史版本使用
 	return updatePayload.content
 }
 
@@ -2341,20 +2341,20 @@ function formatFactsFromContext(ctx: any | null | undefined): string {
 		const factsStruct: any = (ctx as any)?.facts_structured || {}
 		const lines: string[] = []
 		if (Array.isArray(factsStruct.fact_summaries) && factsStruct.fact_summaries.length) {
-			lines.push('关键事实:')
+			lines.push('關鍵事實:')
 			for (const s of factsStruct.fact_summaries) lines.push(`- ${s}`)
 		}
 		if (Array.isArray(factsStruct.relation_summaries) && factsStruct.relation_summaries.length) {
-			lines.push('关系摘要:')
+			lines.push('關係摘要:')
 			for (const r of factsStruct.relation_summaries) {
 				lines.push(`- ${r.a} ↔ ${r.b}（${r.kind}）`)
 				if (r.a_to_b_addressing || r.b_to_a_addressing) {
-					const a1 = r.a_to_b_addressing ? `A称B：${r.a_to_b_addressing}` : ''
-					const b1 = r.b_to_a_addressing ? `B称A：${r.b_to_a_addressing}` : ''
+					const a1 = r.a_to_b_addressing ? `A稱B：${r.a_to_b_addressing}` : ''
+					const b1 = r.b_to_a_addressing ? `B稱A：${r.b_to_a_addressing}` : ''
 					if (a1 || b1) lines.push(`  · ${[a1, b1].filter(Boolean).join(' ｜ ')}`)
 				}
 				if (Array.isArray(r.recent_dialogues) && r.recent_dialogues.length) {
-					lines.push('  · 对话样例:')
+					lines.push('  · 對話樣例:')
 					for (const d of r.recent_dialogues) lines.push(`    - ${d}`)
 				}
 				if (Array.isArray(r.recent_event_summaries) && r.recent_event_summaries.length) {
@@ -2371,10 +2371,10 @@ function formatFactsFromContext(ctx: any | null | undefined): string {
 			for (const item of factsStruct.item_summaries) {
 				lines.push(`- ${item.name}${item.category ? `（${item.category}）` : ''}`)
 				if (item.description) lines.push(`  · 描述: ${item.description}`)
-				if (item.current_state) lines.push(`  · 当前状态: ${item.current_state}`)
-				if (item.owner_hint) lines.push(`  · 归属提示: ${item.owner_hint}`)
+				if (item.current_state) lines.push(`  · 當前狀態: ${item.current_state}`)
+				if (item.owner_hint) lines.push(`  · 歸屬提示: ${item.owner_hint}`)
 				if (item.power_or_effect) lines.push(`  · 作用/效果: ${item.power_or_effect}`)
-				if (item.constraints) lines.push(`  · 限制条件: ${item.constraints}`)
+				if (item.constraints) lines.push(`  · 限制條件: ${item.constraints}`)
 			}
 		}
 		if (Array.isArray(factsStruct.concept_summaries) && factsStruct.concept_summaries.length) {
@@ -2382,11 +2382,11 @@ function formatFactsFromContext(ctx: any | null | undefined): string {
 			for (const concept of factsStruct.concept_summaries) {
 				lines.push(`- ${concept.name}${concept.category ? `（${concept.category}）` : ''}`)
 				if (concept.description) lines.push(`  · 描述: ${concept.description}`)
-				if (concept.rule_definition) lines.push(`  · 规则定义: ${concept.rule_definition}`)
+				if (concept.rule_definition) lines.push(`  · 規則定義: ${concept.rule_definition}`)
 				if (concept.mastery_hint) lines.push(`  · 掌握提示: ${concept.mastery_hint}`)
-				if (concept.cost) lines.push(`  · 代价: ${concept.cost}`)
+				if (concept.cost) lines.push(`  · 代價: ${concept.cost}`)
 				if (Array.isArray(concept.known_by) && concept.known_by.length) lines.push(`  · 已知掌握者: ${concept.known_by.join('、')}`)
-				if (Array.isArray(concept.counter_relations) && concept.counter_relations.length) lines.push(`  · 克制/对立: ${concept.counter_relations.join('、')}`)
+				if (Array.isArray(concept.counter_relations) && concept.counter_relations.length) lines.push(`  · 剋制/對立: ${concept.counter_relations.join('、')}`)
 			}
 		}
 		const text = lines.join('\n')
@@ -2416,13 +2416,13 @@ async function executeReview() {
 
 	const chapterText = getText().trim()
 	if (!chapterText) {
-		ElMessage.warning('请先输入本章正文后再审核')
+		ElMessage.warning('請先輸入本章正文後再審核')
 		return
 	}
 
 	const llmConfigId = resolveLlmConfigId()
 	if (!llmConfigId) {
-		ElMessage.error('请先设置有效的模型ID')
+		ElMessage.error('請先設置有效的模型ID')
 		return
 	}
 
@@ -2445,13 +2445,13 @@ async function executeReview() {
 		const requestPayload: ReviewRunRequest = {
 			card_id: props.card.id,
 			project_id: projectStore.currentProject?.id || props.card.project_id,
-			title: localCard.title || (localCard.content as any)?.title || '未命名章节',
+			title: localCard.title || (localCard.content as any)?.title || '未命名章節',
 			review_type: 'chapter',
 			review_profile: 'generic_card_review',
 			target_type: 'card',
 			target_field: 'content.content',
 			target_text: buildChapterReviewTarget(chapterText, {
-				title: localCard.title || (localCard.content as any)?.title || '未命名章节',
+				title: localCard.title || (localCard.content as any)?.title || '未命名章節',
 				volumeNumber: volumeNumber ?? null,
 				chapterNumber: chapterNumber ?? null,
 				participants,
@@ -2460,7 +2460,7 @@ async function executeReview() {
 			facts_info: factsText || undefined,
 			content_snapshot: chapterText,
 			llm_config_id: llmConfigId,
-			prompt_name: currentReviewPrompt.value || '章节审核',
+			prompt_name: currentReviewPrompt.value || '章節審核',
 			meta: {
 				source: 'chapter_editor',
 				card_type_name: props.card.card_type?.name || '',
@@ -2476,7 +2476,7 @@ async function executeReview() {
 
 		const result = await runReview(requestPayload, { signal: abortController.signal }).catch((e) => {
 			if (isCanceledRequest(e)) {
-				ElMessage.info('审核已中断')
+				ElMessage.info('審核已中斷')
 				return null
 			}
 			throw e
@@ -2486,10 +2486,10 @@ async function executeReview() {
 		reviewDraft.value = result.draft
 		reviewDialogVisible.value = true
 		notifyEditorTaskDone('review')
-		ElMessage.success('章节审核完成')
+		ElMessage.success('章節審核完成')
 	} catch (e) {
-		console.error('章节审核失败:', e)
-		ElMessage.error('章节审核失败')
+		console.error('章節審核失敗:', e)
+		ElMessage.error('章節審核失敗')
 	} finally {
 		if (reviewAbortController.value === abortController) {
 			reviewAbortController.value = null
@@ -2505,7 +2505,7 @@ async function handleCreateOrUpdateReviewCard() {
 		const saved = await upsertReviewCard({
 			project_id: projectStore.currentProject?.id || props.card.project_id,
 			target_card_id: props.card.id,
-			target_title: localCard.title || (localCard.content as any)?.title || '未命名章节',
+			target_title: localCard.title || (localCard.content as any)?.title || '未命名章節',
 			review_type: reviewDraft.value.review_type,
 			review_profile: reviewDraft.value.review_profile,
 			target_field: reviewDraft.value.review_target_field || null,
@@ -2519,10 +2519,10 @@ async function handleCreateOrUpdateReviewCard() {
 		reviewDraft.value.existing_review_card_id = saved.card_id
 		await cardStore.fetchCards(projectStore.currentProject?.id || props.card.project_id)
 		window.dispatchEvent(new CustomEvent('nf:review-history-refresh'))
-		ElMessage.success('审核结果卡片已更新')
+		ElMessage.success('審核結果卡片已更新')
 	} catch (error) {
 		console.error('Failed to upsert review result card:', error)
-		ElMessage.error('创建审核结果卡片失败')
+		ElMessage.error('創建審核結果卡片失敗')
 	} finally {
 		reviewCardSaving.value = false
 	}
@@ -2561,13 +2561,13 @@ async function runContinuationWithConfig(payload: {
 }) {
 	if (!ensureNoPendingAiEdit()) return
 	const llmConfigId = resolveLlmConfigId()
-	if (!llmConfigId) { ElMessage.error('请先设置有效的模型ID'); return }
+	if (!llmConfigId) { ElMessage.error('請先設置有效的模型ID'); return }
 	const promptName = resolvePromptName()
-	if (!promptName) { ElMessage.error('未设置生成任务名（prompt）'); return }
+	if (!promptName) { ElMessage.error('未設置生成任務名（prompt）'); return }
 
 	aiLoading.value = true
 
-	// 1. 解析卡片的上下文槽位（上下文注入的引用内容）
+	// 1. 解析卡片的上下文槽位（上下文注入的引用內容）
 	let resolvedContextTemplate = ''
 	try {
 		resolvedContextTemplate = getResolvedContext(generationContextKindValue.value, 'generation')
@@ -2575,15 +2575,15 @@ async function runContinuationWithConfig(payload: {
 		console.error('Failed to resolve context template:', e)
 	}
 
-	// 2. 格式化事实子图（参与实体）
-	// 3. 组合完整的上下文信息
+	// 2. 格式化事實子圖（參與實體）
+	// 3. 組合完整的上下文信息
 	const contextParts: string[] = []
 	if (resolvedContextTemplate) {
 		contextParts.push(`【引用上下文】\n${resolvedContextTemplate}`)
 	}
 	const contextInfoBlock = contextParts.join('\n\n')
 
-	// 4. 计算已有内容字数
+	// 4. 計算已有內容字數
 	const existingText = getText()
 	const existingWordCount = computeWordCount(existingText)
 
@@ -2616,28 +2616,28 @@ async function runContinuationWithConfig(payload: {
 
 	if (view) { view.focus(); const end = view.state.doc.length; view.dispatch({ selection: { anchor: end } }) }
 
-	executeAIGeneration(requestData, false, '续写', undefined, undefined, 'continue')
+	executeAIGeneration(requestData, false, '續寫', undefined, undefined, 'continue')
 }
 
 function handlePolishPromptChange(promptName: string) {
 	currentPolishPrompt.value = promptName
 	promptPicker.polish.visible = false
 	promptPicker.polish.keyword = ''
-	ElMessage.success(`已切换润色提示词为: ${promptName}`)
+	ElMessage.success(`已切換潤色提示詞爲: ${promptName}`)
 }
 
 function handleExpandPromptChange(promptName: string) {
 	currentExpandPrompt.value = promptName
 	promptPicker.expand.visible = false
 	promptPicker.expand.keyword = ''
-	ElMessage.success(`已切换扩写提示词为: ${promptName}`)
+	ElMessage.success(`已切換擴寫提示詞爲: ${promptName}`)
 }
 
 function handleReviewPromptChange(promptName: string) {
 	currentReviewPrompt.value = promptName
 	promptPicker.review.visible = false
 	promptPicker.review.keyword = ''
-	ElMessage.success(`已切换审核提示词为: ${promptName}`)
+	ElMessage.success(`已切換審核提示詞爲: ${promptName}`)
 }
 
 function handlePromptPickerShow(activeKey: PromptPickerKey) {
@@ -2661,31 +2661,31 @@ async function executeExpand() {
 	await executeAIEdit(currentExpandPrompt.value, undefined, undefined, 'expand')
 }
 
-// 右键菜单处理函数
+// 右鍵菜單處理函數
 function handleEditorContextMenu(e: MouseEvent) {
-	console.log(' [ContextMenu] 右键事件触发')
+	console.log(' [ContextMenu] 右鍵事件觸發')
 
-	// 检查是否有选中文本
+	// 檢查是否有選中文本
 	const selection = getSelectionWithLineInfo()
 	if (!selection || !selection.text.trim()) {
-		console.log('⚠️ [ContextMenu] 没有选中文本，使用默认菜单')
-		return // 没有选中文本，使用默认右键菜单
+		console.log('⚠️ [ContextMenu] 沒有選中文本，使用默認菜單')
+		return // 沒有選中文本，使用默認右鍵菜單
 	}
 
 
 	e.preventDefault()
 	e.stopPropagation()
 
-	// 保存选中的文本信息
+	// 保存選中的文本信息
 	contextMenu.selectedText = selection
 	contextMenu.visible = true
 	contextMenu.expanded = false
 	contextMenu.userRequirement = ''
 
-	// 设置自定义高亮，替代默认选中效果
+	// 設置自定義高亮，替代默認選中效果
 	setHighlight(selection.from, selection.to)
 
-	// 计算菜单位置（避免超出屏幕）
+	// 計算菜單位置（避免超出屏幕）
 	const menuWidth = 280
 	const menuHeight = 200
 	let x = e.clientX
@@ -2702,7 +2702,7 @@ function handleEditorContextMenu(e: MouseEvent) {
 	contextMenu.y = y
 
 
-	// 延迟注册点击外部关闭的监听器，避免立即触发
+	// 延遲註冊點擊外部關閉的監聽器，避免立即觸發
 	setTimeout(() => {
 		if (!contextMenuClickListenerAdded) {
 			window.addEventListener('click', handleClickOutside, { capture: true })
@@ -2715,13 +2715,13 @@ let contextMenuClickListenerAdded = false
 
 function expandContextMenu() {
 	contextMenu.expanded = true
-	// 自动聚焦输入框
+	// 自動聚焦輸入框
 	nextTick(() => {
 		const input = document.querySelector('.context-menu-popup textarea') as HTMLTextAreaElement
 		if (input) {
 			input.focus()
 		} else {
-			console.warn('⚠️ [ContextMenu] 未找到输入框')
+			console.warn('⚠️ [ContextMenu] 未找到輸入框')
 		}
 	})
 }
@@ -2732,7 +2732,7 @@ function closeContextMenu() {
 	contextMenu.userRequirement = ''
 	contextMenu.selectedText = null
 
-	// 移除点击外部关闭的监听器
+	// 移除點擊外部關閉的監聽器
 	if (contextMenuClickListenerAdded) {
 		window.removeEventListener('click', handleClickOutside, { capture: true })
 		contextMenuClickListenerAdded = false
@@ -2757,7 +2757,7 @@ async function handleContextMenuReference() {
 	const selectedText = contextMenu.selectedText
 	if (!selectedText || !selectedText.text.trim()) {
 		closeContextMenu()
-		ElMessage.warning('请先选中要引用的正文片段')
+		ElMessage.warning('請先選中要引用的正文片段')
 		return
 	}
 	if (isDirty.value) {
@@ -2770,7 +2770,7 @@ async function handleContextMenuReference() {
 	closeContextMenu()
 	const projectId = projectStore.currentProject?.id || props.card.project_id
 	if (!projectId) {
-		ElMessage.error('未找到当前项目，无法引用')
+		ElMessage.error('未找到當前項目，無法引用')
 		return
 	}
 	const projectName = projectStore.currentProject?.name || ''
@@ -2787,7 +2787,7 @@ async function handleContextMenuReference() {
 		numberedText: selectedText.numberedText,
 		snapshotHash: selectedText.snapshotHash,
 		source: 'manual',
-		// 兼容旧协议：若助手侧尚未升级，会按整卡引用字段读取 content
+		// 兼容舊協議：若助手側尚未升級，會按整卡引用字段讀取 content
 		content: {
 			text: selectedText.text,
 			startLine: selectedText.startLine,
@@ -2798,7 +2798,7 @@ async function handleContextMenuReference() {
 	}
 	assistantStore.addInjectedRefDirect(excerptRef as any, 'manual')
 	emit('switch-tab', 'assistant')
-	ElMessage.success(`已引用第 ${selectedText.startLine}-${selectedText.endLine} 行到灵感助手`)
+	ElMessage.success(`已引用第 ${selectedText.startLine}-${selectedText.endLine} 行到靈感助手`)
 }
 
 async function executeAIEdit(
@@ -2811,19 +2811,19 @@ async function executeAIEdit(
 
 	const selectedText = selectedTextInput || getSelectedText()
 	if (!selectedText) {
-		ElMessage.warning(`请先选中要${promptName}的内容`)
+		ElMessage.warning(`請先選中要${promptName}的內容`)
 		return
 	}
 
 	const llmConfigId = resolveLlmConfigId()
 	if (!llmConfigId) {
-		ElMessage.error('请先设置有效的模型ID')
+		ElMessage.error('請先設置有效的模型ID')
 		return
 	}
 
 	aiLoading.value = true
 
-	// 获取完整文本
+	// 獲取完整文本
 	const fullText = getText()
 
 	// 1. 解析上下文槽位（引用上下文）
@@ -2834,44 +2834,44 @@ async function executeAIEdit(
 		console.error('Failed to resolve context template:', e)
 	}
 
-	// 2. 格式化事实子图（参与实体）
+	// 2. 格式化事實子圖（參與實體）
 
-	// 3. 组合上下文信息：引用上下文 + 事实子图 + 用户要求 + 上文 + 选中内容 + 下文
+	// 3. 組合上下文信息：引用上下文 + 事實子圖 + 用戶要求 + 上文 + 選中內容 + 下文
 	const contextParts: string[] = []
 	if (resolvedContextTemplate) {
 		contextParts.push(`【引用上下文】\n${resolvedContextTemplate}`)
 	}
 	if (userRequirement) {
-		contextParts.push(`【用户要求】\n${userRequirement}`)
+		contextParts.push(`【用戶要求】\n${userRequirement}`)
 	}
 
-	// 提取上文（选中内容之前）
+	// 提取上文（選中內容之前）
 	const beforeText = fullText.substring(0, selectedText.from)
 	if (beforeText.trim()) {
-		// 截取最后1000字作为上文
+		// 截取最後1000字作爲上文
 		const truncatedBefore = beforeText.length > 1000 ? '...' + beforeText.slice(-1000) : beforeText
 		contextParts.push(`【上文】\n${truncatedBefore}`)
 	}
 
-	// 选中的内容
-	contextParts.push(`【需要${promptName}的内容】\n${selectedText.text}`)
+	// 選中的內容
+	contextParts.push(`【需要${promptName}的內容】\n${selectedText.text}`)
 
-	// 提取下文（选中内容之后）
+	// 提取下文（選中內容之後）
 	const afterText = fullText.substring(selectedText.to)
 	if (afterText.trim()) {
-		// 截取前500字作为下文
+		// 截取前500字作爲下文
 		const truncatedAfter = afterText.length > 500 ? afterText.slice(0, 500) + '...' : afterText
 		contextParts.push(`【下文】\n${truncatedAfter}`)
 	}
 	const contextInfoBlock = contextParts.join('\n\n')
 
 	const requestData: ContinuationRequest = {
-		previous_content: '', // 润色/扩写时为空，所有上下文都在 context_info 中
+		previous_content: '', // 潤色/擴寫時爲空，所有上下文都在 context_info 中
 		context_info: contextInfoBlock,
 		llm_config_id: llmConfigId,
 		stream: true,
 		prompt_name: promptName,
-		append_continuous_novel_directive: false, // 润色/扩写不需要"连续输出"指令
+		append_continuous_novel_directive: false, // 潤色/擴寫不需要"連續輸出"指令
 		...(props.contextParams || {}) as any,
 	} as any
 
@@ -2895,7 +2895,7 @@ async function executeAIEdit(
 function acceptPendingAiEdit() {
 	if (!view || !pendingAiEdit.value) return
 	if (pendingAiEdit.value.generating) {
-		ElMessage.warning('正在生成中，请稍后')
+		ElMessage.warning('正在生成中，請稍後')
 		return
 	}
 	const pending = pendingAiEdit.value
@@ -2908,7 +2908,7 @@ function acceptPendingAiEdit() {
 	})
 	pendingAiEdit.value = null
 	clearHighlight()
-	ElMessage.success('已接受替换')
+	ElMessage.success('已接受替換')
 }
 
 function rejectPendingAiEdit() {
@@ -2925,7 +2925,7 @@ function rejectPendingAiEdit() {
 	})
 	pendingAiEdit.value = null
 	clearHighlight()
-	ElMessage.info('已拒绝替换，保留原文')
+	ElMessage.info('已拒絕替換，保留原文')
 }
 
 function executeAIGeneration(
@@ -2945,7 +2945,7 @@ function executeAIGeneration(
 	if (view) {
 		view.focus()
 		if (!replaceMode) {
-			// 续写模式：光标移到末尾
+			// 續寫模式：光標移到末尾
 			const end = view.state.doc.length
 			view.dispatch({ selection: { anchor: end } })
 			outputStartPos = end
@@ -2977,7 +2977,7 @@ function executeAIGeneration(
 					.replace(/\n+/g, m => (m.length === 2 ? '\n' : m))
 
 				if (replaceMode) {
-					// 替换模式：保留原文，在其后追加预览内容
+					// 替換模式：保留原文，在其後追加預覽內容
 					if (view) {
 						const pending = pendingAiEdit.value
 						const pos = pending ? pending.previewTo : view.state.selection.main.head
@@ -3001,10 +3001,10 @@ function executeAIGeneration(
 						}
 					}
 				} else {
-					// 续写模式：追加到末尾
+					// 續寫模式：追加到末尾
 					appendAtEnd(normalized)
 					currentOutputLength += normalized.length
-					// 动态更新高亮范围
+					// 動態更新高亮範圍
 					updateHighlight(outputStartPos, outputStartPos + currentOutputLength)
 				}
 			}
@@ -3021,14 +3021,14 @@ function executeAIGeneration(
 			try {
 				if (!replaceMode) {
 					let text = getText() || ''
-					// 压缩恰好两个换行为一个，>=3 不动
+					// 壓縮恰好兩個換行爲一個，>=3 不動
 					text = text.replace(/\n+/g, m => (m.length === 2 ? '\n' : m))
 					setText(text)
 				}
 			} catch {}
-			console.log('✅ [AI] 生成完成，高亮已保留（点击编辑器任意位置可清除）')
+			console.log('✅ [AI] 生成完成，高亮已保留（點擊編輯器任意位置可清除）')
 			if (replaceMode) {
-				ElMessage.success(`${taskName}完成，已生成替换建议`)
+				ElMessage.success(`${taskName}完成，已生成替換建議`)
 			} else {
 				ElMessage.success(`${taskName}完成！`)
 			}
@@ -3054,8 +3054,8 @@ function executeAIGeneration(
 				pendingAiEdit.value = null
 			}
 			clearHighlight()
-			console.error(`${taskName}失败:`, error)
-			ElMessage.error(`${taskName}失败`)
+			console.error(`${taskName}失敗:`, error)
+			ElMessage.error(`${taskName}失敗`)
 		}
 	)
 }
@@ -3116,11 +3116,11 @@ function extractParticipantsWithTypeForCurrentChapter(): { name: string, type: s
 				type = item.entity_type
 			} else if (cardMap.has(name)) {
 				const card = cardMap.get(name)
-				// 简单的从卡片类型名推断实体类型
+				// 簡單的從卡片類型名推斷實體類型
 				const cardTypeName = card?.card_type?.name || ''
 				if (cardTypeName.includes('角色')) type = 'character'
-				else if (cardTypeName.includes('组织')) type = 'organization'
-				else if (cardTypeName.includes('场景')) type = 'scene'
+				else if (cardTypeName.includes('組織')) type = 'organization'
+				else if (cardTypeName.includes('場景')) type = 'scene'
 				else if (cardTypeName.includes('物品')) type = 'item'
 				else if (cardTypeName.includes('概念')) type = 'concept'
 			}
@@ -3129,7 +3129,7 @@ function extractParticipantsWithTypeForCurrentChapter(): { name: string, type: s
 	} catch (e) {
 		console.error("Failed to extract participants with type:", e)
 	}
-	return result.slice(0, 10) // 适当放宽数量限制
+	return result.slice(0, 10) // 適當放寬數量限制
 }
 
 function getExistingCardTitleSet(cardTypeName: ManagedCardTypeName): Set<string> {
@@ -3239,7 +3239,7 @@ const memoryPrimaryMissingCards = computed(() => {
 		return collectMissingCardNotices(
 			validScenePreviewItems.value.map(item => ({
 				title: item.name,
-				cardTypeName: '场景卡' as ManagedCardTypeName,
+				cardTypeName: '場景卡' as ManagedCardTypeName,
 				entityType: 'scene' as ManagedEntityType,
 			})),
 		)
@@ -3248,7 +3248,7 @@ const memoryPrimaryMissingCards = computed(() => {
 		return collectMissingCardNotices(
 			validOrganizationPreviewItems.value.map(item => ({
 				title: item.name,
-				cardTypeName: '组织卡' as ManagedCardTypeName,
+				cardTypeName: '組織卡' as ManagedCardTypeName,
 				entityType: 'organization' as ManagedEntityType,
 			})),
 		)
@@ -3331,7 +3331,7 @@ function extractCharacterParticipantsForCurrentChapter(): string[] {
 }
 
 
-// 触发“动态信息提取”（右栏调用）
+// 觸發“動態信息提取”（右欄調用）
 editorStore.setTriggerExtractDynamicInfo(async (opts) => {
 	if (typeof opts?.llm_config_id === 'number') {
 		await extractDynamicInfoWithLlm(opts.llm_config_id, opts)
@@ -3340,7 +3340,7 @@ editorStore.setTriggerExtractDynamicInfo(async (opts) => {
 	}
 })
 
-// 触发“关系提取入图”（右栏调用）
+// 觸發“關係提取入圖”（右欄調用）
 editorStore.setTriggerExtractRelations(async (opts) => {
 	if (typeof opts?.llm_config_id === 'number') {
 		await extractRelationsWithLlm(opts.llm_config_id, opts)
@@ -3373,7 +3373,7 @@ editorStore.setTriggerExtractConceptState(async (opts) => {
 	}
 })
 
-// 跨组件替换
+// 跨組件替換
 editorStore.setApplyChapterReplacements(async (pairs) => {
 	if (!view) return
 	let original = getText() || ''
@@ -3384,12 +3384,12 @@ editorStore.setApplyChapterReplacements(async (pairs) => {
 			const startLine = Number(op.startLine)
 			const endLine = Number(op.endLine)
 			if (!Number.isFinite(startLine) || !Number.isFinite(endLine) || startLine <= 0 || endLine < startLine) {
-				ElMessage.warning('按行替换失败：无效的行号范围')
+				ElMessage.warning('按行替換失敗：無效的行號範圍')
 				continue
 			}
 			const lines = replaced.split('\n')
 			if (endLine > lines.length) {
-				ElMessage.warning('按行替换失败：行号超出正文范围')
+				ElMessage.warning('按行替換失敗：行號超出正文範圍')
 				continue
 			}
 			const replacementLines = String(op.newText ?? '').split('\n')
@@ -3405,18 +3405,18 @@ editorStore.setApplyChapterReplacements(async (pairs) => {
 	setText(replaced)
 })
 
-// 灵感助手引用正文片段时，需要先确认保存当前正文，
-// 这样后端按行替换工具才能看到最新文本与行号。
+// 靈感助手引用正文片段時，需要先確認保存當前正文，
+// 這樣後端按行替換工具才能看到最新文本與行號。
 editorStore.setPersistActiveChapterDraft(async () => {
 	if (!view) return false
 	if (!isDirty.value) return true
 	try {
 		await ElMessageBox.confirm(
-			'你引用的正文片段包含未保存修改。为确保灵感助手按行替换时能定位到最新正文，需要先保存当前章节。是否现在保存？',
-			'请先保存章节',
+			'你引用的正文片段包含未保存修改。爲確保靈感助手按行替換時能定位到最新正文，需要先保存當前章節。是否現在保存？',
+			'請先保存章節',
 			{
 				type: 'warning',
-				confirmButtonText: '保存后继续',
+				confirmButtonText: '保存後繼續',
 				cancelButtonText: '取消',
 			},
 		)
@@ -3429,14 +3429,14 @@ editorStore.setPersistActiveChapterDraft(async () => {
 
 async function extractDynamicInfo() {
 	const llmConfigId = resolveLlmConfigId()
-	if (!llmConfigId) { ElMessage.error('请先选择一个有效的AI参数配置（模型）'); return }
+	if (!llmConfigId) { ElMessage.error('請先選擇一個有效的AI參數配置（模型）'); return }
 	await extractDynamicInfoWithLlm(llmConfigId, { llm_config_id: llmConfigId })
 }
 
 async function extractDynamicInfoWithLlm(llmConfigId: number, opts?: ChapterExtractRunOptions) {
 	try {
 		const projectId = projectStore.currentProject?.id || (localCard as any).project_id
-		if (!projectId) { ElMessage.error('未找到当前项目ID'); return }
+		if (!projectId) { ElMessage.error('未找到當前項目ID'); return }
 		const participants = extractParticipantsWithTypeForCurrentChapter()
 		const chapterText = getText() || ''
 		const extraContext = (props.contextParams as any)?.extra_context_fn()
@@ -3456,7 +3456,7 @@ async function extractDynamicInfoWithLlm(llmConfigId: number, opts?: ChapterExtr
 		previewDialogVisible.value = true
 	} catch (e) {
 		console.error(e)
-		ElMessage.error('提取动态信息失败')
+		ElMessage.error('提取動態信息失敗')
 	}
 }
 
@@ -3499,16 +3499,16 @@ async function confirmApplyUpdates() {
 				appendedCount = await appendParticipantsToCurrentChapter(collectConfirmedDynamicParticipantNames())
 			} catch (syncError) {
 				console.error(syncError)
-				ElMessage.warning('动态信息已写入，但同步本章参与实体失败')
+				ElMessage.warning('動態信息已寫入，但同步本章參與實體失敗')
 			}
-			ElMessage.success(`动态信息已更新：${resp.updated_card_count} 个角色卡${appendedCount > 0 ? `，并补充 ${appendedCount} 个参与实体` : ''}`)
+			ElMessage.success(`動態信息已更新：${resp.updated_card_count} 個角色卡${appendedCount > 0 ? `，並補充 ${appendedCount} 個參與實體` : ''}`)
 			try { await cardStore.fetchCards(projectId) } catch {}
 		} else {
-			ElMessage.warning('未检测到需要更新的动态信息')
+			ElMessage.warning('未檢測到需要更新的動態信息')
 		}
 	} catch (e) {
 		console.error(e)
-		ElMessage.error('更新动态信息失败')
+		ElMessage.error('更新動態信息失敗')
 	} finally {
 		dynamicPreviewApplying.value = false
 		previewDialogVisible.value = false
@@ -3518,7 +3518,7 @@ async function confirmApplyUpdates() {
 
 async function handleIngestRelations() {
 	const llmConfigId = resolveLlmConfigId()
-	if (!llmConfigId) { ElMessage.error('请先选择一个有效的AI参数配置（模型）'); return }
+	if (!llmConfigId) { ElMessage.error('請先選擇一個有效的AI參數配置（模型）'); return }
 	await extractRelationsWithLlm(llmConfigId, { llm_config_id: llmConfigId })
 }
 
@@ -3536,10 +3536,10 @@ async function confirmIngestRelationsFromPreview() {
 		const vol = (localCard as any)?.content?.volume_number ?? (props.contextParams as any)?.volume_number
 		const ch = (localCard as any)?.content?.chapter_number ?? (props.contextParams as any)?.chapter_number
 		const resp = await ingestRelationsFromPreview({ project_id: projectId, data: sanitizedRelationsPreview, volume_number: vol, chapter_number: ch })
-		ElMessage.success(`已写入关系/别名：${resp.written} 条`)
+		ElMessage.success(`已寫入關係/別名：${resp.written} 條`)
 	} catch (e) {
 		console.error(e)
-		ElMessage.error('关系入图失败')
+		ElMessage.error('關係入圖失敗')
 	} finally {
 		relationsPreviewApplying.value = false
 		relationsPreviewVisible.value = false
@@ -3577,7 +3577,7 @@ async function extractRelationsWithLlm(llmConfigId: number, opts?: ChapterExtrac
 		let mergedText = text
 		try {
 			const factsText = formatFactsFromContext(props.prefetched)
-			if (factsText) mergedText = `【已知事实子图】\n${factsText}\n\n正文如下：\n${text}`
+			if (factsText) mergedText = `【已知事實子圖】\n${factsText}\n\n正文如下：\n${text}`
 		} catch {}
 
 		const data = await extractRelationsOnly({
@@ -3595,14 +3595,14 @@ async function extractRelationsWithLlm(llmConfigId: number, opts?: ChapterExtrac
 		relationsPreviewVisible.value = true
 	} catch (e) {
 		console.error(e)
-		ElMessage.error('关系抽取失败')
+		ElMessage.error('關係抽取失敗')
 	}
 }
 
 async function extractMemoryByCode(extractorCode: MemoryExtractorCode, llmConfigId: number, opts?: ChapterExtractRunOptions) {
 	try {
 		const projectId = projectStore.currentProject?.id || (localCard as any).project_id
-		if (!projectId) { ElMessage.error('未找到当前项目ID'); return }
+		if (!projectId) { ElMessage.error('未找到當前項目ID'); return }
 		const text = getText() || ''
 		const participants = extractParticipantsWithTypeForCurrentChapter()
 		const vol = (localCard as any)?.content?.volume_number ?? (props.contextParams as any)?.volume_number
@@ -3613,7 +3613,7 @@ async function extractMemoryByCode(extractorCode: MemoryExtractorCode, llmConfig
 		let mergedText = text
 		try {
 			const factsText = formatFactsFromContext(props.prefetched)
-			if (factsText) mergedText = `【已知事实子图】\n${factsText}\n\n正文如下：\n${text}`
+			if (factsText) mergedText = `【已知事實子圖】\n${factsText}\n\n正文如下：\n${text}`
 		} catch {}
 
 		const data = await extractMemoryPreview({
@@ -3635,7 +3635,7 @@ async function extractMemoryByCode(extractorCode: MemoryExtractorCode, llmConfig
 		memoryPreviewVisible.value = true
 	} catch (e) {
 		console.error(e)
-		ElMessage.error(`${getMemoryExtractorDisplayLabel(extractorCode)}提取失败`)
+		ElMessage.error(`${getMemoryExtractorDisplayLabel(extractorCode)}提取失敗`)
 	}
 }
 
@@ -3756,7 +3756,7 @@ async function ensureEditorMainTabVisible() {
 async function removeParticipantFromCurrentChapter(item: ParticipantReviewNotice) {
 	const cardId = Number((props.card as any)?.id || (localCard as any)?.id || 0)
 	if (!cardId) {
-		ElMessage.warning('未找到当前章节卡片，无法更新参与实体')
+		ElMessage.warning('未找到當前章節卡片，無法更新參與實體')
 		return
 	}
 	const currentList = Array.isArray((localCard.content as any)?.entity_list)
@@ -3767,7 +3767,7 @@ async function removeParticipantFromCurrentChapter(item: ParticipantReviewNotice
 		return String(name || '').trim() !== item.title
 	})
 	if (nextList.length === currentList.length) {
-		ElMessage.warning(`${item.title} 当前不在本章参与实体列表中`)
+		ElMessage.warning(`${item.title} 當前不在本章參與實體列表中`)
 		return
 	}
 	try {
@@ -3777,10 +3777,10 @@ async function removeParticipantFromCurrentChapter(item: ParticipantReviewNotice
 		}
 		await cardStore.modifyCard(cardId, { content: baseContent } as any)
 		;(localCard.content as any).entity_list = nextList
-		ElMessage.success(`已将 ${item.title} 移出本章参与实体`)
+		ElMessage.success(`已將 ${item.title} 移出本章參與實體`)
 	} catch (error) {
 		console.error(error)
-		ElMessage.error('更新本章参与实体失败')
+		ElMessage.error('更新本章參與實體失敗')
 	}
 }
 
@@ -3846,16 +3846,16 @@ async function applyMemoryPreviewConfirm() {
 				appendedCount = await appendParticipantsToCurrentChapter(collectConfirmedMemoryParticipantNames())
 			} catch (syncError) {
 				console.error(syncError)
-				ElMessage.warning('提取结果已写入，但同步本章参与实体失败')
+				ElMessage.warning('提取結果已寫入，但同步本章參與實體失敗')
 			}
-			ElMessage.success(`${label}已写入：${resp.updated_card_count} 张卡片${appendedCount > 0 ? `，并补充 ${appendedCount} 个参与实体` : ''}`)
+			ElMessage.success(`${label}已寫入：${resp.updated_card_count} 張卡片${appendedCount > 0 ? `，並補充 ${appendedCount} 個參與實體` : ''}`)
 			try { await cardStore.fetchCards(projectId) } catch {}
 		} else {
-			ElMessage.warning('未检测到需要写入的记忆')
+			ElMessage.warning('未檢測到需要寫入的記憶')
 		}
 	} catch (e) {
 		console.error(e)
-		ElMessage.error('写入扩展记忆失败')
+		ElMessage.error('寫入擴展記憶失敗')
 	} finally {
 		memoryPreviewApplying.value = false
 		closeMemoryPreview()
@@ -3875,20 +3875,20 @@ onMounted(() => {
 		editorStore.setCurrentContextInfo({ title, volume: Number.isNaN(vol) ? null : vol, chapter: Number.isNaN(ch) ? null : ch })
 	} catch {}
 
-	// ESC 键关闭右键菜单
+	// ESC 鍵關閉右鍵菜單
 	window.addEventListener('keydown', handleKeyDown)
 })
 
 function handleClickOutside(e: MouseEvent) {
 	if (!contextMenu.visible) return
 	const target = e.target as HTMLElement
-	// 点击菜单外部时关闭
+	// 點擊菜單外部時關閉
 	if (!target.closest('.context-menu-popup')) {
 		closeContextMenu()
 	}
 }
 
-// 按 ESC 键关闭菜单
+// 按 ESC 鍵關閉菜單
 function handleKeyDown(e: KeyboardEvent) {
 	if (contextMenu.visible && e.key === 'Escape') {
 		closeContextMenu()
@@ -3896,7 +3896,7 @@ function handleKeyDown(e: KeyboardEvent) {
 }
 
 onUnmounted(() => {
-	// 移除右键菜单监听器
+	// 移除右鍵菜單監聽器
 	if (cmRoot.value) {
 		const editorDom = cmRoot.value.querySelector('.cm-editor') as HTMLElement
 		if (editorDom) {
@@ -3916,40 +3916,40 @@ onUnmounted(() => {
 	try { reviewAbortController.value?.abort(); } catch {}
 	try { streamHandle?.cancel(); } catch {}
 
-	// 移除事件监听
+	// 移除事件監聽
 	window.removeEventListener('keydown', handleKeyDown)
 
-	// 清理右键菜单的点击监听器（如果还在）
+	// 清理右鍵菜單的點擊監聽器（如果還在）
 	if (contextMenuClickListenerAdded) {
 		window.removeEventListener('click', handleClickOutside, { capture: true })
 		contextMenuClickListenerAdded = false
 	}
 })
 
-// 恢复历史版本内容
+// 恢復歷史版本內容
 async function restoreContent(versionContent: any) {
 	try {
-		// 提取章节正文内容
+		// 提取章節正文內容
 		const textContent = typeof versionContent === 'string'
 			? versionContent
 			: (versionContent?.content || '')
 
-		// 更新编辑器内容
+		// 更新編輯器內容
 		setText(textContent)
 
-		// 更新 localCard.content 的各个字段（保持响应式）
+		// 更新 localCard.content 的各個字段（保持響應式）
 		if (typeof versionContent === 'object') {
 			Object.assign(localCard.content, versionContent)
 		}
-		// 确保 content 字段是正确的文本
+		// 確保 content 字段是正確的文本
 		localCard.content.content = textContent
 
-		// 更新原始内容（避免触发dirty）
+		// 更新原始內容（避免觸發dirty）
 		originalContent.value = textContent
 		isDirty.value = false
 		emit('update:dirty', false)
 
-		// 更新字数
+		// 更新字數
 		wordCount.value = computeWordCount(textContent)
 
 	} catch (e) {
@@ -3958,7 +3958,7 @@ async function restoreContent(versionContent: any) {
 	}
 }
 
-// 暴露方法供父组件调用
+// 暴露方法供父組件調用
 defineExpose({
 	handleSave,
 	restoreContent
@@ -4096,7 +4096,7 @@ function nfAssistantOpenPatch(index: number) {
     if (p.source === 'assistant_batch_patch') {
       nfAssistantClearCurrentPreview()
     } else {
-      ElMessage.warning('请先接受或拒绝当前替换建议')
+      ElMessage.warning('請先接受或拒絕當前替換建議')
       return
     }
   }
@@ -4108,7 +4108,7 @@ function nfAssistantOpenPatch(index: number) {
   const range = nfAssistantLocatePatch(patch)
   if (!range) {
     patch.status = 'conflict'
-    ElMessage.warning(`建议 #${nfAssistantPatchIndex.value + 1} 无法自动定位，已标记为冲突`)
+    ElMessage.warning(`建議 #${nfAssistantPatchIndex.value + 1} 無法自動定位，已標記爲衝突`)
     nfAssistantOpenNextPending(nfAssistantPatchIndex.value + 1)
     return
   }
@@ -4138,7 +4138,7 @@ function nfAssistantOpenPatch(index: number) {
 
   setCompareHighlight(range.from, range.to, range.to, range.to + newText.length)
   nfAssistantScrollToRange(range)
-  ElMessage.info(`正在查看建议 #${nfAssistantPatchIndex.value + 1} / ${nfAssistantPatchTotal.value}`)
+  ElMessage.info(`正在查看建議 #${nfAssistantPatchIndex.value + 1} / ${nfAssistantPatchTotal.value}`)
 }
 
 function nfAssistantOpenNextPending(fromIndex: number = nfAssistantPatchIndex.value + 1) {
@@ -4194,7 +4194,7 @@ async function nfAssistantPatchAcceptCurrent() {
     return
   }
   if (!nfAssistantHasCurrentBatchPreview()) {
-    ElMessage.warning('当前没有可接受的批量建议预览')
+    ElMessage.warning('當前沒有可接受的批量建議預覽')
     return
   }
   const idx = nfAssistantPatchIndex.value
@@ -4210,7 +4210,7 @@ async function nfAssistantPatchRejectCurrent() {
     return
   }
   if (!nfAssistantHasCurrentBatchPreview()) {
-    ElMessage.warning('当前没有可拒绝的批量建议预览')
+    ElMessage.warning('當前沒有可拒絕的批量建議預覽')
     return
   }
   const idx = nfAssistantPatchIndex.value
@@ -4231,7 +4231,7 @@ function nfAssistantHandlePatchBatchEvent(event: Event) {
     return
   }
   if (pendingAiEdit.value && (pendingAiEdit.value as any).source !== 'assistant_batch_patch') {
-    ElMessage.warning('请先接受或拒绝当前替换建议')
+    ElMessage.warning('請先接受或拒絕當前替換建議')
     return
   }
 
@@ -4257,7 +4257,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-/* 提示词下拉菜单项 */
+/* 提示詞下拉菜單項 */
 .prompt-item {
 	display: flex;
 	justify-content: space-between;
@@ -4271,24 +4271,24 @@ onBeforeUnmount(() => {
 	margin-left: 8px;
 }
 
-/* 高亮选中的提示词 */
+/* 高亮選中的提示詞 */
 :deep(.is-selected) {
 	background-color: var(--el-color-primary-light-9);
 	color: var(--el-color-primary);
 	font-weight: 600;
 }
 
-/* 最外层容器：固定高度，防止整体滚动 */
+/* 最外層容器：固定高度，防止整體滾動 */
 .chapter-studio {
 	display: flex;
 	flex-direction: column;
 	height: 100%;
 	min-height: 0;
-	overflow: hidden; /* 关键：防止整体滚动 */
+	overflow: hidden; /* 關鍵：防止整體滾動 */
 }
 
 .toolbar {
-	padding: 8px 8px; /* 灰色区域与内部白框上下左右间距保持一致 */
+	padding: 8px 8px; /* 灰色區域與內部白框上下左右間距保持一致 */
 	border-bottom: 1px solid var(--el-border-color-light);
 	background: var(--el-fill-color-lighter);
 	display: flex;
@@ -4434,8 +4434,8 @@ onBeforeUnmount(() => {
 	flex: 1;
 	display: flex;
 	flex-direction: column;
-	min-height: 0; /* 允许flex子元素正确收缩 */
-	overflow: hidden; /* 防止wrapper本身滚动 */
+	min-height: 0; /* 允許flex子元素正確收縮 */
+	overflow: hidden; /* 防止wrapper本身滾動 */
 }
 
 .chapter-header {
@@ -4496,8 +4496,8 @@ onBeforeUnmount(() => {
 }
 
 .editor-content {
-	flex: 1 1 0; /* flex-basis为0，避免被内容撑开 */
-	min-height: 0; /* 允许flex子元素正确收缩和滚动 */
+	flex: 1 1 0; /* flex-basis爲0，避免被內容撐開 */
+	min-height: 0; /* 允許flex子元素正確收縮和滾動 */
 	overflow: hidden;
 	background-color: var(--el-bg-color);
 	position: relative;
@@ -4529,18 +4529,18 @@ onBeforeUnmount(() => {
 	gap: 8px;
 }
 
-/* CodeMirror 内部样式 */
+/* CodeMirror 內部樣式 */
 .editor-content :deep(.cm-editor) {
-	height: 100% !important; /* 强制占满容器高度，不自动扩展 */
+	height: 100% !important; /* 強制佔滿容器高度，不自動擴展 */
 	outline: none;
 	line-height: 1.8;
 	color: var(--el-text-color-primary);
 	background-color: transparent;
 }
 
-/* 确保 CodeMirror 的滚动容器正确工作 */
+/* 確保 CodeMirror 的滾動容器正確工作 */
 .editor-content :deep(.cm-scroller) {
-	overflow-y: auto !important; /* 强制垂直滚动 */
+	overflow-y: auto !important; /* 強制垂直滾動 */
 	overflow-x: auto !important;
 	max-height: 100% !important; /* 防止超出父容器 */
 }
@@ -4581,7 +4581,7 @@ onBeforeUnmount(() => {
 	background: color-mix(in srgb, var(--el-color-primary) 20%, transparent) !important;
 }
 
-/* 取消高亮行背景，保证纯文本阅读观感 */
+/* 取消高亮行背景，保證純文本閱讀觀感 */
 .editor-content :deep(.cm-activeLine) {
 	background-color: transparent;
 }
@@ -4814,7 +4814,7 @@ onBeforeUnmount(() => {
 	color: var(--el-text-color-primary);
 }
 
-/* 右键快速编辑菜单 */
+/* 右鍵快速編輯菜單 */
 .context-menu-popup {
 	position: fixed;
 	z-index: 9999;
@@ -4923,7 +4923,7 @@ onBeforeUnmount(() => {
 	to { transform: rotate(360deg); }
 }
 
-/* 自定义 AI 高亮效果 */
+/* 自定義 AI 高亮效果 */
 .editor-content :deep(.cm-ai-highlight) {
 	background: linear-gradient(120deg,
 		rgba(96, 165, 250, 0.2) 0%,

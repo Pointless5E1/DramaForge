@@ -1,11 +1,11 @@
 ﻿<template>
   <div class="workflow-container">
-    <!-- 顶部工具栏 -->
+    <!-- 頂部工具欄 -->
     <div class="workflow-toolbar">
       <div class="toolbar-left">
         <el-select
           v-model="currentWorkflowId"
-          placeholder="选择工作流"
+          placeholder="選擇工作流"
           filterable
           clearable
           @change="onWorkflowChange"
@@ -36,7 +36,7 @@
           plain
         >
           <el-icon><Delete /></el-icon>
-          <span>删除</span>
+          <span>刪除</span>
         </el-button>
       </div>
 
@@ -58,7 +58,7 @@
           plain
         >
           <el-icon><Clock /></el-icon>
-          <span>运行记录</span>
+          <span>運行記錄</span>
         </el-button>
         
         <el-button 
@@ -67,7 +67,7 @@
           plain
         >
           <el-icon><CircleCheck /></el-icon>
-          <span>校验代码</span>
+          <span>校驗代碼</span>
         </el-button>
         
         <el-divider direction="vertical" />
@@ -85,7 +85,7 @@
           type="primary"
         >
           <el-icon><VideoPlay /></el-icon>
-          <span>执行</span>
+          <span>執行</span>
         </el-button>
         <el-button
           v-if="canPause"
@@ -93,7 +93,7 @@
           type="warning"
         >
           <el-icon><VideoPause /></el-icon>
-          <span>暂停</span>
+          <span>暫停</span>
         </el-button>
         <el-button
           v-if="canResume"
@@ -101,35 +101,35 @@
           type="success"
         >
           <el-icon><VideoPlay /></el-icon>
-          <span>恢复</span>
+          <span>恢復</span>
         </el-button>
       </div>
     </div>
 
-    <!-- 主内容区 -->
+    <!-- 主內容區 -->
     <div class="workflow-content">
-      <!-- 节点库 -->
+      <!-- 節點庫 -->
       <div class="library-section" :style="{ width: libraryWidth + 'px' }">
         <node-library @add-node="onAddNode" />
       </div>
 
-      <!-- 拖动条 - 节点库 -->
+      <!-- 拖動條 - 節點庫 -->
       <div class="resize-handle" @mousedown="startResizing('library')"></div>
 
-      <!-- 节点块编辑器 -->
+      <!-- 節點塊編輯器 -->
       <div class="editor-section">
         <div class="section-header">
-          <span class="section-title">工作流节点</span>
+          <span class="section-title">工作流節點</span>
           <span class="section-subtitle" v-if="currentWorkflowName">
             {{ currentWorkflowName }}
           </span>
           <div class="view-mode-toggle" style="margin-left: auto">
              <el-radio-group v-model="viewMode" size="small">
                 <el-radio-button label="visual">
-                   <el-icon><List /></el-icon> 可视化
+                   <el-icon><List /></el-icon> 可視化
                 </el-radio-button>
                 <el-radio-button label="code">
-                   <el-icon><Document /></el-icon> 代码
+                   <el-icon><Document /></el-icon> 代碼
                 </el-radio-button>
              </el-radio-group>
           </div>
@@ -150,10 +150,10 @@
         </div>
       </div>
 
-      <!-- 拖动条 - Notebook -->
+      <!-- 拖動條 - Notebook -->
       <div class="resize-handle" @mousedown="startResizing('notebook')"></div>
 
-      <!-- Notebook执行视图 -->
+      <!-- Notebook執行視圖 -->
       <div class="notebook-section" :style="{ width: notebookWidth + 'px' }">
         <workflow-notebook
           :cells="notebookCells"
@@ -164,7 +164,7 @@
       </div>
     </div>
 
-    <!-- 运行记录对话框 -->
+    <!-- 運行記錄對話框 -->
     <workflow-runs-dialog 
       v-model="showRunsDialog" 
       :workflow-id="currentWorkflowId"
@@ -177,30 +177,30 @@
       @applied="handleWorkflowAgentApplied"
     />
 
-    <!-- 校验结果对话框 -->
+    <!-- 校驗結果對話框 -->
     <el-dialog
       v-model="showValidationDialog"
-      title="工作流校验结果"
+      title="工作流校驗結果"
       width="600px"
     >
       <div v-if="validationResult">
         <el-alert
           :type="validationResult.is_valid ? 'success' : 'error'"
-          :title="validationResult.is_valid ? '校验通过' : '校验失败'"
+          :title="validationResult.is_valid ? '校驗通過' : '校驗失敗'"
           :closable="false"
           style="margin-bottom: 16px"
         >
           <template v-if="!validationResult.is_valid">
-            发现 {{ validationResult.errors.length }} 个错误
+            發現 {{ validationResult.errors.length }} 個錯誤
             <span v-if="validationResult.warnings.length > 0">
-              和 {{ validationResult.warnings.length }} 个警告
+              和 {{ validationResult.warnings.length }} 個警告
             </span>
           </template>
         </el-alert>
 
-        <!-- 错误列表 -->
+        <!-- 錯誤列表 -->
         <div v-if="validationResult.errors.length > 0" style="margin-bottom: 16px">
-          <h4 style="margin-bottom: 8px; color: #f56c6c">错误</h4>
+          <h4 style="margin-bottom: 8px; color: #f56c6c">錯誤</h4>
           <el-scrollbar max-height="300px">
             <div
               v-for="(error, index) in validationResult.errors"
@@ -244,7 +244,7 @@
       </div>
 
       <template #footer>
-        <el-button @click="showValidationDialog = false">关闭</el-button>
+        <el-button @click="showValidationDialog = false">關閉</el-button>
       </template>
     </el-dialog>
   </div>
@@ -273,7 +273,7 @@ import {
 } from '@/api/workflows'
 import request from '@/api/request'
 
-// 使用状态机管理执行状态
+// 使用狀態機管理執行狀態
 const {
   execution,
   isRunning,
@@ -291,7 +291,7 @@ const {
   reset: resetExecution
 } = useWorkflowExecution()
 
-// 使用进度管理
+// 使用進度管理
 const { startWorkflow, pauseWorkflow } = useWorkflowProgress()
 
 const code = ref(``)
@@ -301,13 +301,13 @@ const validationResult = ref(null)
 
 const viewMode = ref('visual') // 'visual' | 'code'
 const notebookCells = reactive([])
-let currentWorkflowId = ref(null) // 当前工作流ID
-let currentWorkflowName = ref('未命名工作流') // 当前工作流名称
+let currentWorkflowId = ref(null) // 當前工作流ID
+let currentWorkflowName = ref('未命名工作流') // 當前工作流名稱
 const currentWorkflowRevision = ref('')
-const keepRunHistory = ref(false) // 是否持久化保存运行记录
+const keepRunHistory = ref(false) // 是否持久化保存運行記錄
 const workflowList = ref([]) // 工作流列表
 
-// 拖动调整宽度
+// 拖動調整寬度
 const libraryWidth = ref(280)
 const notebookWidth = ref(500)
 const minLibraryWidth = 200
@@ -350,17 +350,17 @@ function stopResizing() {
   window.removeEventListener('mouseup', stopResizing)
 }
 
-// 加载工作流列表
+// 加載工作流列表
 const loadWorkflowList = async () => {
   try {
     const workflows = await listWorkflows()
-    // 所有工作流都是代码式工作流（dsl_version === 2）
+    // 所有工作流都是代碼式工作流（dsl_version === 2）
     workflowList.value = workflows.filter(wf => {
       return wf.dsl_version === 2
     })
   } catch (error) {
-    console.error('[Workflow] 加载工作流列表失败:', error)
-    ElMessage.error('加载工作流列表失败')
+    console.error('[Workflow] 加載工作流列表失敗:', error)
+    ElMessage.error('加載工作流列表失敗')
   }
 }
 
@@ -370,22 +370,22 @@ const refreshWorkflowList = async () => {
   ElMessage.success('工作流列表已刷新')
 }
 
-// 工作流切换
+// 工作流切換
 const onWorkflowChange = async (workflowId) => {
   if (!workflowId) {
-    // 清空选择
+    // 清空選擇
     currentWorkflowId.value = null
     currentWorkflowName.value = '未命名工作流'
     code.value = `# 示例工作流
-#@node(description="选择项目")
+#@node(description="選擇項目")
 project = Logic.SelectProject(project_id=1)
 #</node>
 
-#@node(description="加载小说目录")
+#@node(description="加載小說目錄")
 novel = Novel.Load(root_path="E:\\\\Novels\\\\book")
 #</node>
 
-#@node(description="批量创建分卷卡片")
+#@node(description="批量創建分卷卡片")
 cards = Card.BatchUpsert(
     items=novel.volume_list,
     card_type="volume",
@@ -402,94 +402,94 @@ cards = Card.BatchUpsert(
     currentWorkflowName.value = workflow.name
     code.value = workflow.code || ''
     currentWorkflowRevision.value = workflow.revision || ''
-    keepRunHistory.value = workflow.keep_run_history || false // 加载持久化设置
-    notebookCells.length = 0 // 清空输出
+    keepRunHistory.value = workflow.keep_run_history || false // 加載持久化設置
+    notebookCells.length = 0 // 清空輸出
   } catch (error) {
-    console.error('[Workflow] 加载工作流失败:', error)
-    ElMessage.error('加载工作流失败')
+    console.error('[Workflow] 加載工作流失敗:', error)
+    ElMessage.error('加載工作流失敗')
   }
 }
 
-// 创建新工作流
+// 創建新工作流
 const createNewWorkflow = async () => {
   try {
-    const { value: name } = await ElMessageBox.prompt('请输入工作流名称', '新建工作流', {
-      confirmButtonText: '确定',
+    const { value: name } = await ElMessageBox.prompt('請輸入工作流名稱', '新建工作流', {
+      confirmButtonText: '確定',
       cancelButtonText: '取消',
       inputValue: '新工作流',
       inputPattern: /\S+/,
-      inputErrorMessage: '工作流名称不能为空',
+      inputErrorMessage: '工作流名稱不能爲空',
       inputValidator: (value) => {
         if (!value || !value.trim()) {
-          return '工作流名称不能为空'
+          return '工作流名稱不能爲空'
         }
-        // 检查是否重名
+        // 檢查是否重名
         const exists = workflowList.value.some(wf => wf.name === value.trim())
         if (exists) {
-          return '工作流名称已存在，请使用其他名称'
+          return '工作流名稱已存在，請使用其他名稱'
         }
         return true
       }
     })
 
-    // 创建新工作流，使用 marker DSL 模板
+    // 創建新工作流，使用 marker DSL 模板
     const initialCode = `# 新工作流
-#@node(description="选择项目")
+#@node(description="選擇項目")
 project = Logic.SelectProject(project_id=1)
 #</node>`
     const workflow = await saveCodeWorkflow(name, initialCode)
     currentWorkflowId.value = workflow.id
     currentWorkflowName.value = workflow.name
-    code.value = initialCode  // 更新代码
+    code.value = initialCode  // 更新代碼
     currentWorkflowRevision.value = ''
 
     // 刷新列表
     await loadWorkflowList()
 
-    ElMessage.success(`工作流"${workflow.name}"已创建`)
+    ElMessage.success(`工作流"${workflow.name}"已創建`)
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('[Workflow] 创建工作流失败:', error)
-      ElMessage.error('创建工作流失败')
+      console.error('[Workflow] 創建工作流失敗:', error)
+      ElMessage.error('創建工作流失敗')
     }
   }
 }
 
-// 删除工作流
+// 刪除工作流
 const deleteWorkflow = async () => {
   if (!currentWorkflowId.value) {
-    ElMessage.warning('请先选择要删除的工作流')
+    ElMessage.warning('請先選擇要刪除的工作流')
     return
   }
 
   try {
     await ElMessageBox.confirm(
-      `确定要删除工作流"${currentWorkflowName.value}"吗？此操作不可恢复。`,
-      '删除工作流',
+      `確定要刪除工作流"${currentWorkflowName.value}"嗎？此操作不可恢復。`,
+      '刪除工作流',
       {
-        confirmButtonText: '确定删除',
+        confirmButtonText: '確定刪除',
         cancelButtonText: '取消',
         type: 'warning'
       }
     )
 
-    // 删除工作流
+    // 刪除工作流
     await deleteWorkflowApi(currentWorkflowId.value)
 
-    // 清空当前选择
+    // 清空當前選擇
     currentWorkflowId.value = null
     currentWorkflowName.value = '未命名工作流'
     currentWorkflowRevision.value = ''
     code.value = `# 示例工作流
-#@node(description="选择项目")
+#@node(description="選擇項目")
 project = Logic.SelectProject(project_id=1)
 #</node>
 
-#@node(description="加载小说目录")
+#@node(description="加載小說目錄")
 novel = Novel.Load(root_path="E:\\\\Novels\\\\book")
 #</node>
 
-#@node(description="批量创建分卷卡片")
+#@node(description="批量創建分卷卡片")
 cards = Card.BatchUpsert(
     items=novel.volume_list,
     card_type="volume",
@@ -501,11 +501,11 @@ cards = Card.BatchUpsert(
     // 刷新列表
     await loadWorkflowList()
 
-    ElMessage.success('工作流已删除')
+    ElMessage.success('工作流已刪除')
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('[Workflow] 删除工作流失败:', error)
-      ElMessage.error('删除工作流失败')
+      console.error('[Workflow] 刪除工作流失敗:', error)
+      ElMessage.error('刪除工作流失敗')
     }
   }
 }
@@ -517,20 +517,20 @@ const formatDate = (dateStr) => {
   const now = new Date()
   const diff = now - date
 
-  // 小于1分钟
-  if (diff < 60000) return '刚刚'
-  // 小于1小时
-  if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`
-  // 小于1天
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`
-  // 小于7天
+  // 小於1分鐘
+  if (diff < 60000) return '剛剛'
+  // 小於1小時
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}分鐘前`
+  // 小於1天
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}小時前`
+  // 小於7天
   if (diff < 604800000) return `${Math.floor(diff / 86400000)}天前`
 
-  // 超过7天显示日期
+  // 超過7天顯示日期
   return date.toLocaleDateString('zh-CN')
 }
 
-// 持久化开关变更
+// 持久化開關變更
 const onKeepRunHistoryChange = async (value) => {
   if (!currentWorkflowId.value) return
   
@@ -538,43 +538,43 @@ const onKeepRunHistoryChange = async (value) => {
     await updateWorkflow(currentWorkflowId.value, {
       keep_run_history: value
     })
-    ElMessage.success(value ? '已开启运行记录持久化' : '已关闭运行记录持久化')
+    ElMessage.success(value ? '已開啓運行記錄持久化' : '已關閉運行記錄持久化')
   } catch (error) {
-    console.error('[Workflow] 更新持久化设置失败:', error)
-    ElMessage.error('更新持久化设置失败')
-    // 恢复原值
+    console.error('[Workflow] 更新持久化設置失敗:', error)
+    ElMessage.error('更新持久化設置失敗')
+    // 恢復原值
     keepRunHistory.value = !value
   }
 }
 
-// 执行工作流
+// 執行工作流
 const runWorkflow = async () => {
   if (!canStart.value) return
 
-  notebookCells.length = 0 // 清空之前的输出
+  notebookCells.length = 0 // 清空之前的輸出
 
   try {
-    // 1. 每次执行都重新保存工作流（确保代码是最新的）
+    // 1. 每次執行都重新保存工作流（確保代碼是最新的）
     if (currentWorkflowId.value) {
-      // 更新现有工作流
+      // 更新現有工作流
       await updateWorkflow(currentWorkflowId.value, {
         definition_code: code.value
       })
       currentWorkflowRevision.value = ''
     } else {
-      // 创建新工作流
+      // 創建新工作流
       const workflow = await saveCodeWorkflow(currentWorkflowName.value, code.value)
       currentWorkflowId.value = workflow.id
     }
 
-    // 2. 执行工作流
-    // 使用全局 SSE 连接管理（自动更新状态栏）
+    // 2. 執行工作流
+    // 使用全局 SSE 連接管理（自動更新狀態欄）
     await startWorkflow(
       currentWorkflowId.value,
       currentWorkflowName.value,
       {
         onRunStarted: (actualRunId) => {
-          // 更新状态机中的 runId（不改变状态）
+          // 更新狀態機中的 runId（不改變狀態）
           updateRunId(actualRunId)
         },
         onStart: (event) => {
@@ -590,7 +590,7 @@ const runWorkflow = async () => {
         onProgress: (event) => {
           const cellIndex = notebookCells.findIndex(c => c.id === event.statement?.variable)
           if (cellIndex !== -1) {
-            // 使用 splice 来强制触发响应式更新
+            // 使用 splice 來強制觸發響應式更新
             const updatedCell = {
               ...notebookCells[cellIndex],
               status: 'progress',
@@ -607,17 +607,17 @@ const runWorkflow = async () => {
               ...notebookCells[cellIndex],
               status: 'completed',
               outputs: [event.result],
-              resumed: event.resumed || false  // 标记是否是恢复的节点
+              resumed: event.resumed || false  // 標記是否是恢復的節點
             }
           } else {
-            // 如果 cell 不存在（恢复的节点），创建一个
+            // 如果 cell 不存在（恢復的節點），創建一個
             notebookCells.push({
               id: event.statement?.variable || 'unknown',
               type: 'execution',
               content: event.statement?.code || '',
               status: 'completed',
               outputs: [event.result],
-              resumed: true  // 标记为恢复的节点
+              resumed: true  // 標記爲恢復的節點
             })
           }
         },
@@ -627,92 +627,92 @@ const runWorkflow = async () => {
             cell.status = 'error'
             cell.error = event.error
           } else {
-            // 没有对应的 cell（比如解析失败），创建一个错误 cell
+            // 沒有對應的 cell（比如解析失敗），創建一個錯誤 cell
             notebookCells.push({
               id: 'error-' + Date.now(),
               type: 'execution',
-              content: event.statement?.code || '代码解析失败',
+              content: event.statement?.code || '代碼解析失敗',
               status: 'error',
-              error: event.error || '未知错误',
+              error: event.error || '未知錯誤',
               outputs: []
             })
           }
-          // 标记为失败状态
-          failExecution(event.error || '工作流执行失败')
-          ElMessage.error(event.error || '工作流执行失败')
+          // 標記爲失敗狀態
+          failExecution(event.error || '工作流執行失敗')
+          ElMessage.error(event.error || '工作流執行失敗')
         },
         onEnd: () => {
-          // 如果不是失败状态，标记为完成
+          // 如果不是失敗狀態，標記爲完成
           if (execution.state === 'running') {
             completeExecution()
           }
         }
       },
-      false // resume=false，从头开始
+      false // resume=false，從頭開始
     )
     
-    // 初始状态转换（使用临时 runId 0）
-    // 真实的 runId 会在 onRunStarted 回调中更新
+    // 初始狀態轉換（使用臨時 runId 0）
+    // 真實的 runId 會在 onRunStarted 回調中更新
     startExecution(currentWorkflowId.value, 0)
   } catch (error) {
-    console.error('[Workflow] 工作流执行失败:', error)
-    failExecution(error.message || '工作流执行失败')
-    ElMessage.error(error.message || '工作流执行失败')
+    console.error('[Workflow] 工作流執行失敗:', error)
+    failExecution(error.message || '工作流執行失敗')
+    ElMessage.error(error.message || '工作流執行失敗')
   }
 }
 
-// 清空输出
+// 清空輸出
 const clearOutput = () => {
   notebookCells.length = 0
-  // 重置状态机
+  // 重置狀態機
   if (!isIdle.value) {
     resetExecution()
   }
 }
 
-// 暂停当前运行
+// 暫停當前運行
 const pauseCurrentRun = async () => {
   if (!canPause.value) return
   
   if (execution.runId === null || execution.runId === undefined) {
-    console.error('[Workflow] 无法暂停：缺少 runId')
+    console.error('[Workflow] 無法暫停：缺少 runId')
     return
   }
   
   try {
-    console.log('[Workflow] 开始暂停工作流:', execution.runId)
+    console.log('[Workflow] 開始暫停工作流:', execution.runId)
     
-    // 1. 先通过 store 关闭 SSE 连接（停止接收事件）
+    // 1. 先通過 store 關閉 SSE 連接（停止接收事件）
     pauseWorkflow(execution.runId)
     
-    // 2. 调用 pause API 更新数据库状态（后端会停止执行）
+    // 2. 調用 pause API 更新數據庫狀態（後端會停止執行）
     await request.post(`/workflows/runs/${execution.runId}/pause`, {}, '/api')
     
-    // 3. 状态机转换到暂停状态
+    // 3. 狀態機轉換到暫停狀態
     pauseExecution()
     
-    console.log('[Workflow] 工作流已暂停')
-    ElMessage.success('工作流已暂停')
+    console.log('[Workflow] 工作流已暫停')
+    ElMessage.success('工作流已暫停')
   } catch (error) {
-    console.error('[Workflow] 暂停失败:', error)
-    ElMessage.error(`暂停失败：${error.message || error}`)
+    console.error('[Workflow] 暫停失敗:', error)
+    ElMessage.error(`暫停失敗：${error.message || error}`)
   }
 }
 
-// 恢复当前运行
+// 恢復當前運行
 const resumeCurrentRun = async () => {
   if (!canResume.value) return
   
   if (execution.runId === null || execution.runId === undefined || execution.workflowId === null || execution.workflowId === undefined) {
-    console.error('[Workflow] 无法恢复：缺少 runId 或 workflowId')
+    console.error('[Workflow] 無法恢復：缺少 runId 或 workflowId')
     return
   }
   
   try {
-    // 清空之前的输出（避免重复显示）
+    // 清空之前的輸出（避免重複顯示）
     notebookCells.length = 0
     
-    // 恢复执行：传递 resume=true 和 run_id
+    // 恢復執行：傳遞 resume=true 和 run_id
     await startWorkflow(
       execution.workflowId,
       currentWorkflowName.value,
@@ -748,7 +748,7 @@ const resumeCurrentRun = async () => {
               resumed: event.resumed || false
             }
           } else {
-            // 如果 cell 不存在（恢复的节点），创建一个
+            // 如果 cell 不存在（恢復的節點），創建一個
             notebookCells.push({
               id: event.statement?.variable || 'unknown',
               type: 'execution',
@@ -769,45 +769,45 @@ const resumeCurrentRun = async () => {
             notebookCells.push({
               id: 'error-' + Date.now(),
               type: 'execution',
-              content: event.statement?.code || '代码解析失败',
+              content: event.statement?.code || '代碼解析失敗',
               description: event.statement?.description || '',
               status: 'error',
-              error: event.error || '未知错误',
+              error: event.error || '未知錯誤',
               outputs: []
             })
           }
-          // 标记为失败状态
-          failExecution(event.error || '工作流执行失败')
-          ElMessage.error(event.error || '工作流执行失败')
+          // 標記爲失敗狀態
+          failExecution(event.error || '工作流執行失敗')
+          ElMessage.error(event.error || '工作流執行失敗')
         },
         onEnd: () => {
-          // 如果不是失败状态，标记为完成
+          // 如果不是失敗狀態，標記爲完成
           if (execution.state === 'running') {
             completeExecution()
           }
         }
       },
       true, // resume=true
-      execution.runId // 传递 run_id
+      execution.runId // 傳遞 run_id
     )
     
-    // 状态机转换到运行状态
+    // 狀態機轉換到運行狀態
     resumeExecution()
     
-    ElMessage.success('工作流已恢复执行')
+    ElMessage.success('工作流已恢復執行')
   } catch (error) {
-    console.error('[Workflow] 恢复执行失败:', error)
-    failExecution(error.message || '恢复执行失败')
-    ElMessage.error(error.message || '恢复执行失败')
+    console.error('[Workflow] 恢復執行失敗:', error)
+    failExecution(error.message || '恢復執行失敗')
+    ElMessage.error(error.message || '恢復執行失敗')
   }
 }
 
-// 取消当前运行
+// 取消當前運行
 const cancelCurrentRun = async () => {
   if (!currentRunId.value) return
   
   try {
-    await ElMessageBox.confirm('确定要取消当前工作流运行吗？', '确认取消', {
+    await ElMessageBox.confirm('確定要取消當前工作流運行嗎？', '確認取消', {
       type: 'warning'
     })
     
@@ -819,7 +819,7 @@ const cancelCurrentRun = async () => {
     currentRunId.value = null
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error(`取消失败：${error.message || error}`)
+      ElMessage.error(`取消失敗：${error.message || error}`)
     }
   }
 }
@@ -828,7 +828,7 @@ const cancelCurrentRun = async () => {
 const saveWorkflow = async () => {
   try {
     if (currentWorkflowId.value) {
-      // 更新现有工作流
+      // 更新現有工作流
       await updateWorkflow(currentWorkflowId.value, {
         definition_code: code.value
       })
@@ -840,16 +840,16 @@ const saveWorkflow = async () => {
       }
       ElMessage.success('工作流已更新')
     } else {
-      // 创建新工作流，先询问名称
-      const { value: name } = await ElMessageBox.prompt('请输入工作流名称', '保存工作流', {
-        confirmButtonText: '确定',
+      // 創建新工作流，先詢問名稱
+      const { value: name } = await ElMessageBox.prompt('請輸入工作流名稱', '保存工作流', {
+        confirmButtonText: '確定',
         cancelButtonText: '取消',
         inputValue: currentWorkflowName.value,
         inputPattern: /\S+/,
-        inputErrorMessage: '工作流名称不能为空'
+        inputErrorMessage: '工作流名稱不能爲空'
       })
 
-      // 保存代码式工作流
+      // 保存代碼式工作流
       const workflow = await saveCodeWorkflow(name, code.value)
       currentWorkflowId.value = workflow.id
       currentWorkflowName.value = workflow.name
@@ -858,16 +858,16 @@ const saveWorkflow = async () => {
     }
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('[Workflow] 保存工作流失败:', error)
-      ElMessage.error(error.message || '保存工作流失败')
+      console.error('[Workflow] 保存工作流失敗:', error)
+      ElMessage.error(error.message || '保存工作流失敗')
     }
   }
 }
 
-// 校验工作流
+// 校驗工作流
 const validateWorkflowCode = async () => {
   if (!currentWorkflowId.value) {
-    ElMessage.warning('请先选择或保存工作流')
+    ElMessage.warning('請先選擇或保存工作流')
     return
   }
 
@@ -890,7 +890,7 @@ const validateWorkflowCode = async () => {
     try {
       patchResult = await runPatchDryRun()
     } catch (error) {
-      // 若 revision 落后，先刷新再重试一次
+      // 若 revision 落後，先刷新再重試一次
       const status = error?.response?.status
       const detail = error?.response?.data?.detail
       if (status === 409 && detail?.code === 'revision_mismatch') {
@@ -909,7 +909,7 @@ const validateWorkflowCode = async () => {
           line: 0,
           variable: '',
           error_type: 'unknown',
-          message: patchResult?.error || '校验失败',
+          message: patchResult?.error || '校驗失敗',
           suggestion: null,
         },
       ],
@@ -918,34 +918,34 @@ const validateWorkflowCode = async () => {
     showValidationDialog.value = true
 
     if (validationResult.value.is_valid) {
-      ElMessage.success('校验通过！')
+      ElMessage.success('校驗通過！')
     } else {
-      ElMessage.error(`发现 ${validationResult.value.errors.length} 个错误`)
+      ElMessage.error(`發現 ${validationResult.value.errors.length} 個錯誤`)
     }
   } catch (error) {
-    console.error('校验工作流失败:', error)
-    ElMessage.error('校验工作流失败')
+    console.error('校驗工作流失敗:', error)
+    ElMessage.error('校驗工作流失敗')
   }
 }
 
-// 代码变化处理
+// 代碼變化處理
 const onCodeChange = (newCode) => {
   code.value = newCode
 }
 
-// 节点选中处理
+// 節點選中處理
 // const onNodeSelected = (node) => {
 //   selectedNode.value = node
 // }
 
-// 节点更新处理（来自属性面板）
+// 節點更新處理（來自屬性面板）
 const onNodeUpdate = (updatedNode) => {
-  // 重新生成代码
-  // 需要找到对应的节点并替换其代码
+  // 重新生成代碼
+  // 需要找到對應的節點並替換其代碼
   const lines = code.value.split('\n')
 
-  // 简单实现：找到包含该变量名的行并替换
-  // 更好的实现应该在 NodeBlockEditor 中维护节点列表
+  // 簡單實現：找到包含該變量名的行並替換
+  // 更好的實現應該在 NodeBlockEditor 中維護節點列表
   let updated = false
   for (let i = 0; i < lines.length; i++) {
     if (lines[i].includes(`${updatedNode.variable} =`)) {
@@ -957,65 +957,65 @@ const onNodeUpdate = (updatedNode) => {
 
   if (updated) {
     code.value = lines.join('\n')
-    ElMessage.success('节点已更新')
+    ElMessage.success('節點已更新')
   } else {
-    ElMessage.error('更新失败：未找到对应节点')
+    ElMessage.error('更新失敗：未找到對應節點')
   }
 }
 
-// 添加节点（来自节点库）
+// 添加節點（來自節點庫）
 const onAddNode = (nodeType) => {
-  // 生成唯一的变量名
+  // 生成唯一的變量名
   const baseName = generateVariableName(nodeType)
   const variableName = generateUniqueVariableName(baseName)
 
-  // 生成注释标记 DSL 的节点代码
+  // 生成註釋標記 DSL 的節點代碼
   const nodeCode = `#@node()
 ${variableName} = ${nodeType}()
 #</node>`
 
-  // 添加到代码末尾
+  // 添加到代碼末尾
   const newCode = code.value.trim()
   if (newCode) {
-    code.value = newCode + '\n\n' + nodeCode  // 使用双换行分隔
+    code.value = newCode + '\n\n' + nodeCode  // 使用雙換行分隔
   } else {
     code.value = nodeCode
   }
 
-  ElMessage.success('节点已添加')
+  ElMessage.success('節點已添加')
 }
 
-// 根据节点类型生成基础变量名
+// 根據節點類型生成基礎變量名
 function generateVariableName(nodeType) {
-  // 提取节点类型名并转换为合适的变量名
+  // 提取節點類型名並轉換爲合適的變量名
   const parts = nodeType.split('.')
   if (parts.length >= 2) {
     const method = parts[1].toLowerCase()
-    // 移除常见的动词前缀
+    // 移除常見的動詞前綴
     const cleanMethod = method.replace(/^(get|set|create|update|delete|fetch|load)_?/, '')
     return cleanMethod || method
   }
   return nodeType.replace(/\./g, '_').toLowerCase()
 }
 
-// 生成唯一的变量名
+// 生成唯一的變量名
 function generateUniqueVariableName(baseName) {
   let counter = 2
   let variableName = baseName
 
-  // 检查是否已存在同名变量
+  // 檢查是否已存在同名變量
   const allLines = code.value.split('\n')
   const usedVariables = new Set()
 
   allLines.forEach(line => {
-    // 赋值形式：variable = ...
+    // 賦值形式：variable = ...
     const assignMatch = line.match(/^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*/)
     if (assignMatch) {
       usedVariables.add(assignMatch[1])
     }
   })
 
-  // 如果基础名已存在，添加数字后缀
+  // 如果基礎名已存在，添加數字後綴
   while (usedVariables.has(variableName)) {
     variableName = `${baseName}${counter++}`
   }
@@ -1023,17 +1023,17 @@ function generateUniqueVariableName(baseName) {
   return variableName
 }
 
-// 单元格输出处理
+// 單元格輸出處理
 const onCellOutput = (output) => {
-  // 处理单元格输出
+  // 處理單元格輸出
 }
 
-// 从运行记录恢复执行
+// 從運行記錄恢復執行
 const onResumeRun = async (run) => {
-  // 清空之前的输出
+  // 清空之前的輸出
   notebookCells.length = 0
   
-  // 加载工作流代码
+  // 加載工作流代碼
   let workflowData
   try {
     workflowData = await getCodeWorkflow(run.workflow_id)
@@ -1042,8 +1042,8 @@ const onResumeRun = async (run) => {
     currentWorkflowId.value = run.workflow_id
     currentWorkflowRevision.value = workflowData.revision || ''
   } catch (error) {
-    console.error('[Workflow] 加载工作流失败:', error)
-    ElMessage.error('加载工作流失败')
+    console.error('[Workflow] 加載工作流失敗:', error)
+    ElMessage.error('加載工作流失敗')
     return
   }
   
@@ -1084,7 +1084,7 @@ const onResumeRun = async (run) => {
               resumed: event.resumed || false
             }
           } else {
-            // 如果 cell 不存在（恢复的节点），创建一个
+            // 如果 cell 不存在（恢復的節點），創建一個
             notebookCells.push({
               id: event.statement?.variable || 'unknown',
               type: 'execution',
@@ -1105,43 +1105,43 @@ const onResumeRun = async (run) => {
             notebookCells.push({
               id: 'error-' + Date.now(),
               type: 'execution',
-              content: event.statement?.code || '代码解析失败',
+              content: event.statement?.code || '代碼解析失敗',
               description: event.statement?.description || '',
               status: 'error',
-              error: event.error || '未知错误',
+              error: event.error || '未知錯誤',
               outputs: []
             })
           }
-          // 标记为失败状态
-          failExecution(event.error || '工作流执行失败')
-          ElMessage.error(event.error || '工作流执行失败')
+          // 標記爲失敗狀態
+          failExecution(event.error || '工作流執行失敗')
+          ElMessage.error(event.error || '工作流執行失敗')
         },
         onEnd: () => {
-          // 如果不是失败状态，标记为完成
+          // 如果不是失敗狀態，標記爲完成
           if (execution.state === 'running') {
             completeExecution()
           }
         }
       },
       true, // resume=true
-      run.id // 传递 run_id
+      run.id // 傳遞 run_id
     )
     
-    // 状态机转换到运行状态
+    // 狀態機轉換到運行狀態
     startExecution(run.workflow_id, run.id)
   } catch (error) {
-    console.error('[Workflow] 恢复执行失败:', error)
-    failExecution(error.message || '恢复执行失败')
-    ElMessage.error(error.message || '恢复执行失败')
+    console.error('[Workflow] 恢復執行失敗:', error)
+    failExecution(error.message || '恢復執行失敗')
+    ElMessage.error(error.message || '恢復執行失敗')
   }
 }
 
-// 组件卸载时清理
+// 組件卸載時清理
 onUnmounted(() => {
-  // SSE 连接由 store 管理，组件卸载时不需要手动清理
+  // SSE 連接由 store 管理，組件卸載時不需要手動清理
 })
 
-// 组件挂载时加载工作流列表
+// 組件掛載時加載工作流列表
 onMounted(() => {
   loadWorkflowList()
 })
@@ -1296,7 +1296,7 @@ const handleVisualRevisionChanged = (revision) => {
   color: var(--el-text-color-secondary);
 }
 
-/* 校验结果样式 */
+/* 校驗結果樣式 */
 .validation-item {
   padding: 12px;
   margin-bottom: 8px;

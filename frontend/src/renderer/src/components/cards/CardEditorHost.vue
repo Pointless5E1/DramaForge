@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="card-editor-host">
     <component :is="activeEditorComponent" :key="card.id" :card="card" :prefetched="prefetched" />
   </div>
@@ -15,9 +15,9 @@ const props = defineProps<{
 
 // --- Editor Component Map ---
 // This map allows us to resolve a string name to an actual component.
-// 只有需要完全自定义外壳的编辑器才在这里注册
-// 如果只是内容编辑器不同（如章节正文的 CodeMirrorEditor），
-// 应该通过 GenericCardEditor 的 content_editor_component 配置
+// 只有需要完全自定義外殼的編輯器纔在這裏註冊
+// 如果只是內容編輯器不同（如章節正文的 CodeMirrorEditor），
+// 應該通過 GenericCardEditor 的 content_editor_component 配置
 const editorMap: Record<string, any> = {
   TagsEditor: defineAsyncComponent(() => import('../editors/TagsEditor.vue')),
   ReviewResultCardEditor: defineAsyncComponent(() => import('./ReviewResultCardEditor.vue')),

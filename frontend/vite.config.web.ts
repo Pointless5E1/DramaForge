@@ -1,9 +1,9 @@
-import { defineConfig } from 'vite'
+﻿import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path'
 import { readFileSync } from 'fs'
 
-// 读取 package.json 中的版本号
+// 讀取 package.json 中的版本號
 const packageJson = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8'))
 const version = packageJson.version
 
@@ -25,15 +25,15 @@ export default defineConfig({
       name: 'html-transform',
       transformIndexHtml(html) {
         // 更新 CSP：
-        // - 允许连接 GitHub API
-        // - 放宽 connect-src，支持访问任意后端主机（方便局域网 / 服务器部署）
+        // - 允許連接 GitHub API
+        // - 放寬 connect-src，支持訪問任意後端主機（方便局域網 / 服務器部署）
         return html.replace(
           /<meta\s+http-equiv=["']Content-Security-Policy["'].*?>/i,
           '<meta http-equiv="Content-Security-Policy" content="' +
           "default-src 'self'; " +
           "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; " +
           "style-src 'self' 'unsafe-inline'; " +
-          // 这里使用 connect-src *，方便本地和局域网部署；如果将来需要更严格策略可再收紧
+          // 這裏使用 connect-src *，方便本地和局域網部署；如果將來需要更嚴格策略可再收緊
           "connect-src * https://api.github.com;" +
           '">'
         )

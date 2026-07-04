@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <XMarkdown
     :markdown="renderedMarkdown"
     :default-theme-mode="isDarkMode ? 'dark' : 'light'"
@@ -21,9 +21,9 @@ const appStore = useAppStore()
 const isDarkMode = computed(() => appStore.isDarkMode)
 
 const verdictMap: Record<string, string> = {
-  pass: '基本通过',
-  revise: '建议修改',
-  block: '高风险拦截'
+  pass: '基本通過',
+  revise: '建議修改',
+  block: '高風險攔截'
 }
 
 function normalizeReviewMarkdown(markdown: string): string {
@@ -42,7 +42,7 @@ function normalizeReviewMarkdown(markdown: string): string {
   const normalizedMarkdown = normalizedLines.join('\n').trim()
 
   return normalizedMarkdown.replace(
-    /^(-\s*结论[：:]\s*)(pass|revise|block)(\s*)$/gim,
+    /^(-\s*結論[：:]\s*)(pass|revise|block)(\s*)$/gim,
     (_, prefix: string, verdict: string, suffix: string) => {
       const localizedVerdict = verdictMap[verdict.toLowerCase()] || verdict
       return `${prefix}**${localizedVerdict}**${suffix}`

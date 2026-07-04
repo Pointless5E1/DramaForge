@@ -1,16 +1,16 @@
-<template>
+﻿<template>
   <div class="assistant-panel" :style="assistantPanelStyle">
     <div class="panel-header">
       <div class="header-title-row">
         <div class="title-area">
-          <span class="main-title">灵感助手</span>
+          <span class="main-title">靈感助手</span>
           <span class="session-subtitle">{{ currentSession.title }}</span>
         </div>
         <div class="spacer"></div>
-        <el-tooltip content="新增对话" placement="bottom">
+        <el-tooltip content="新增對話" placement="bottom">
           <el-button :icon="Plus" size="small" circle @click="createNewSession" />
         </el-tooltip>
-        <el-tooltip content="历史对话" placement="bottom">
+        <el-tooltip content="歷史對話" placement="bottom">
           <el-button :icon="Clock" size="small" circle @click="historyDrawerVisible = true" />
         </el-tooltip>
       </div>
@@ -20,7 +20,7 @@
         <el-button size="small" @click="$emit('refresh-context')">刷新上下文</el-button>
         <el-popover placement="bottom" width="480" trigger="hover">
           <template #reference>
-            <el-tag type="info" class="ctx-tag" size="small">预览</el-tag>
+            <el-tag type="info" class="ctx-tag" size="small">預覽</el-tag>
           </template>
           <pre class="ctx-preview">{{ (resolvedContext || '') }}</pre>
         </el-popover>
@@ -32,7 +32,7 @@
         ref="messageListRef"
         :messages="messages"
         :streaming="isStreaming"
-        empty-description="请输入你的需求，我会先给出建议。"
+        empty-description="請輸入你的需求，我會先給出建議。"
         :jump-project-id="projectStore.currentProject?.id || null"
         :show-assistant-actions="true"
         :assistant-actions-latest-only="false"
@@ -49,9 +49,9 @@
 
     <div class="composer">
       <div class="inject-toolbar">
-        <!-- 引用卡片显示区（分成两个容器：标签区 + 更多按钮区） -->
+        <!-- 引用卡片顯示區（分成兩個容器：標籤區 + 更多按鈕區） -->
         <div class="chips">
-          <!-- 标签显示区（可滚动溢出） -->
+          <!-- 標籤顯示區（可滾動溢出） -->
           <div class="chips-tags">
             <el-tag 
               v-for="(r, idx) in visibleRefs" 
@@ -67,7 +67,7 @@
             </el-tag>
           </div>
 
-          <!-- 更多按钮区（固定显示，不受宽度影响） -->
+          <!-- 更多按鈕區（固定顯示，不受寬度影響） -->
           <div v-if="assistantStore.injectedRefs.length > 0" class="chips-more">
             <el-popover
               placement="bottom-start"
@@ -79,18 +79,18 @@
                   size="small" 
                   text
                   class="more-refs-btn"
-                  :title="`共 ${assistantStore.injectedRefs.length} 个引用卡片`"
+                  :title="`共 ${assistantStore.injectedRefs.length} 個引用卡片`"
                 >
                   <span class="more-refs-dots">...</span>
                   <span class="more-refs-count">({{ assistantStore.injectedRefs.length }})</span>
                 </el-button>
               </template>
 
-              <!-- Popover 内容 -->
+              <!-- Popover 內容 -->
               <div class="more-refs-popover">
                 <div class="popover-header">
                   <span>引用卡片</span>
-                  <span class="popover-count">{{ assistantStore.injectedRefs.length }} 个</span>
+                  <span class="popover-count">{{ assistantStore.injectedRefs.length }} 個</span>
                 </div>
                 <div class="more-refs-list">
                   <div 
@@ -107,7 +107,7 @@
                       size="small" 
                       text 
                       @click="removeInjectedRef(idx)"
-                      title="删除引用"
+                      title="刪除引用"
                     />
                   </div>
                 </div>
@@ -120,7 +120,7 @@
       </div>
 
       <div class="composer-subbar">
-        <el-select v-model="overrideLlmId" placeholder="选择模型" size="small" style="width: 200px">
+        <el-select v-model="overrideLlmId" placeholder="選擇模型" size="small" style="width: 200px">
           <el-option v-for="m in llmOptions" :key="m.id" :label="(m.display_name || m.model_name)" :value="m.id" />
         </el-select>
       </div>
@@ -128,14 +128,14 @@
       <AgentComposer
         v-model="draft"
         :rows="4"
-        placeholder="输入你的想法、约束或追问"
+        placeholder="輸入你的想法、約束或追問"
         :disabled="isStreaming"
         input-class="composer-input"
         @keydown="handleComposerEnter"
       >
         <template #actions>
           <div class="composer-actions">
-            <el-tooltip content="Thinking：启用推理/思考模式（确保模型支持开启/关闭思考）" placement="top">
+            <el-tooltip content="Thinking：啓用推理/思考模式（確保模型支持開啓/關閉思考）" placement="top">
               <el-switch 
                 v-model="useThinkingMode" 
                 size="small"
@@ -156,13 +156,13 @@
       </AgentComposer>
     </div>
 
-    <!-- 选择器对话框 -->
+    <!-- 選擇器對話框 -->
     <el-dialog v-model="selectorVisible" title="添加引用卡片" width="760px">
       <div style="display:flex; gap:12px; align-items:center; margin-bottom:10px;">
-        <el-select v-model="selectorSourcePid" placeholder="来源项目" style="width: 260px" @change="onSelectorProjectChange($event as any)">
+        <el-select v-model="selectorSourcePid" placeholder="來源項目" style="width: 260px" @change="onSelectorProjectChange($event as any)">
           <el-option v-for="p in assistantStore.projects" :key="p.id" :label="p.name" :value="p.id" />
         </el-select>
-        <el-input v-model="selectorSearch" placeholder="搜索标题..." clearable style="flex:1" />
+        <el-input v-model="selectorSearch" placeholder="搜索標題..." clearable style="flex:1" />
       </div>
       <el-tree :data="selectorTreeData" :props="{ label: 'label', children: 'children' }" node-key="key" show-checkbox highlight-current :default-expand-all="false" :check-strictly="false" @check="onTreeCheck" style="max-height:360px; overflow:auto; border:1px solid var(--el-border-color-light); padding:8px; border-radius:6px;" />
       <template #footer>
@@ -172,24 +172,24 @@
     </el-dialog>
 
 
-    <!-- 历史对话抽屉 -->
+    <!-- 歷史對話抽屜 -->
     <el-drawer
       v-model="historyDrawerVisible"
-      title="历史对话"
+      title="歷史對話"
       direction="rtl"
       size="320px"
     >
       <div class="history-drawer-content">
         <div class="history-actions">
           <el-button type="primary" :icon="Plus" @click="createNewSession" style="width: 100%;">
-            新增对话
+            新增對話
           </el-button>
         </div>
 
         <el-divider />
 
         <div v-if="!historySessions.length" class="empty-history">
-          <el-empty description="暂无历史对话" :image-size="80" />
+          <el-empty description="暫無歷史對話" :image-size="80" />
         </div>
 
         <div v-else class="history-list">
@@ -252,24 +252,24 @@ let streamCtl: { cancel: () => void } | null = null
 let streamCanceled = false
 const { messageListRef, scrollToBottom } = useMessageListScroll()
 
-// ---- 多卡片数据引用（跨项目，使用 Pinia） ----
+// ---- 多卡片數據引用（跨項目，使用 Pinia） ----
 const assistantStore = useAssistantStore()
 const projectStore = useProjectStore()
 const editorStore = useEditorStore()
 
-// 思考过程折叠状态：key 为 bucket 标识（例如 plain-0-0 / pre-0-0 / g-0-1-0），值为是否展开
-// 默认收起（false），用户点击后再展开
+// 思考過程摺疊狀態：key 爲 bucket 標識（例如 plain-0-0 / pre-0-0 / g-0-1-0），值爲是否展開
+// 默認收起（false），用戶點擊後再展開
 const reasoningBucketsOpen = ref<Record<string, boolean>>({})
 
 function isReasoningBucketOpen(key: string): boolean {
   return Boolean(reasoningBucketsOpen.value[key])
 }
 
-// ===== 会话管理 =====
+// ===== 會話管理 =====
 const currentSession = ref<AssistantChatSession>({
   id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
   projectId: 0,
-  title: '新对话',
+  title: '新對話',
   createdAt: Date.now(),
   updatedAt: Date.now(),
   messages: []
@@ -299,7 +299,7 @@ const {
 const lastRun = ref<{ prev: string; tail: string; targetIdx: number } | null>(null)
 const canRegenerate = computed(() => !isStreaming.value && !!lastRun.value && messages.value[lastRun.value.targetIdx]?.role === 'assistant')
 
-// 模型选择（覆盖卡片配置，按项目记忆）
+// 模型選擇（覆蓋卡片配置，按項目記憶）
 const llmOptions = ref<LLMConfigRead[]>([])
 const overrideLlmId = ref<number | null>(null)
 const effectiveLlmId = computed(() => overrideLlmId.value || props.llmConfigId || null)
@@ -327,13 +327,13 @@ function restoreProjectAssistantState(pid: number | null): void {
   }
 }
 
-// Thinking 模式开关（按项目记忆）
+// Thinking 模式開關（按項目記憶）
 const useThinkingMode = ref(false)
 const THINKING_MODE_KEY_PREFIX = 'nf:assistant:thinking:'
 function thinkingModeKeyForProject(pid: number): string { return `${THINKING_MODE_KEY_PREFIX}${pid}` }
 
-// 引用卡片显示控制
-const MAX_VISIBLE_REFS = 5  // 最多显示5个引用（约两行，每行2-3个）
+// 引用卡片顯示控制
+const MAX_VISIBLE_REFS = 5  // 最多顯示5個引用（約兩行，每行2-3個）
 
 const visibleRefs = computed(() => {
   return assistantStore.injectedRefs.slice(0, MAX_VISIBLE_REFS)
@@ -369,7 +369,7 @@ const canSend = computed(() => {
   return !!effectiveLlmId.value && (hasDraft || hasRefs)
 })
 const sendButtonType = computed(() => (isStreaming.value ? 'danger' : 'primary'))
-const sendButtonTitle = computed(() => (isStreaming.value ? '中止生成' : '发送'))
+const sendButtonTitle = computed(() => (isStreaming.value ? '中止生成' : '發送'))
 const sendButtonIcon = computed(() => (isStreaming.value ? VideoPause : Promotion))
 
 const assistantPrefs = useAssistantPreferences()
@@ -380,8 +380,8 @@ const assistantPanelStyle = computed(() => ({
 
 function notifyAssistantDone(): void {
   notifyTaskDone({
-    title: '灵感助手完成',
-    body: '助手回复已生成。',
+    title: '靈感助手完成',
+    body: '助手回覆已生成。',
     soundEnabled: assistantPrefs.taskDoneSoundEnabled.value,
     desktopNotificationEnabled: assistantPrefs.taskDoneDesktopNotificationEnabled.value,
   })
@@ -418,7 +418,7 @@ function getRefLabel(ref: AssistantRef): string {
   if (ref.refType === 'chapter_excerpt') {
     return `${ref.projectName} / ${ref.cardTitle} [${ref.startLine}-${ref.endLine}行]`
   }
-  return `审核结果 / ${ref.targetTitle}`
+  return `審核結果 / ${ref.targetTitle}`
 }
 
 const { buildConversationText, buildAssistantChatRequest } = useAssistantRequestBuilder({
@@ -450,14 +450,14 @@ async function startStreaming(targetIdx: number) {
       }
     } catch (error) {
       console.error('Failed to persist active chapter draft before assistant run:', error)
-      ElMessage.error('正文保存失败，请先保存章节后重试')
+      ElMessage.error('正文保存失敗，請先保存章節後重試')
       isStreaming.value = false
       return
     }
   }
 
   const chatRequest = buildAssistantChatRequest()
-  const promptName = props.promptName?.trim() || '灵感对话'
+  const promptName = props.promptName?.trim() || '靈感對話'
   const requestTemperature = assistantPrefs.assistantTemperature.value
 
   streamCtl = generateContinuationStreaming({
@@ -507,7 +507,7 @@ async function startStreaming(targetIdx: number) {
     if (messages.value[targetIdx]) {
       messages.value[targetIdx].toolsInProgress = undefined
     }
-    ElMessage.error(err?.message || '生成失败')
+    ElMessage.error(err?.message || '生成失敗')
     isStreaming.value = false
     streamCtl = null 
   }) as any
@@ -522,7 +522,7 @@ function handleSend() {
   draft.value = ''
   scrollToBottom()
 
-  // 灵感助手不需要 prev/tail，直接在 startStreaming 内部构建请求
+  // 靈感助手不需要 prev/tail，直接在 startStreaming 內部構建請求
   const assistantIdx = messages.value.push({ role: 'assistant', content: '' }) - 1
   scrollToBottom()
   lastRun.value = { prev: '', tail: '', targetIdx: assistantIdx }
@@ -534,7 +534,7 @@ function handleCancel() {
   try { streamCtl?.cancel() } catch {}
   isStreaming.value = false
 
-  // 清除所有消息中的工具调用进度提示
+  // 清除所有消息中的工具調用進度提示
   messages.value.forEach(msg => {
     if (msg.toolsInProgress) {
       msg.toolsInProgress = undefined
@@ -557,9 +557,9 @@ function handleCopyAssistantAt(index: number) {
   if (!text) return
 
   navigator.clipboard.writeText(text).then(() => {
-    ElMessage.success('已复制')
+    ElMessage.success('已複製')
   }).catch(() => {
-    ElMessage.error('复制失败')
+    ElMessage.error('複製失敗')
   })
 }
 
@@ -570,9 +570,9 @@ function handleCopyUserAt(index: number) {
   if (!text) return
 
   navigator.clipboard.writeText(text).then(() => {
-    ElMessage.success('已复制')
+    ElMessage.success('已複製')
   }).catch(() => {
-    ElMessage.error('复制失败')
+    ElMessage.error('複製失敗')
   })
 }
 
@@ -596,7 +596,7 @@ function handleDeleteAssistantAt(index: number) {
   if (messages.value[index]?.role !== 'assistant') return
 
   deleteMessageAt(index)
-  ElMessage.success('已删除该回复')
+  ElMessage.success('已刪除該回復')
 }
 
 function handleDeleteUserAt(index: number) {
@@ -605,7 +605,7 @@ function handleDeleteUserAt(index: number) {
   if (messages.value[index]?.role !== 'user') return
 
   deleteMessageAt(index)
-  ElMessage.success('已删除该消息')
+  ElMessage.success('已刪除該消息')
 }
 
 function deleteMessageAt(index: number) {
@@ -643,7 +643,7 @@ function regenerateFromCurrent() {
   startStreaming(targetIdx)
 }
 function handleRegenerateWithHistory() {
-  // 优先移除历史中的最后一条助手消息
+  // 優先移除歷史中的最後一條助手消息
   try {
     const pid = projectStore.currentProject?.id
     if (pid) {
@@ -684,7 +684,7 @@ watch(projectIdRef, (pid) => {
   restoreProjectAssistantState(pid)
 })
 
-// ✅ 处理工具执行结果：将工具结果追加到指定的助手消息上
+// ✅ 處理工具執行結果：將工具結果追加到指定的助手消息上
 /* NF_ASSISTANT_BATCH_PATCH_BEGIN */
 function nfIsAssistantTextPatchBatch(result: any): boolean {
   return !!result && (
@@ -774,7 +774,7 @@ function nfFlushAssistantTextPatchBatches(targetIdx: number): boolean {
   messageAny._nfPendingPatchBatches = []
   messageAny._nfPatchBatchDispatched = total > 0
   if (total > 0) {
-    ElMessage.success(`已发送 ${total} 条修改建议到当前正文编辑器`)
+    ElMessage.success(`已發送 ${total} 條修改建議到當前正文編輯器`)
   }
   return total > 0
 }
@@ -807,7 +807,7 @@ function nfSplitSuggestionBlocks(text: string): string[] {
   const lines = text.replace(/\r\n/g, '\n').split('\n')
   const blocks: string[] = []
   let current: string[] = []
-  const startRe = /^\s*(?:建议\s*#?\s*\d+|第\s*\d+\s*条|#\s*\d+|\d+[.、)）])/
+  const startRe = /^\s*(?:建議\s*#?\s*\d+|第\s*\d+\s*條|#\s*\d+|\d+[.、)）])/
 
   for (const line of lines) {
     if (startRe.test(line) && current.join('\n').trim()) {
@@ -841,26 +841,26 @@ function nfParseAssistantTextPatchBatch(text: string): any | null {
   if (!normalized) return null
 
   const allLabels = [
-    '原文', '原句', '原片段', '旧文', 'old_text', 'original_text',
-    '新文', '修改后', '替换为', '建议替换', 'new_text', 'revised_text', 'replacement_text',
-    '理由', '说明', '原因', 'reason', 'instruction', 'explanation',
+    '原文', '原句', '原片段', '舊文', 'old_text', 'original_text',
+    '新文', '修改後', '替換爲', '建議替換', 'new_text', 'revised_text', 'replacement_text',
+    '理由', '說明', '原因', 'reason', 'instruction', 'explanation',
   ]
   const blocks = nfSplitSuggestionBlocks(normalized)
   const target = nfCurrentTextPatchTarget()
   const patches = blocks.map((block, index) => {
     const oldText = nfExtractLabeledValue(
       block,
-      ['原文', '原句', '原片段', '旧文', 'old_text', 'original_text'],
+      ['原文', '原句', '原片段', '舊文', 'old_text', 'original_text'],
       allLabels,
     )
     const newText = nfExtractLabeledValue(
       block,
-      ['新文', '修改后', '替换为', '建议替换', 'new_text', 'revised_text', 'replacement_text'],
+      ['新文', '修改後', '替換爲', '建議替換', 'new_text', 'revised_text', 'replacement_text'],
       allLabels,
     )
     const instruction = nfExtractLabeledValue(
       block,
-      ['理由', '说明', '原因', 'reason', 'instruction', 'explanation'],
+      ['理由', '說明', '原因', 'reason', 'instruction', 'explanation'],
       allLabels,
     )
     if (!oldText || !newText) return null
@@ -893,8 +893,8 @@ function nfParseAssistantTextPatchBatch(text: string): any | null {
 }
 
 function nfLooksLikeTextPatchSuggestions(text: string): boolean {
-  return /(?:原文|原句|原片段|旧文|old_text|original_text)/i.test(text) &&
-    /(?:新文|修改后|替换为|建议替换|new_text|revised_text|replacement_text)/i.test(text)
+  return /(?:原文|原句|原片段|舊文|old_text|original_text)/i.test(text) &&
+    /(?:新文|修改後|替換爲|建議替換|new_text|revised_text|replacement_text)/i.test(text)
 }
 
 function nfMaybeDispatchTextPatchBatchFromMessage(targetIdx: number): boolean {
@@ -909,11 +909,11 @@ function nfMaybeDispatchTextPatchBatchFromMessage(targetIdx: number): boolean {
     const count = nfDispatchAssistantTextPatchBatch(parsed)
     messageAny._nfPatchBatchDispatched = count > 0
     if (count > 0) {
-      ElMessage.success(`已解析 ${count} 条文本修改建议到当前正文编辑器`)
+      ElMessage.success(`已解析 ${count} 條文本修改建議到當前正文編輯器`)
       return true
     }
   } else if (nfLooksLikeTextPatchSuggestions(msg.content || '')) {
-    ElMessage.warning('检测到修改建议文本，但未能解析为“原文/新文/理由”结构；请让助手按该格式重新输出，或启用支持工具调用的模型配置。')
+    ElMessage.warning('檢測到修改建議文本，但未能解析爲“原文/新文/理由”結構；請讓助手按該格式重新輸出，或啓用支持工具調用的模型配置。')
   }
   return false
 }
@@ -921,7 +921,7 @@ function nfMaybeDispatchTextPatchBatchFromMessage(targetIdx: number): boolean {
 
 
 function handleToolsExecuted(targetIdx: number, tools: Array<{tool_name: string, result: any}>) {
-  console.log('🔧 工具已执行:', targetIdx, tools)
+  console.log('🔧 工具已執行:', targetIdx, tools)
 
   const msg = messages.value[targetIdx]
   if (!msg || msg.role !== 'assistant') return
@@ -933,22 +933,22 @@ function handleToolsExecuted(targetIdx: number, tools: Array<{tool_name: string,
   if (nfPatchBatchTools.length) {
     nfStoreAssistantTextPatchBatches(msg, nfPatchBatchTools)
   }
-// 刷新左侧卡片树（如果有卡片被创建或修改）
+// 刷新左側卡片樹（如果有卡片被創建或修改）
   const needsRefresh = tools.some(t => {
     const toolName = t.tool_name
     const result = t.result
 
-    // 这些工具调用后需要刷新卡片列表
+    // 這些工具調用後需要刷新卡片列表
     const refreshTools = ['create_card', 'modify_card_field', 'batch_create_cards', 'replace_field_text', 'replace_card_text_by_lines']
 
     if (refreshTools.includes(toolName)) {
-      console.log(`🔄 检测到 ${toolName} 调用，准备刷新卡片列表`)
+      console.log(`🔄 檢測到 ${toolName} 調用，準備刷新卡片列表`)
       return true
     }
 
-    // 或者有 card_id 字段的结果
+    // 或者有 card_id 字段的結果
     if (result?.card_id) {
-      console.log(`🔄 检测到 card_id: ${result.card_id}，准备刷新卡片列表`)
+      console.log(`🔄 檢測到 card_id: ${result.card_id}，準備刷新卡片列表`)
       return true
     }
 
@@ -957,40 +957,40 @@ function handleToolsExecuted(targetIdx: number, tools: Array<{tool_name: string,
 
   if (needsRefresh && projectStore.currentProject?.id) {
     const cardStore = useCardStore()
-    console.log('🔄 开始刷新卡片列表...')
-    // 刷新整个卡片列表
+    console.log('🔄 開始刷新卡片列表...')
+    // 刷新整個卡片列表
     cardStore.fetchCards(projectStore.currentProject.id).then(() => {
       console.log('✅ 卡片列表刷新完成')
     }).catch((err) => {
-      console.error('❌ 卡片列表刷新失败:', err)
+      console.error('❌ 卡片列表刷新失敗:', err)
     })
   }
 
-  // 显示通知
+  // 顯示通知
   const successTools = tools.filter(t => t.result?.success)
   if (successTools.length > 0) {
-    ElMessage.success(`✅ 已执行 ${successTools.length} 个操作`)
+    ElMessage.success(`✅ 已執行 ${successTools.length} 個操作`)
   }
 
   const failedTools = tools.filter(t => t.result?.success === false || t.result?.error)
   if (failedTools.length > 0) {
     const first = failedTools[0]
-    const message = first.result?.message || first.result?.error || `${first.tool_name || '工具'} 调用失败`
+    const message = first.result?.message || first.result?.error || `${first.tool_name || '工具'} 調用失敗`
     ElMessage.error(String(message))
   }
 }
 
-// 消息变化时自动保存（防抖，避免频繁保存）
-// 优化：仅监听数组长度和最后一条消息，避免深度监听导致性能问题
+// 消息變化時自動保存（防抖，避免頻繁保存）
+// 優化：僅監聽數組長度和最後一條消息，避免深度監聽導致性能問題
 let saveDebounceTimer: any = null
 watch([
   () => messages.value.length,
   () => messages.value[messages.value.length - 1]?.content
 ], () => {
   if (messages.value.length > 0) {
-    // 清除之前的定时器
+    // 清除之前的定時器
     if (saveDebounceTimer) clearTimeout(saveDebounceTimer)
-    // 300ms 后保存
+    // 300ms 後保存
     saveDebounceTimer = setTimeout(() => {
       saveCurrentSession()
     }, 300)
@@ -1057,7 +1057,7 @@ onBeforeUnmount(() => {
   border-top: 1px solid var(--el-border-color-light); 
 }
 
-/* 引用卡片工具栏 - 固定高度，更紧凑 */
+/* 引用卡片工具欄 - 固定高度，更緊湊 */
 .inject-toolbar { 
   display: flex; 
   align-items: flex-start; 
@@ -1065,38 +1065,38 @@ onBeforeUnmount(() => {
   gap: 8px; 
   padding-bottom: 6px; 
   min-height: 28px;
-  max-height: 64px; /* 稍微增加高度容纳两行 + 间距 */
+  max-height: 64px; /* 稍微增加高度容納兩行 + 間距 */
 }
 
 .inject-toolbar .chips { 
   display: flex; 
-  align-items: flex-start; /* 改为顶部对齐 */
+  align-items: flex-start; /* 改爲頂部對齊 */
   gap: 6px; 
   flex: 1;
   overflow: hidden;
-  max-height: 58px; /* 限制最多两行（24px×2 + 6px间距 + 4px余量） */
+  max-height: 58px; /* 限制最多兩行（24px×2 + 6px間距 + 4px餘量） */
 }
 
-/* 标签显示区（可换行，整齐排列） */
+/* 標籤顯示區（可換行，整齊排列） */
 .chips-tags {
   display: flex;
-  align-items: flex-start; /* 顶部对齐 */
-  gap: 6px; /* 统一间距 */
-  row-gap: 6px; /* 行间距 */
+  align-items: flex-start; /* 頂部對齊 */
+  gap: 6px; /* 統一間距 */
+  row-gap: 6px; /* 行間距 */
   flex-wrap: wrap;
   flex: 1;
   overflow: hidden;
   line-height: 1.2;
-  align-content: flex-start; /* 多行时从顶部开始排列 */
+  align-content: flex-start; /* 多行時從頂部開始排列 */
   min-height: 24px; /* 至少一行的高度 */
 }
 
-/* 更多按钮区（固定显示） */
+/* 更多按鈕區（固定顯示） */
 .chips-more {
-  flex-shrink: 0; /* 不允许收缩 */
+  flex-shrink: 0; /* 不允許收縮 */
   display: flex;
-  align-items: flex-start; /* 与标签顶部对齐 */
-  padding-top: 2px; /* 微调对齐 */
+  align-items: flex-start; /* 與標籤頂部對齊 */
+  padding-top: 2px; /* 微調對齊 */
 }
 
 .chip-tag { 
@@ -1105,12 +1105,12 @@ onBeforeUnmount(() => {
   height: 24px !important;
   line-height: 22px !important;
   padding: 0 8px !important;
-  margin: 0; /* 移除上下边距，使用 gap 统一间距 */
-  flex-shrink: 0; /* 防止标签被压缩 */
-  white-space: nowrap; /* 防止标签内文字换行 */
+  margin: 0; /* 移除上下邊距，使用 gap 統一間距 */
+  flex-shrink: 0; /* 防止標籤被壓縮 */
+  white-space: nowrap; /* 防止標籤內文字換行 */
 }
 
-/* 输入框样式 */
+/* 輸入框樣式 */
 .composer-input {
   flex: 1;
   min-height: 90px;
@@ -1136,7 +1136,7 @@ onBeforeUnmount(() => {
   border: 1px dashed var(--el-color-primary);
   border-radius: 4px;
   flex-shrink: 0;
-  margin: 0; /* 与标签对齐 */
+  margin: 0; /* 與標籤對齊 */
   display: inline-flex;
   align-items: center;
   gap: 2px;
@@ -1158,11 +1158,11 @@ onBeforeUnmount(() => {
   opacity: 0.85;
 }
 
-/* 添加引用按钮 */
+/* 添加引用按鈕 */
 .add-ref-btn {
   flex-shrink: 0;
-  align-self: flex-start; /* 顶部对齐 */
-  margin-top: 2px; /* 微调对齐 */
+  align-self: flex-start; /* 頂部對齊 */
+  margin-top: 2px; /* 微調對齊 */
 }
 
 /* 更多引用 Popover */
@@ -1267,7 +1267,7 @@ onBeforeUnmount(() => {
   font-size: max(14px, calc(var(--nf-assistant-font-size) - 1px));
 }
 
-/* 历史对话抽屉样式 */
+/* 歷史對話抽屜樣式 */
 .history-drawer-content {
   display: flex;
   flex-direction: column;

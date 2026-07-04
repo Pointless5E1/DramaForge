@@ -1,4 +1,4 @@
-import type { CardRead, CardUpdate } from '@renderer/api/cards'
+﻿import type { CardRead, CardUpdate } from '@renderer/api/cards'
 
 export type ContextTemplateKind = 'generation' | 'review'
 
@@ -8,8 +8,8 @@ export interface ContextTemplates {
 }
 
 export const CONTEXT_TEMPLATE_LABELS: Record<ContextTemplateKind, string> = {
-  generation: '内容生成',
-  review: '内容审核',
+  generation: '內容生成',
+  review: '內容審核',
 }
 
 export function normalizeContextTemplateKind(

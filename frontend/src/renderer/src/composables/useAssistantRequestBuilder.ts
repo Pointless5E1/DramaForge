@@ -1,4 +1,4 @@
-import type { Ref } from 'vue'
+﻿import type { Ref } from 'vue'
 
 import type { AssistantPanelMessage } from '@renderer/types/assistantPanel'
 import type { AssistantRef } from '@renderer/api/ai'
@@ -72,17 +72,17 @@ function serializeInjectedRef(ref: AssistantRef): string | null {
   if (ref.refType === 'chapter_excerpt') {
     const header = `${ref.projectName} / ${ref.cardTitle} (${ref.fieldPath} 第${ref.startLine}-${ref.endLine}行)`
     const body = ref.numberedText?.trim() || ref.text?.trim() || '(空片段)'
-    return `### 【正文片段】${header}\n\`\`\`text\n${clipText(body)}\n\`\`\`\n- snapshot_hash: ${ref.snapshotHash}\n- 若需修改这段正文，请优先调用 replace_card_text_by_lines，不要优先用 replace_field_text`
+    return `### 【正文片段】${header}\n\`\`\`text\n${clipText(body)}\n\`\`\`\n- snapshot_hash: ${ref.snapshotHash}\n- 若需修改這段正文，請優先調用 replace_card_text_by_lines，不要優先用 replace_field_text`
   }
 
   const lines: string[] = []
-  lines.push(`### 【审核结果卡片】目标: ${ref.targetTitle} (review_card_id=${ref.reviewCardId})`)
-  lines.push(`- 审核类型: ${ref.reviewType}`)
-  if (ref.reviewProfile) lines.push(`- 审核档案: ${ref.reviewProfile}`)
-  lines.push(`- 质量门结论: ${ref.qualityGate}`)
+  lines.push(`### 【審核結果卡片】目標: ${ref.targetTitle} (review_card_id=${ref.reviewCardId})`)
+  lines.push(`- 審核類型: ${ref.reviewType}`)
+  if (ref.reviewProfile) lines.push(`- 審核檔案: ${ref.reviewProfile}`)
+  lines.push(`- 質量門結論: ${ref.qualityGate}`)
   if (ref.contentSnapshot) lines.push(`- content_snapshot: ${clipText(ref.contentSnapshot, 800)}`)
   lines.push('```text')
-  lines.push(clipText(ref.resultText || '(空审核结果)'))
+  lines.push(clipText(ref.resultText || '(空審核結果)'))
   lines.push('```')
   return lines.join('\n')
 }
@@ -94,11 +94,11 @@ export function useAssistantRequestBuilder(options: UseAssistantRequestBuilderOp
         const prefix = message.role === 'user' ? 'User:' : 'Assistant:'
         let text = `${prefix} ${message.content}`
         if (message.tools && message.tools.length > 0) {
-          text += '\n\n[工具调用记录]'
+          text += '\n\n[工具調用記錄]'
           for (const tool of message.tools) {
             text += `\n- 工具: ${tool.tool_name}`
             if (tool.result) {
-              text += `\n  结果: ${JSON.stringify(tool.result, null, 2)}`
+              text += `\n  結果: ${JSON.stringify(tool.result, null, 2)}`
             }
           }
         }
@@ -112,20 +112,20 @@ export function useAssistantRequestBuilder(options: UseAssistantRequestBuilderOp
     const projectStructure = options.assistantStore.projectStructure
 
     if (projectStructure) {
-      parts.push(`# 项目: ${projectStructure.project_name}`)
-      parts.push(`项目ID: ${projectStructure.project_id} | 卡片总数: ${projectStructure.total_cards}`)
+      parts.push(`# 項目: ${projectStructure.project_name}`)
+      parts.push(`項目ID: ${projectStructure.project_id} | 卡片總數: ${projectStructure.total_cards}`)
       parts.push('')
 
       const stats = Object.entries(projectStructure.stats)
-        .map(([type, count]) => `- ${type}: ${count} 张`)
+        .map(([type, count]) => `- ${type}: ${count} 張`)
         .join('\n')
-      parts.push(`## 📊 项目统计\n${stats}`)
+      parts.push(`## 📊 項目統計\n${stats}`)
       parts.push('')
 
-      parts.push(`## 🌲 卡片结构树\nROOT\n${projectStructure.tree_text}`)
+      parts.push(`## 🌲 卡片結構樹\nROOT\n${projectStructure.tree_text}`)
       parts.push('')
 
-      parts.push('## 🏷️ 可用卡片类型')
+      parts.push('## 🏷️ 可用卡片類型')
       parts.push(projectStructure.available_card_types.join(' | '))
       parts.push('')
     }
@@ -138,13 +138,13 @@ export function useAssistantRequestBuilder(options: UseAssistantRequestBuilderOp
 
     const context = options.assistantStore.getContextForAssistant()
     if (context.active_card) {
-      parts.push('## ⭐ 当前卡片')
-      parts.push(`"${context.active_card.title}" (ID: ${context.active_card.card_id}, 类型: ${context.active_card.card_type})`)
+      parts.push('## ⭐ 當前卡片')
+      parts.push(`"${context.active_card.title}" (ID: ${context.active_card.card_id}, 類型: ${context.active_card.card_type})`)
 
       if (options.effectiveSchema.value) {
         try {
           const schemaText = JSON.stringify(options.effectiveSchema.value, null, 2)
-          parts.push('\n### 卡片结构 (JSON Schema)')
+          parts.push('\n### 卡片結構 (JSON Schema)')
           parts.push('```json')
           parts.push(schemaText)
           parts.push('```')
@@ -162,7 +162,7 @@ export function useAssistantRequestBuilder(options: UseAssistantRequestBuilderOp
         const block = serializeInjectedRef(ref)
         if (block) blocks.push(block)
       }
-      parts.push(`## 📎 引用内容\n${blocks.join('\n\n')}`)
+      parts.push(`## 📎 引用內容\n${blocks.join('\n\n')}`)
       parts.push('')
     }
 
@@ -171,7 +171,7 @@ export function useAssistantRequestBuilder(options: UseAssistantRequestBuilderOp
       parts.push('')
     }
 
-    parts.push('## 💬 对话历史')
+    parts.push('## 💬 對話歷史')
     parts.push(buildConversationText())
 
     const lastUserMessage = options.messages.value.filter(message => message.role === 'user').pop()

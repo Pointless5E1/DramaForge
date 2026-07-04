@@ -1,4 +1,4 @@
-import os, sys
+﻿import os, sys
 from dotenv import load_dotenv
 
 def _load_env_from_nearby():
@@ -27,13 +27,13 @@ from app.core import settings
 from app.core.startup import startup, shutdown
 
 
-# 使用 lifespan 事件处理器
+# 使用 lifespan 事件處理器
 @asynccontextmanager
 async def lifespan(app):
-    # 启动时执行
+    # 啓動時執行
     startup()
     
-    # [Optimize] 启动时清理过期的工作流运行记录
+    # [Optimize] 啓動時清理過期的工作流運行記錄
     try:
         from app.db.session import engine
         from sqlmodel import Session
@@ -45,10 +45,10 @@ async def lifespan(app):
         print(f"Startup cleanup failed: {e}")
         
     yield
-    # 关闭时执行
+    # 關閉時執行
     shutdown()
 
-# 创建 FastAPI 应用实例，注册 lifespan
+# 創建 FastAPI 應用實例，註冊 lifespan
 app = FastAPI(
     title=f"{settings.app.app_name} API",
     version=settings.app.app_version,
@@ -58,11 +58,11 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# 注册工作流 Header 中间件 (在 CORS 之前注册，确保响应头被 CORS 处理)
+# 註冊工作流 Header 中間件 (在 CORS 之前註冊，確保響應頭被 CORS 處理)
 from app.core.middleware.workflow import WorkflowHeaderMiddleware
 app.add_middleware(WorkflowHeaderMiddleware)
 
-# 设置CORS中间件
+# 設置CORS中間件
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.app.get_cors_origins_list(),
@@ -85,8 +85,8 @@ def read_root():
 
 if __name__ == "__main__":
     import uvicorn
-    # 添加reload=True，这样当代码修改时会自动重新加载
-    # 配置更短的优雅关闭时间，便于 Ctrl+C 快速退出
+    # 添加reload=True，這樣當代碼修改時會自動重新加載
+    # 配置更短的優雅關閉時間，便於 Ctrl+C 快速退出
     uvicorn.run(
         "main:app",
         host="0.0.0.0",

@@ -1,4 +1,4 @@
-import request from './request'
+﻿import request from './request'
 import type { components } from '@renderer/types/generated'
 
 export type ProjectRead = components['schemas']['ProjectRead']
@@ -9,7 +9,7 @@ export const getFreeProject = async (): Promise<ProjectRead> => {
   try {
     return await request.get('/projects/free')
   } catch (err) {
-    // 兼容后端未更新路由顺序导致 /free 命中 /{project_id} 的情况：回退到列表查找
+    // 兼容後端未更新路由順序導致 /free 命中 /{project_id} 的情況：回退到列表查找
     const list = await request.get<ProjectRead[]>('/projects')
     const found = (list || []).find(p => (p.name || '') === '__free__')
     if (!found) throw err

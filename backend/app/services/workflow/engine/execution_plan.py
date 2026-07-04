@@ -1,6 +1,6 @@
-"""执行计划
+﻿"""執行計劃
 
-表示工作流的执行计划，包含语句列表、依赖关系和并行组。
+表示工作流的執行計劃，包含語句列表、依賴關係和並行組。
 """
 
 from dataclasses import dataclass
@@ -9,16 +9,16 @@ from typing import List, Dict, Optional, Any
 
 @dataclass
 class Statement:
-    """单条语句（一个节点调用或表达式）"""
+    """單條語句（一個節點調用或表達式）"""
     line_number: int
-    variable: str              # 变量名
-    node_type: Optional[str]   # 节点类型（如"Novel.Load"），None表示纯表达式
-    config: Dict[str, Any]     # 节点配置
-    is_async: bool             # 是否异步执行
-    depends_on: List[str]      # 依赖的变量列表
-    code: Optional[str] = None # 原始代码
-    disabled: bool = False     # 是否禁用（从元数据注释中提取）
-    description: str = ""      # 节点描述（来自 #@node(description=...) 元数据）
+    variable: str              # 變量名
+    node_type: Optional[str]   # 節點類型（如"Novel.Load"），None表示純表達式
+    config: Dict[str, Any]     # 節點配置
+    is_async: bool             # 是否異步執行
+    depends_on: List[str]      # 依賴的變量列表
+    code: Optional[str] = None # 原始代碼
+    disabled: bool = False     # 是否禁用（從元數據註釋中提取）
+    description: str = ""      # 節點描述（來自 #@node(description=...) 元數據）
 
     def __repr__(self):
         return f"Statement(line={self.line_number}, var={self.variable}, type={self.node_type}, disabled={self.disabled})"
@@ -26,23 +26,23 @@ class Statement:
 
 @dataclass
 class ExecutionPlan:
-    """执行计划"""
-    statements: List[Statement]           # 语句列表（按代码顺序）
-    dependencies: Dict[str, List[str]]    # 依赖关系：变量 → 依赖的变量列表
+    """執行計劃"""
+    statements: List[Statement]           # 語句列表（按代碼順序）
+    dependencies: Dict[str, List[str]]    # 依賴關係：變量 → 依賴的變量列表
 
     def get_parallel_groups(self) -> List[List[Statement]]:
-        """获取可并行执行的语句组
+        """獲取可並行執行的語句組
 
-        设计原则：
-        1. 默认顺序执行：每个语句一个组
-        2. async 节点：标记为异步，但立即返回，不阻塞后续语句
-        3. wait 语句：等待之前的异步节点完成
+        設計原則：
+        1. 默認順序執行：每個語句一個組
+        2. async 節點：標記爲異步，但立即返回，不阻塞後續語句
+        3. wait 語句：等待之前的異步節點完成
 
         返回：[[stmt1], [stmt2], [stmt3]]
-        表示：按顺序执行每个语句
+        表示：按順序執行每個語句
         """
-        # 简化实现：每个语句一个组，顺序执行
-        # async 和 wait 的处理在 AsyncExecutor 中实现
+        # 簡化實現：每個語句一個組，順序執行
+        # async 和 wait 的處理在 AsyncExecutor 中實現
         groups = [[stmt] for stmt in self.statements]
         return groups
 
@@ -51,42 +51,42 @@ class ExecutionPlan:
         last_group: List[Statement],
         new_stmts: List[Statement]
     ) -> bool:
-        """检查新语句是否可以与上一组并行执行
+        """檢查新語句是否可以與上一組並行執行
 
-        条件：新语句不依赖上一组中的任何变量
+        條件：新語句不依賴上一組中的任何變量
         """
         last_group_vars = {stmt.variable for stmt in last_group}
 
         for new_stmt in new_stmts:
-            # 如果新语句依赖上一组的变量，不能并行
+            # 如果新語句依賴上一組的變量，不能並行
             if any(dep in last_group_vars for dep in new_stmt.depends_on):
                 return False
 
         return True
 
     def validate(self) -> None:
-        """验证执行计划的正确性
+        """驗證執行計劃的正確性
 
-        检查：
-        1. 所有依赖的变量都有定义
-        2. 没有循环依赖
+        檢查：
+        1. 所有依賴的變量都有定義
+        2. 沒有循環依賴
         """
         defined_vars = set()
 
         for stmt in self.statements:
-            # 检查依赖
+            # 檢查依賴
             for dep in stmt.depends_on:
                 if dep not in defined_vars:
                     raise ValueError(
-                        f"行 {stmt.line_number}: 变量 '{stmt.variable}' "
-                        f"依赖未定义的变量 '{dep}'"
+                        f"行 {stmt.line_number}: 變量 '{stmt.variable}' "
+                        f"依賴未定義的變量 '{dep}'"
                     )
 
-            # 添加到已定义集合
+            # 添加到已定義集合
             defined_vars.add(stmt.variable)
 
-        # 尝试获取并行组（会检测循环依赖）
+        # 嘗試獲取並行組（會檢測循環依賴）
         try:
             self.get_parallel_groups()
         except ValueError as e:
-            raise ValueError(f"执行计划验证失败: {e}")
+            raise ValueError(f"執行計劃驗證失敗: {e}")
