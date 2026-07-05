@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref } from 'vue'
 import LLMConfigManager from '../setting/LLMConfigManager.vue'
 import Versions from '../Versions.vue'
@@ -41,14 +41,14 @@ watch(() => props.modelValue, async (open) => { if (open) { await nextTick(); em
   <el-dialog 
     :model-value="modelValue" 
     @update:model-value="(val) => emit('update:modelValue', val)"
-    title="應用設置" 
+    title="應用設定" 
     width="85%" 
     top="4vh"
     @close="handleClose"
   >
     <div class="settings-container">
       <el-tabs v-model="activeTab" tab-position="left" class="settings-tabs">
-        <el-tab-pane label="LLM 配置" name="llm">
+        <el-tab-pane label="LLM 設定" name="llm">
           <LLMConfigManager ref="llmManagerRef" />
         </el-tab-pane>
         <el-tab-pane label="知識庫" name="knowledge">
@@ -60,7 +60,7 @@ watch(() => props.modelValue, async (open) => { if (open) { await nextTick(); em
         <el-tab-pane label="卡片類型" name="card-types">
           <CardTypeManager />
         </el-tab-pane>
-        <el-tab-pane label="Agent 設置" name="assistant">
+        <el-tab-pane label="Agent 設定" name="assistant">
           <AssistantSettings />
         </el-tab-pane>
         <el-tab-pane name="about">

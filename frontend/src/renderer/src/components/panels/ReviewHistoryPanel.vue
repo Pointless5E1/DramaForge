@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="review-history-panel">
     <template v-if="!selectedReview">
       <div v-loading="loading" class="panel-body">
@@ -232,7 +232,7 @@ async function loadReviews() {
     reviews.value = await listTargetReviewCards(props.targetCardId)
   } catch (error) {
     console.error('Failed to load review result cards:', error)
-    ElMessage.error('加載審核結果卡片失敗')
+    ElMessage.error('載入審核結果卡片失敗')
   } finally {
     loading.value = false
   }

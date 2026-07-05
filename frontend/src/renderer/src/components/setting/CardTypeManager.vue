@@ -1,8 +1,8 @@
-﻿<template>
+<template>
   <div class="card-type-manager">
-    <!-- 工具條：搜索 + 新增 -->
+    <!-- 工具條：搜尋 + 新增 -->
     <div class="toolbar">
-      <el-input v-model="query" placeholder="搜索類型（名稱/描述）" clearable class="search" />
+      <el-input v-model="query" placeholder="搜尋類型（名稱/描述）" clearable class="search" />
       <el-button type="primary" @click="openEditor()">新增類型</el-button>
     </div>
 
@@ -35,7 +35,7 @@
       </el-table-column>
     </el-table>
 
-    <!-- 編輯抽屜：基礎信息 + 結構編輯入口 -->
+    <!-- 編輯抽屜：基礎資訊 + 結構編輯入口 -->
     <el-drawer v-model="drawer.visible" :title="drawer.editing ? '編輯卡片類型' : '新增卡片類型'" size="60%">
       <div class="editor-grid">
         <el-form label-position="top" :model="form">
@@ -43,11 +43,11 @@
           <el-form-item label="描述"><el-input v-model="form.description" type="textarea" :rows="2" /></el-form-item>
           <el-form-item label="是否啓用AI"><el-switch v-model="form.is_ai_enabled" /></el-form-item>
           <el-form-item label="是否單例"><el-switch v-model="form.is_singleton" /></el-form-item>
-          <el-form-item label="默認上下文模板"><el-input v-model="form.default_ai_context_template" type="textarea" :rows="4" /></el-form-item>
+          <el-form-item label="預設上下文模板"><el-input v-model="form.default_ai_context_template" type="textarea" :rows="4" /></el-form-item>
 
           <template v-if="form.is_ai_enabled">
             <div class="ai-section-title">AI 參數</div>
-            <el-form-item label="模型（LLM 配置）">
+            <el-form-item label="模型（LLM 設定）">
               <el-select v-model="aiParams.llm_config_id" filterable placeholder="選擇模型" style="width:100%">
                 <el-option v-for="c in llmConfigs" :key="c.id" :label="c.display_name || (c.provider + ':' + c.model_name)" :value="c.id" />
               </el-select>
@@ -80,7 +80,7 @@
       </div>
       <template #footer>
         <el-button @click="drawer.visible=false">取消</el-button>
-        <el-button type="primary" @click="saveType">保存</el-button>
+        <el-button type="primary" @click="saveType">儲存</el-button>
       </template>
     </el-drawer>
 
@@ -134,7 +134,7 @@ function openEditor(row?: CardTypeRead) {
   form.value = row ? { ...row } : { name: '', description: '', is_ai_enabled: true, is_singleton: false, default_ai_context_template: '' }
   uiLayoutText.value = row?.ui_layout ? JSON.stringify(row.ui_layout, null, 2) : ''
   aiParams.value = (row as any)?.ai_params ? { ...defaultAIParams, ...(row as any).ai_params } : { ...defaultAIParams }
-  // 首次打開加載可選項
+  // 首次打開載入可選項
   if (llmConfigs.value.length === 0) { listLLMConfigs().then((v) => { llmConfigs.value = v; if (!aiParams.value.llm_config_id && v?.length) aiParams.value.llm_config_id = v[0].id }).catch(() => {}) }
   else if (!aiParams.value.llm_config_id && llmConfigs.value?.length) { aiParams.value.llm_config_id = llmConfigs.value[0].id }
   if (prompts.value.length === 0) { listPrompts().then((v:any) => prompts.value = v).catch(() => {}) }
@@ -146,7 +146,7 @@ const studio = ref<{ visible: boolean; typeId: number; typeName: string }>({ vis
 function openSchemaStudio(row?: CardTypeRead) {
   const id = row?.id || drawer.value.id
   const name = row?.name || form.value?.name || ''
-  if (!id) { ElMessage.warning('請先保存類型的基礎信息'); return }
+  if (!id) { ElMessage.warning('請先儲存類型的基礎資訊'); return }
   studio.value = { visible: true, typeId: id as number, typeName: name }
 }
 
@@ -170,7 +170,7 @@ async function saveType(): Promise<void> {
     await fetchTypes()
     await cardStore.fetchCardTypes()
     await schemaService.refreshSchemas()
-  } catch (e:any) { ElMessage.error('保存失敗：' + (e?.message || e)) }
+  } catch (e:any) { ElMessage.error('儲存失敗：' + (e?.message || e)) }
 }
 
 async function removeType(row: CardTypeRead) { try { await deleteCardType(row.id as number); ElMessage.success('已刪除'); await fetchTypes() } catch (e:any) { ElMessage.error('刪除失敗：' + (e?.message || e)) } }
@@ -188,7 +188,7 @@ onBeforeUnmount(() => {
   if (handler) window.removeEventListener('card-types-updated', handler as any)
 })
 
-// 啓用AI時若參數爲空，爲其填充默認值
+// 啓用AI時若參數爲空，爲其填充預設值
 watch(() => form.value.is_ai_enabled, (v) => {
   if (v) {
     aiParams.value = { ...defaultAIParams, ...(aiParams.value || {}) }

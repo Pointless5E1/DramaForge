@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="generic-card-editor">
     <EditorHeader
       :project-name="projectName"
@@ -36,9 +36,9 @@
       />
     </template>
 
-    <!-- 默認表單編輯器 -->
+    <!-- 預設表單編輯器 -->
     <template v-else>
-      <!-- 參數配置：顯示當前模型ID，點擊彈出就地配置面板 -->
+      <!-- 參數設定：顯示當前模型ID，點擊彈出就地設定面板 -->
       <div class="toolbar-row param-toolbar">
         <div class="param-inline">
           <el-dropdown
@@ -88,8 +88,8 @@
             </template>
           </div>
           <div v-else class="loading-or-error-container">
-            <p v-if="schemaIsLoading">正在加載模型...</p>
-            <p v-else>無法加載此卡片內容的編輯模型。</p>
+            <p v-if="schemaIsLoading">正在載入模型...</p>
+            <p v-else>無法載入此卡片內容的編輯模型。</p>
           </div>
         </div>
       </div>
@@ -104,7 +104,7 @@
       @open-selector="openSelectorFromDrawer"
     >
       <template #params>
-        <div class="param-placeholder">參數設置入口（已改爲每卡片本地參數）</div>
+        <div class="param-placeholder">參數設定入口（已改爲每卡片本地參數）</div>
       </template>
     </ContextDrawer>
 
@@ -289,7 +289,7 @@ const activeContentEditor = computed(() => {
   if (editorName && contentEditorMap[editorName]) {
     return contentEditorMap[editorName]
   }
-  return null // null 表示使用默認的表單編輯器
+  return null // null 表示使用預設的表單編輯器
 })
 
 const isStageOutlineCard = computed(() => props.card.card_type?.name === '階段大綱')
@@ -367,7 +367,7 @@ const innerData = computed({
 const aiOptions = ref<AIConfigOptions | null>(null)
 async function loadAIOptions() { try { aiOptions.value = await getAIConfigOptions() } catch {} }
 
-const projectName = '當前項目'
+const projectName = '當前專案'
 const lastSavedAt = ref<string | undefined>(undefined)
 
 // 頂部標題與表單 Title 字段保持同步
@@ -380,7 +380,7 @@ watch(
   }
 )
 
-// 2) 頂部標題變更 -> 寫回表單數據中的 title（若存在）
+// 2) 頂部標題變更 -> 寫回表單資料中的 title（若存在）
 watch(
   titleProxy,
   (v) => {
@@ -408,12 +408,12 @@ const isDirty = computed(() => {
   const titleDirty = titleProxy.value !== props.card.title
 
   // 使用自定義內容編輯器（如章節正文）：
-  // 只要正文內容、上下文模板或標題有任一改動，都視爲未保存
+  // 只要正文內容、上下文模板或標題有任一改動，都視爲未儲存
   if (activeContentEditor.value) {
     return contentEditorDirty.value || ctxDirty || titleDirty
   }
 
-  // 默認表單編輯器：比較內容 + 上下文模板 + 標題
+  // 預設表單編輯器：比較內容 + 上下文模板 + 標題
   return !isEqual(localData.value, originalData.value) || ctxDirty || titleDirty
 })
 
@@ -447,7 +447,7 @@ watch(
         if (first) editingParams.value.llm_config_id = first.id
       }
       syncReviewPrompt(true)
-      // 本地兼容保存
+      // 本地兼容儲存
       perCardStore.setForCard(newCard.id, editingParams.value)
     }
   },
@@ -631,8 +631,8 @@ async function applyAndSavePerCardParams() {
   try {
     await updateCardAIParams(props.card.id, { ...editingParams.value })
     perCardStore.setForCard(props.card.id, { ...editingParams.value })
-    ElMessage.success('已保存')
-  } catch { ElMessage.error('保存失敗') }
+    ElMessage.success('已儲存')
+  } catch { ElMessage.error('儲存失敗') }
 }
 
 async function restoreParamsFollowType() {
@@ -647,13 +647,13 @@ async function restoreParamsFollowType() {
 
 async function applyParamsToType() {
   try {
-    // 1) 先把當前編輯值保存到該卡片（作爲來源）
+    // 1) 先把當前編輯值儲存到該卡片（作爲來源）
     await updateCardAIParams(props.card.id, { ...editingParams.value })
     // 2) 應用到類型
     await applyCardAIParamsToType(props.card.id)
-    // 通知設置頁刷新
+    // 通知設定頁刷新
     window.dispatchEvent(new Event('card-types-updated'))
-    // 3) 應用到類型後，默認讓當前卡片恢復跟隨類型，以便參數與頂部顯示立即一致
+    // 3) 應用到類型後，預設讓當前卡片恢復跟隨類型，以便參數與頂部顯示立即一致
     await updateCardAIParams(props.card.id, null)
     const resp = await getCardAIParams(props.card.id)
     const eff = resp?.effective_params
@@ -676,7 +676,7 @@ function resetToPreset() {
 }
 
 function getPresetForType(typeName?: string) : PerCardAIParams | undefined {
-  // 兼容舊預設：按照類型名提供簡易默認值
+  // 兼容舊預設：按照類型名提供簡易預設值
   const map: Record<string, PerCardAIParams> = {
     '金手指': { prompt_name: '金手指生成', response_model_name: 'SpecialAbilityResponse', temperature: 0.6, max_tokens: 1024, timeout: 60 },
     '一句話梗概': { prompt_name: '一句話梗概', response_model_name: 'OneSentence', temperature: 0.6, max_tokens: 1024, timeout: 60 },
@@ -851,11 +851,11 @@ const previewText = computed(() => localAiContextTemplates.value[activeContextTe
 async function handleSave() {
   const templatesBeforeSave = cloneContextTemplates(localAiContextTemplates.value)
   const previousTemplatesOnCard = getCardContextTemplates(props.card)
-  // 自定義內容編輯器的保存邏輯（如 CodeMirrorEditor）
+  // 自定義內容編輯器的儲存邏輯（如 CodeMirrorEditor）
   if (activeContentEditor.value && contentEditorRef.value) {
     try {
       isSaving.value = true
-      // 將當前標題傳遞給內容編輯器，由內容編輯器統一負責保存 title 與正文內容
+      // 將當前標題傳遞給內容編輯器，由內容編輯器統一負責儲存 title 與正文內容
       const savedContent = await contentEditorRef.value.handleSave(titleProxy.value)
 
       if (!isEqual(templatesBeforeSave, previousTemplatesOnCard)) {
@@ -866,7 +866,7 @@ async function handleSave() {
         } catch {}
       }
 
-      // 保存歷史版本
+      // 儲存歷史版本
       try {
         if (projectStore.currentProject?.id && savedContent) {
           await addVersion(projectStore.currentProject.id, {
@@ -884,16 +884,16 @@ async function handleSave() {
       contentEditorDirty.value = false
       originalAiContextTemplates.value = cloneContextTemplates(templatesBeforeSave)
       lastSavedAt.value = new Date().toLocaleTimeString()
-      ElMessage.success('保存成功')
+      ElMessage.success('儲存成功')
     } catch (e) {
-      ElMessage.error('保存失敗')
+      ElMessage.error('儲存失敗')
     } finally {
       isSaving.value = false
     }
     return
   }
 
-  // 默認表單編輯器的保存邏輯
+  // 預設表單編輯器的儲存邏輯
   try {
     isSaving.value = true
     const updatePayload: CardUpdate = {
@@ -915,7 +915,7 @@ async function handleSave() {
     originalData.value = cloneDeep(localData.value)
     originalAiContextTemplates.value = cloneContextTemplates(templatesBeforeSave)
     lastSavedAt.value = new Date().toLocaleTimeString()
-    ElMessage.success('保存成功！')
+    ElMessage.success('儲存成功！')
   } finally { isSaving.value = false }
 }
 
@@ -928,7 +928,7 @@ async function executeReview() {
 
   const p = perCardStore.getByCardId(props.card.id) || editingParams.value
   if (!p?.llm_config_id) {
-    ElMessage.error('請先設置有效的模型ID')
+    ElMessage.error('請先設定有效的模型ID')
     return
   }
 
@@ -1044,7 +1044,7 @@ function handleGenerateClick() {
 async function handleStartGeneration(userPrompt: string, useExistingContent: boolean) {
   const p = perCardStore.getByCardId(props.card.id) || editingParams.value
   if (!p?.llm_config_id) {
-    ElMessage.error('請先設置有效的模型ID')
+    ElMessage.error('請先設定有效的模型ID')
     return
   }
 
@@ -1164,7 +1164,7 @@ async function performGeneration(
         },
         onDone: async (success, message, finalData) => {
           if (success) {
-            // 如果後端回傳了最終完整數據（包含默認值注入），則合併更新
+            // 如果後端回傳了最終完整資料（包含預設值注入），則合併更新
             if (finalData) {
               console.log('Received final data from backend:', finalData)
               const { mergeWith, isArray } = await import('lodash-es')
@@ -1206,7 +1206,7 @@ async function performGeneration(
 function formatInstructionAction(instruction: Instruction): string {
   if (instruction.op === 'set') {
     const path = instruction.path.replace(/^\//, '').replace(/\//g, ' > ')
-    return `設置字段: ${path}`
+    return `設定字段: ${path}`
   } else if (instruction.op === 'append') {
     const path = instruction.path.replace(/^\//, '').replace(/\//g, ' > ')
     return `添加元素到: ${path}`
@@ -1254,7 +1254,7 @@ async function handleContinueGeneration(userMessage: string) {
   // 獲取參數
   const p = perCardStore.getByCardId(props.card.id) || editingParams.value
   if (!p?.llm_config_id) {
-    ElMessage.error('請先設置有效的模型ID')
+    ElMessage.error('請先設定有效的模型ID')
     return
   }
 
@@ -1305,7 +1305,7 @@ function handleRestartGeneration() {
 
 async function handleGenerate() {
   const p = perCardStore.getByCardId(props.card.id) || editingParams.value
-  if (!p?.llm_config_id) { ElMessage.error('請先設置有效的模型ID'); return }
+  if (!p?.llm_config_id) { ElMessage.error('請先設定有效的模型ID'); return }
   const resolvedContext = getResolvedContextByKind(generationContextKind.value)
   try {
     // 直接讀取有效 Schema 並作爲 response_model_schema 發送
@@ -1341,7 +1341,7 @@ async function handleRestoreVersion(v: any) {
   // 自定義內容編輯器的恢復邏輯（如 CodeMirrorEditor）
   if (activeContentEditor.value && contentEditorRef.value) {
     try {
-      ElMessage.success('已恢復版本，自動保存中...')
+      ElMessage.success('已恢復版本，自動儲存中...')
 
       // 通知內容編輯器恢復內容（需要編輯器實現 restoreContent 方法）
       if (typeof contentEditorRef.value.restoreContent === 'function') {
@@ -1354,13 +1354,13 @@ async function handleRestoreVersion(v: any) {
         review: v.ai_context_template_review ?? localAiContextTemplates.value.review,
       })
 
-      // 保存恢復的內容
+      // 儲存恢復的內容
       await handleSave()
 
-      // 刷新卡片數據
+      // 刷新卡片資料
       await cardStore.fetchCards(projectStore.currentProject!.id!)
 
-      ElMessage.success('版本已恢復並保存')
+      ElMessage.success('版本已恢復並儲存')
     } catch (e) {
       console.error('Failed to restore content editor version:', e)
       ElMessage.error('恢復版本失敗')
@@ -1368,26 +1368,26 @@ async function handleRestoreVersion(v: any) {
     return
   }
 
-  // 默認表單編輯器的恢復邏輯
+  // 預設表單編輯器的恢復邏輯
   if (wrapperName.value) innerData.value = v.content
   else localData.value = v.content
   localAiContextTemplates.value = cloneContextTemplates({
     generation: v.ai_context_template ?? localAiContextTemplates.value.generation,
     review: v.ai_context_template_review ?? localAiContextTemplates.value.review,
   })
-  ElMessage.success('已恢復版本，自動保存中...')
+  ElMessage.success('已恢復版本，自動儲存中...')
   await handleSave()
 }
 
 async function onSchemaSaved() {
-  // 保存結構後刷新 schema 並重算分區
+  // 儲存結構後刷新 schema 並重算分區
   await loadSchemaForCard(props.card)
 }
 
 async function handleAssistantFinalize(summary: string) {
   try {
     const p = perCardStore.getByCardId(props.card.id) || editingParams.value
-    if (!p?.llm_config_id) { ElMessage.error('請先設置有效的模型ID'); return }
+    if (!p?.llm_config_id) { ElMessage.error('請先設定有效的模型ID'); return }
     // 將對話要點與上下文合併，作爲輸入文本（不再附加卡片提示詞模板）
     const resolvedContextText = getResolvedContextByKind(generationContextKind.value)
     const inputText = `${resolvedContextText}\n\n[對話要點]\n${summary}`

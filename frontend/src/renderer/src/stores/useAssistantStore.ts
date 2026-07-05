@@ -1,4 +1,4 @@
-﻿import { defineStore } from 'pinia'
+import { defineStore } from 'pinia'
 import { ref, shallowRef } from 'vue'
 import { getProjects, type ProjectRead } from '@renderer/api/projects'
 import { getCardsForProject, type CardRead } from '@renderer/api/cards'
@@ -72,7 +72,7 @@ function normalizeInjectedRef(ref: Partial<InjectRef> & Record<string, any>, sou
   }
 }
 
-// 卡片上下文信息接口
+// 卡片上下文資訊接口
 export interface CardContextInfo {
   card_id: number
   title: string
@@ -103,7 +103,7 @@ export interface ProjectStructureContext {
   tree_text: string              // 樹形文本
   available_card_types: string[] // 可用卡片類型
   last_updated: number           // 最後更新時間戳
-  version: number                // 數據版本（用於緩存失效）
+  version: number                // 資料版本（用於緩存失效）
 }
 
 // 爲避免開發/打包共用本地緩存，對話歷史 key 加上環境前綴
@@ -191,7 +191,7 @@ export const useAssistantStore = defineStore('assistant', () => {
     // 規則：manual 永遠不被 auto 覆蓋；manual 會覆蓋 auto；同源則更新內容
     if (idx >= 0) {
       if (prev?.source === 'manual' && source === 'auto') {
-        // 保留 manual，不做降級，僅更新顯示信息/內容
+        // 保留 manual，不做降級，僅更新顯示資訊/內容
         newRefs[idx] = { ...prev, ...normalizedRef, source: 'manual' } as InjectRef
       } else {
         newRefs[idx] = { ...prev, ...normalizedRef, source } as InjectRef
@@ -279,14 +279,14 @@ export const useAssistantStore = defineStore('assistant', () => {
     // 更新活動卡片
     activeCardContext.value = info
     
-    // 註冊到卡片註冊表（如果已存在則更新訪問信息）
+    // 註冊到卡片註冊表（如果已存在則更新訪問資訊）
     registerCard(info)
   }
   
   function registerCard(info: CardContextInfo) {
     const existing = cardRegistry.value.get(info.card_id)
     if (existing) {
-      // 更新已存在的卡片信息
+      // 更新已存在的卡片資訊
       cardRegistry.value.set(info.card_id, {
         ...existing,
         title: info.title,  // 更新標題（可能改變）
@@ -330,7 +330,7 @@ export const useAssistantStore = defineStore('assistant', () => {
   //  ========== 項目結構化上下文管理 ==========
   
   /**
-   * 從 localStorage 加載項目結構緩存
+   * 從 localStorage 載入項目結構緩存
    */
   function loadProjectStructureFromCache(projectId: number): ProjectStructureContext | null {
     try {
@@ -344,13 +344,13 @@ export const useAssistantStore = defineStore('assistant', () => {
   }
   
   /**
-   * 保存項目結構到 localStorage
+   * 儲存項目結構到 localStorage
    */
   function saveProjectStructureToCache(structure: ProjectStructureContext) {
     try {
       localStorage.setItem(projectStructureKey(structure.project_id), JSON.stringify(structure))
     } catch (e) {
-      console.warn('保存項目結構緩存失敗', e)
+      console.warn('儲存項目結構緩存失敗', e)
     }
   }
   
@@ -385,10 +385,10 @@ export const useAssistantStore = defineStore('assistant', () => {
   }
   
   /**
-   * 從卡片數據生成項目結構化上下文
+   * 從卡片資料生成項目結構化上下文
    * @param projectId 項目ID
    * @param projectName 項目名稱
-   * @param cards 所有卡片數據（來自 useCardStore）
+   * @param cards 所有卡片資料（來自 useCardStore）
    * @param cardTypes 所有卡片類型（來自 useCardStore）
    * @param currentCardId 當前激活的卡片ID（可選）
    */
@@ -428,7 +428,7 @@ export const useAssistantStore = defineStore('assistant', () => {
    * 更新項目結構（自動構建+緩存）
    * @param projectId 項目ID
    * @param projectName 項目名稱
-   * @param cards 所有卡片數據
+   * @param cards 所有卡片資料
    * @param cardTypes 所有卡片類型
    * @param currentCardId 當前卡片ID
    * @param forceRebuild 是否強制重建（忽略緩存）
@@ -471,7 +471,7 @@ export const useAssistantStore = defineStore('assistant', () => {
   // ========== 用戶操作歷史管理 ==========
   
   /**
-   * 從 localStorage 加載操作歷史
+   * 從 localStorage 載入操作歷史
    */
   function loadOperationsFromCache(projectId: number): UserOperation[] {
     try {
@@ -486,13 +486,13 @@ export const useAssistantStore = defineStore('assistant', () => {
   }
   
   /**
-   * 保存操作歷史到 localStorage
+   * 儲存操作歷史到 localStorage
    */
   function saveOperationsToCache(projectId: number, operations: UserOperation[]) {
     try {
       localStorage.setItem(projectOperationsKey(projectId), JSON.stringify(operations))
     } catch (e) {
-      console.warn('保存操作歷史失敗', e)
+      console.warn('儲存操作歷史失敗', e)
     }
   }
   
@@ -513,14 +513,14 @@ export const useAssistantStore = defineStore('assistant', () => {
       recentOperations.value = recentOperations.value.slice(0, 3)
     }
     
-    // 保存到緩存
+    // 儲存到緩存
     saveOperationsToCache(projectId, recentOperations.value)
     
     console.log('📝 [AssistantStore] 記錄操作:', operation)
   }
   
   /**
-   * 加載操作歷史
+   * 載入操作歷史
    */
   function loadOperations(projectId: number) {
     recentOperations.value = loadOperationsFromCache(projectId)
@@ -550,7 +550,7 @@ export const useAssistantStore = defineStore('assistant', () => {
       
       let line = `${idx + 1}. [${time}] ${emoji} ${action} "${op.cardTitle}" (${op.cardType} #${op.cardId})`
       
-      // 如果有詳細信息，添加到下一行
+      // 如果有詳細資訊，添加到下一行
       if (op.detail) {
         line += `\n   詳情: ${op.detail}`
       }

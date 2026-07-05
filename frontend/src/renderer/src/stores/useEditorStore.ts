@@ -1,4 +1,4 @@
-﻿import { defineStore } from 'pinia'
+import { defineStore } from 'pinia'
 import { ref, reactive } from 'vue'
 
 export interface ChapterSelectionRange {
@@ -63,7 +63,7 @@ export const useEditorStore = defineStore('editor', () => {
     nodeData: null as any | null
   })
   
-  // AI配置對話框狀態
+  // AI設定對話框狀態
   const aiConfigDialog = reactive({
     visible: false,
     task: '',
@@ -79,7 +79,7 @@ export const useEditorStore = defineStore('editor', () => {
   const applyChapterReplacements = ref<null | ((pairs: ChapterReplaceOp[]) => Promise<void> | void)>(null)
   const persistActiveChapterDraftRef = ref<null | (() => Promise<boolean>)>(null)
 
-  // 用於跨組件觸發“提取動態信息”的回調
+  // 用於跨組件觸發“提取動態資訊”的回調
   const triggerExtractDynamicInfoRef = ref<null | ((opts: ChapterExtractRunOptions) => Promise<void>)>(null)
   // 用於跨組件觸發“提取關係入圖”的回調
   const triggerExtractRelationsRef = ref<null | ((opts: ChapterExtractRunOptions) => Promise<void>)>(null)

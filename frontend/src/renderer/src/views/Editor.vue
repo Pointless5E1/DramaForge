@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="editor-layout">
     <!-- 左側卡片導航樹 -->
     <el-aside class="sidebar card-navigation-sidebar" :style="{ width: leftSidebarDisplayWidth + 'px' }" @contextmenu.prevent="onSidebarContextMenu">
@@ -26,7 +26,7 @@
       <div class="cards-pane" :style="{ height: `calc(100% - ${typesPaneHeight + innerResizerThickness}px)` }" @dragover.prevent @drop="onCardsPaneDrop">
         <div class="cards-title">
           <div class="cards-title-head">
-            <div class="cards-title-text">當前項目：{{ projectStore.currentProject?.name }}</div>
+            <div class="cards-title-text">當前專案：{{ projectStore.currentProject?.name }}</div>
             <div v-if="selectedCardIds.length > 0" class="cards-selection-chip">已選 {{ selectedCardIds.length }}</div>
           </div>
           <div class="cards-title-actions">
@@ -50,23 +50,23 @@
             >
               刪除選中 ({{ selectedCardIds.length }})
             </el-button>
-            <el-button v-if="!isFreeProject" class="toolbar-action toolbar-action-secondary" size="small" :icon="Upload" @click="openImportFreeCards">導入卡片</el-button>
-            <el-button class="toolbar-action toolbar-action-secondary" :class="{ 'toolbar-action-secondary--solo': isFreeProject }" size="small" :icon="Download" @click="openExportDialog">導出卡片</el-button>
+            <el-button v-if="!isFreeProject" class="toolbar-action toolbar-action-secondary" size="small" :icon="Upload" @click="openImportFreeCards">匯入卡片</el-button>
+            <el-button class="toolbar-action toolbar-action-secondary" :class="{ 'toolbar-action-secondary--solo': isFreeProject }" size="small" :icon="Download" @click="openExportDialog">匯出卡片</el-button>
           </div>
         </div>
         
-        <!-- 搜索框 -->
+        <!-- 搜尋框 -->
         <div class="search-box" style="padding: 0 8px 8px;">
            <el-input 
              v-model="searchQuery" 
-             placeholder="搜索卡片..." 
+             placeholder="搜尋卡片..." 
              :prefix-icon="Search"
              clearable
              @input="handleSearch"
            />
         </div>
 
-        <!-- 搜索結果 -->
+        <!-- 搜尋結果 -->
         <div v-if="isSearching" class="search-results-list" v-loading="searchLoading">
            <div 
              v-for="card in searchResults" 
@@ -77,7 +77,7 @@
               <el-icon class="card-icon"><component :is="getIconByCardType(card.card_type?.name)" /></el-icon>
               <span class="search-item-title">{{ card.title }}</span>
            </div>
-           <el-empty v-if="!searchLoading && searchResults.length === 0" description="無搜索結果" :image-size="60" />
+           <el-empty v-if="!searchLoading && searchResults.length === 0" description="無搜尋結果" :image-size="60" />
         </div>
 
         <template v-else>
@@ -299,12 +299,12 @@
   </el-dialog>
 
   <!-- 導入卡片對話框 -->
-  <el-dialog v-model="importDialog.visible" title="導入卡片" width="900px" class="nf-import-dialog">
+  <el-dialog v-model="importDialog.visible" title="匯入卡片" width="900px" class="nf-import-dialog">
     <div style="display:flex; gap:12px; align-items:center; margin-bottom:8px; flex-wrap: wrap;">
-      <el-select v-model="importDialog.sourcePid" placeholder="來源項目" style="width:220px" @change="onImportSourceChange($event as any)">
+      <el-select v-model="importDialog.sourcePid" placeholder="來源專案" style="width:220px" @change="onImportSourceChange($event as any)">
         <el-option v-for="p in importDialog.projects" :key="p.id" :label="p.name" :value="p.id" />
       </el-select>
-      <el-input v-model="importDialog.search" placeholder="搜索來源卡片標題..." clearable style="flex:1; min-width: 200px" />
+      <el-input v-model="importDialog.search" placeholder="搜尋來源卡片標題..." clearable style="flex:1; min-width: 200px" />
       <el-select v-model="importFilter.types" multiple collapse-tags placeholder="類型篩選" style="min-width:220px;" :max-collapse-tags="2">
         <el-option v-for="t in cardStore.cardTypes" :key="t.id" :label="t.name" :value="t.id!" />
       </el-select>
@@ -332,7 +332,7 @@
     </el-table>
     <template #footer>
       <el-button @click="importDialog.visible = false">取消</el-button>
-      <el-button type="primary" :disabled="!selectedImportIds.length" @click="confirmImportCards">導入所選</el-button>
+      <el-button type="primary" :disabled="!selectedImportIds.length" @click="confirmImportCards">匯入所選</el-button>
     </template>
   </el-dialog>
 
@@ -428,16 +428,16 @@ async function openImportFreeCards() {
      selectedImportIds.value = []
      await onImportSourceChange(importDialog.value.sourcePid as any)
      importDialog.value.visible = true
-   } catch { ElMessage.error('加載來源項目失敗') }
+   } catch { ElMessage.error('載入來源專案失敗') }
  }
 
 function openExportDialog() {
   if (!projectStore.currentProject?.id) {
-    ElMessage.warning('請先選擇項目')
+    ElMessage.warning('請先選擇專案')
     return
   }
   if ((cards.value || []).length === 0) {
-    ElMessage.warning('當前項目暫無可導出的卡片')
+    ElMessage.warning('當前專案暫無可匯出的卡片')
     return
   }
   exportDialogVisible.value = true
@@ -462,9 +462,9 @@ function openExportDialog() {
        await copyCard(id, { target_project_id: pid, parent_id: targetParent as any })
      }
      await cardStore.fetchCards(pid)
-     ElMessage.success('已導入所選卡片')
+     ElMessage.success('已匯入所選卡片')
      importDialog.value.visible = false
-   } catch { ElMessage.error('導入失敗') }
+   } catch { ElMessage.error('匯入失敗') }
  }
 
  // Props
@@ -484,7 +484,7 @@ function openExportDialog() {
   // --- 前端自動分組器 ---
  // 當某節點的直接子卡片中，任一“類型的數量 > 2”時，爲該類型創建一個虛擬分組節點；
  // 其餘數量 <= 2 的類型保持原樣顯示（即使整個父節點下只有一種類型，只要該類型數量>2也要分組）。
- // 該結構完全在前端進行，不影響後端數據
+ // 該結構完全在前端進行，不影響後端資料
  interface TreeNode { id: number | string; title: string; children?: TreeNode[]; card_type?: { name: string }; __isGroup?: boolean; __groupType?: string }
 
 
@@ -517,7 +517,7 @@ function openExportDialog() {
               title: `${t}`,
               __isGroup: true,
               __groupType: t,
-              __parentCardId: n.id,  // 保存實際父卡片ID
+              __parentCardId: n.id,  // 儲存實際父卡片ID
               children: list.map(x => ({ ...x }))
             })
           } else {
@@ -663,7 +663,7 @@ async function onTypesPaneDrop(e: DragEvent) {
    const resp = await getCardSchema(cardId)
    const effective = resp?.effective_schema || resp?.json_schema
    if (!effective) { ElMessage.warning('該卡片暫無可用結構，無法生成類型'); return }
-   // 默認名稱：卡片標題或“新類型”
+   // 預設名稱：卡片標題或“新類型”
    const old = cards.value.find(c => (c as any).id === cardId)
    const defaultName = (old?.title || '新類型') as string
    const { value } = await ElMessageBox.prompt('從該實例創建卡片類型，請輸入類型名稱：', '創建卡片類型', {
@@ -673,7 +673,7 @@ async function onTypesPaneDrop(e: DragEvent) {
      inputValidator: (v:string) => v.trim().length > 0 || '名稱不能爲空'
    })
    const finalName = String(value).trim()
-   await createCardType({ name: finalName, description: `${finalName}的默認卡片類型`, json_schema: effective } as any)
+   await createCardType({ name: finalName, description: `${finalName}的預設卡片類型`, json_schema: effective } as any)
    ElMessage.success('已從實例創建卡片類型')
    await cardStore.fetchCardTypes()
  } catch (err) {
@@ -715,7 +715,7 @@ async function handleNodeDrop(
     const draggedCard = draggingNode.data
     const targetCard = dropNode.data
     
-    // 如果是拖到分組內，設置 parent_id 爲 null（根級）
+    // 如果是拖到分組內，設定 parent_id 爲 null（根級）
     if (targetCard.__isGroup && dropType === 'inner') {
       // 計算根級的下一個 display_order
       const rootCards = cards.value.filter(c => c.parent_id === null)
@@ -728,7 +728,7 @@ async function handleNodeDrop(
       ElMessage.success(`已將「${draggedCard.title}」移到根級`)
       await cardStore.fetchCards(projectStore.currentProject!.id)
       
-      // 記錄移動操作（包含層級變化信息）
+      // 記錄移動操作（包含層級變化資訊）
       assistantStore.recordOperation(projectStore.currentProject!.id, {
         type: 'move',
         cardId: draggedCard.id,
@@ -755,7 +755,7 @@ async function handleNodeDrop(
       ElMessage.success(`已將「${draggedCard.title}」設爲「${targetCard.title}」的子卡片`)
       await cardStore.fetchCards(projectStore.currentProject!.id)
       
-      // 記錄移動操作（包含層級變化信息）
+      // 記錄移動操作（包含層級變化資訊）
       assistantStore.recordOperation(projectStore.currentProject!.id, {
         type: 'move',
         cardId: draggedCard.id,
@@ -803,7 +803,7 @@ async function handleNodeDrop(
         })
       } else if (card.display_order !== index) {
         // 其他卡片只需要更新 display_order（如果有變化）
-        // ⚠️ 重要：必須傳遞 parent_id，否則後端會錯誤地將其設置爲 null！
+        // ⚠️ 重要：必須傳遞 parent_id，否則後端會錯誤地將其設定爲 null！
         updates.push({
           card_id: card.id,
           display_order: index,
@@ -821,7 +821,7 @@ async function handleNodeDrop(
     ElMessage.success(`已調整「${draggedCard.title}」的位置`)
     await cardStore.fetchCards(projectStore.currentProject!.id)
     
-    // 記錄移動操作（包含位置和父級信息）
+    // 記錄移動操作（包含位置和父級資訊）
     const targetCardTitle = targetCard?.title || '根目錄'
     const positionText = dropType === 'before' ? '之前' : '之後'
     let moveDetail = `移動到「${targetCardTitle}」${positionText}`
@@ -1018,11 +1018,11 @@ async function batchDeleteCards() {
   try {
     await ElMessageBox.confirm(
       `確認刪除選中的 ${selectedCardIds.value.length} 個卡片？此操作不可恢復`,
-      '批量刪除確認',
+      '批次刪除確認',
       { type: 'warning' }
     )
     
-    // 記錄刪除的卡片信息
+    // 記錄刪除的卡片資訊
     const deletedCards = selectedCardIds.value.map(id => {
       const card = cards.value.find(c => (c as any).id === id)
       return {
@@ -1129,12 +1129,12 @@ watch(activeCard, (c) => {
 watch(() => projectStore.currentProject, (newProject) => {
   if (!newProject?.id) return
   
-  // 切換項目時重置搜索
+  // 切換項目時重置搜尋
   searchQuery.value = ''
   searchResults.value = []
 
   try {
-    // 加載操作歷史
+    // 載入操作歷史
     assistantStore.loadOperations(newProject.id)
     
     // 更新卡片類型列表
@@ -1177,7 +1177,7 @@ function onNodeExpand(_: any, node: any) {
 
 function onNodeCollapse(_: any, node: any) {
   // 遞歸移除該節點及其所有子節點的展開狀態
-  // 這樣可以防止刷新數據時，一下子節點觸發父節點自動展開
+  // 這樣可以防止刷新資料時，一下子節點觸發父節點自動展開
   const removeRecursively = (n: any) => {
     if (n.key) {
       editorStore.removeExpandedKey(String(n.key))
@@ -1223,7 +1223,7 @@ async function handleCreateCard() {
 
 // 根據卡片類型返回圖標組件
 function getIconByCardType(typeName?: string) {
-  // 約定：若後端默認類型名稱變更，可在此映射中調整
+  // 約定：若後端預設類型名稱變更，可在此映射中調整
   switch (typeName) {
     case '作品標籤':
       return CollectionTag
@@ -1254,7 +1254,7 @@ function getIconByCardType(typeName?: string) {
     case '文件夾':
       return Folder
     default:
-      return Document // 通用默認圖標
+      return Document // 通用預設圖標
   }
 }
 
@@ -1361,7 +1361,7 @@ async function deleteNode(cardId: number, title: string) {
   try {
     await ElMessageBox.confirm(`確認刪除卡片「${title}」？此操作不可恢復`, '刪除確認', { type: 'warning' })
     
-    //  刪除前記錄卡片信息
+    //  刪除前記錄卡片資訊
     const card = cards.value.find(c => (c as any).id === cardId)
     const cardType = card ? ((card as any).card_type?.name || 'Unknown') : 'Unknown'
     
@@ -1434,7 +1434,7 @@ async function renameCard(cardId: number, oldTitle: string) {
     })
     const newTitle = String(value).trim()
     if (newTitle === oldTitle) return
-    // 默認僅更新外殼 card.title
+    // 預設僅更新外殼 card.title
     const card = (cards.value || []).find((c: any) => c.id === cardId) as any
     const payload: any = { title: newTitle }
 
@@ -1483,7 +1483,7 @@ const rightSidebarTabNames = computed(() => {
   return ['assistant', 'review-history']
 })
 
-// 章節信息提取
+// 章節資訊提取
 const chapterVolumeNumber = computed(() => {
   if (!isChapterContent.value) return null
   const content: any = activeCard.value?.content || {}
@@ -1573,7 +1573,7 @@ async function refreshAssistantContext() {
     if (!card) { assistantResolvedContext.value = ''; assistantEffectiveSchema.value = null; return }
     // 計算上下文（沿用 contextResolver）
     const { resolveTemplate } = await import('@renderer/services/contextResolver')
-    // 使用卡片當前保存的 ai_context_template 和 content
+    // 使用卡片當前儲存的 ai_context_template 和 content
     const resolved = resolveTemplate({
       template: card.ai_context_template || '',
       cards: cards.value,
@@ -1700,7 +1700,7 @@ async function handleJumpToCard(payload: { projectId: number; cardId: number }) 
   try {
     const curPid = projectStore.currentProject?.id
     if (curPid !== payload.projectId) {
-      // 切換項目：從全部項目列表中找到目標項目並設置
+      // 切換項目：從全部項目列表中找到目標項目並設定
       const all = await getProjects()
       const target = (all || []).find(p => p.id === payload.projectId)
       if (target) {
@@ -1890,7 +1890,7 @@ function onSwitchRightTab(e: CustomEvent) {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); /* 輕微陰影 */
   border-radius: 8px; /* 圓角 */
   overflow: hidden; /* 確保內容不溢出圓角 */
-  border: none; /* 移除默認邊框 */
+  border: none; /* 移除預設邊框 */
 }
 
 :deep(.el-tabs__content) {
@@ -1932,7 +1932,7 @@ function onSwitchRightTab(e: CustomEvent) {
 
 .inner-resizer { height: 6px; cursor: row-resize; background: var(--el-fill-color-light); border-top: 1px solid var(--el-border-color-light); border-bottom: 1px solid var(--el-border-color-light); transition: height .12s ease, background-color .12s ease, border-color .12s ease; }
 .inner-resizer:hover { height: 8px; background: var(--el-fill-color); border-top: 1px solid var(--el-border-color); border-bottom: 1px solid var(--el-border-color); }
-/* 下半區：標題置頂並設置滾動容器 */
+/* 下半區：標題置頂並設定滾動容器 */
 .cards-pane { position: relative; padding-top: 8px; overflow: auto; overflow-x: hidden; }
 .cards-title {
   position: sticky;

@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useUpdateStore } from '@renderer/stores/useUpdateStore'
 import { ElMessage } from 'element-plus'
@@ -6,7 +6,7 @@ import { Refresh, Download } from '@element-plus/icons-vue'
 
 const updateStore = useUpdateStore()
 
-// 此處原本有 Electron 運行環境信息展示，現按需求移除，僅保留更新相關內容
+// 此處原本有 Electron 運行環境資訊展示，現按需求移除，僅保留更新相關內容
 
 // 手動檢測更新
 const handleManualCheck = async () => {
@@ -50,7 +50,7 @@ const formatTime = (date: Date | null) => {
 
 <template>
   <div class="about-page">
-    <!-- 當前版本信息 -->
+    <!-- 當前版本資訊 -->
     <el-card shadow="never" class="version-card">
       <template #header>
         <div class="card-header">
@@ -67,11 +67,11 @@ const formatTime = (date: Date | null) => {
       </div>
     </el-card>
 
-    <!-- 自動更新設置 -->
+    <!-- 自動更新設定 -->
     <el-card shadow="never" class="update-settings-card">
       <template #header>
         <div class="card-header">
-          <span>更新設置</span>
+          <span>更新設定</span>
         </div>
       </template>
       <div class="settings-row">
@@ -96,7 +96,7 @@ const formatTime = (date: Date | null) => {
       </div>
     </el-card>
 
-    <!-- 最新版本信息：標題 + Release note 文本 + 查看詳情按鈕 -->
+    <!-- 最新版本資訊：標題 + Release note 文本 + 查看詳情按鈕 -->
     <el-card v-if="updateStore.hasUpdate" shadow="never" class="new-version-card">
       <template #header>
         <div class="card-header">

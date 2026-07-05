@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="editor-header">
     <div class="header-main">
       <div class="left">
@@ -10,7 +10,7 @@
           </el-breadcrumb-item>
         </el-breadcrumb>
         <el-tag :type="statusTag.type" size="small">{{ statusTag.label }}</el-tag>
-        <span v-if="lastSavedAt" class="last-saved">上次保存：{{ lastSavedAt }}</span>
+        <span v-if="lastSavedAt" class="last-saved">上次儲存：{{ lastSavedAt }}</span>
       </div>
       <div class="right">
         <div class="context-action-combo">
@@ -51,7 +51,7 @@
           :class="{ 'needs-confirmation-btn': needsConfirmation }"
           @click="$emit('save')"
         >
-          {{ needsConfirmation ? '確認並保存' : '保存' }}
+          {{ needsConfirmation ? '確認並儲存' : '儲存' }}
         </el-button>
         <el-dropdown>
           <el-button text>更多</el-button>
@@ -85,7 +85,7 @@ const props = defineProps<{
   activeContextTemplateKind?: ContextTemplateKind
 }>()
 
-// 計算是否可以保存：如果需要確認，即使沒有修改也可以保存
+// 計算是否可以儲存：如果需要確認，即使沒有修改也可以儲存
 const canSaveComputed = computed(() => {
   if (props.needsConfirmation) return !props.saving
   return props.canSave
@@ -103,9 +103,9 @@ watch(titleProxy, v => emit('update:title', v))
 
 const statusTag = computed(() => {
   if (props.needsConfirmation) return { type: 'warning', label: 'AI 已修改' }
-  if (props.saving) return { type: 'warning', label: '保存中' }
-  if (props.dirty) return { type: 'info', label: '未保存' }
-  return { type: 'success', label: '已保存' }
+  if (props.saving) return { type: 'warning', label: '儲存中' }
+  if (props.dirty) return { type: 'info', label: '未儲存' }
+  return { type: 'success', label: '已儲存' }
 })
 
 function selectContextTemplateKind(kind: ContextTemplateKind) {

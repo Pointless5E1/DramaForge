@@ -1,4 +1,4 @@
-﻿<template>
+<template>
 	<div class="ai-param-inline">
 		<el-popover placement="bottom" trigger="manual" v-model:visible="visible" width="360">
 			<template #reference>
@@ -7,7 +7,7 @@
 						<el-icon><Setting /></el-icon>
 					</template>
 					<span class="model-label">模型：</span>
-					<span class="model-name">{{ selectedModelName || '未設置' }}</span>
+					<span class="model-name">{{ selectedModelName || '未設定' }}</span>
 				</el-button>
 			</template>
 			<div class="ai-config-form">
@@ -34,7 +34,7 @@
 					<el-form-item>
 						<div class="ai-actions">
 							<div class="left">
-								<el-button type="primary" size="small" @click="saveLocal">保存</el-button>
+								<el-button type="primary" size="small" @click="saveLocal">儲存</el-button>
 								<el-button size="small" @click="resetToPreset">重置爲預設</el-button>
 							</div>
 							<div class="right">
@@ -122,15 +122,15 @@ function getPresetForType(typeName?: string): PerCardAIParams {
 function saveLocal() {
 	try {
 		const payload = { ...editing.value, llm_config_id: editing.value.llm_config_id == null ? editing.value.llm_config_id : Number(editing.value.llm_config_id) }
-		// 先寫入後端數據庫
+		// 先寫入後端資料庫
 		updateCardAIParams(props.cardId, payload)
 			.then(() => {
 				store.setForCard(props.cardId, { ...payload })
-				ElMessage.success('已保存')
+				ElMessage.success('已儲存')
 				visible.value = false
 			})
-			.catch(() => { ElMessage.error('保存到後端失敗') })
-	} catch { ElMessage.error('保存失敗') }
+			.catch(() => { ElMessage.error('儲存到後端失敗') })
+	} catch { ElMessage.error('儲存失敗') }
 }
 function resetToPreset() {
 	const preset = getPresetForType(props.cardTypeName)

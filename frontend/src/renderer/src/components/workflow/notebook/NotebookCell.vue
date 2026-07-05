@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="notebook-cell" :class="cellStatusClass">
     <div class="cell-header">
       <div class="cell-info">
@@ -46,7 +46,7 @@
           </div>
         </div>
 
-        <!-- 進度信息 -->
+        <!-- 進度資訊 -->
         <div v-if="cell.status === 'progress'" class="output-progress">
           <el-icon class="is-loading"><Loading /></el-icon>
           <span>{{ cell.message || '處理中...' }}</span>

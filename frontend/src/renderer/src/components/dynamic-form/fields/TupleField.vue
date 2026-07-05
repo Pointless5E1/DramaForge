@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <el-form-item :label="label" :prop="prop">
     <div class="tuple-field-wrapper">
       <div v-for="(itemSchema, index) in itemSchemas" :key="index" class="tuple-item">
@@ -76,7 +76,7 @@ function updateItem(index: number, value: any) {
   flex-grow: 1;
 }
 
-/* 移除內聯字段的 el-form-item 默認邊距 */
+/* 移除內聯字段的 el-form-item 預設邊距 */
 :deep(.el-form-item) {
   margin-bottom: 0;
 }

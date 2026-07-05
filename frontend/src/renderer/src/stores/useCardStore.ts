@@ -1,4 +1,4 @@
-﻿import { defineStore, storeToRefs } from 'pinia'
+import { defineStore, storeToRefs } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import {
   getCardTypes,
@@ -121,7 +121,7 @@ export const useCardStore = defineStore('card', () => {
     try {
       const newCard = await createCard(currentProject.value.id, cardData)
       if (options?.silent) {
-        // 直接插入本地狀態，避免頻繁全量刷新導致的 "加載中" 卡住
+        // 直接插入本地狀態，避免頻繁全量刷新導致的 "載入中" 卡住
         cards.value = [...cards.value, newCard as unknown as CardRead]
       } else {
         await fetchCards(currentProject.value.id)
@@ -135,7 +135,7 @@ export const useCardStore = defineStore('card', () => {
     }
   }
 
-  // 增加可選參數：skipHooks 用於內部更新時跳過“保存後鉤子”
+  // 增加可選參數：skipHooks 用於內部更新時跳過“儲存後鉤子”
   async function modifyCard(cardId: number, cardData: { content: Record<string, any> | null } | CardUpdate, options?: { skipHooks?: boolean }) {
     try {
       // 使用原始響應以讀取頭部 X-Workflows-Started

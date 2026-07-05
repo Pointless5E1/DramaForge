@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="tags-editor">
     <el-card>
       <template #header>
@@ -6,7 +6,7 @@
           <span>作品標籤設定</span>
           <div>
             <el-button type="primary" @click="handleRandomize">一鍵隨機靈感</el-button>
-            <el-button type="success" :loading="isSaving" @click="saveTags">保存更改</el-button>
+            <el-button type="success" :loading="isSaving" @click="saveTags">儲存更改</el-button>
           </div>
         </div>
       </template>
@@ -121,7 +121,7 @@ const props = defineProps<{
 const cardStore = useCardStore()
 const isSaving = ref(false)
 
-// 本地可編輯數據
+// 本地可編輯資料
 const localData = reactive<Tags>({
   theme: '',
   audience: '通用' as any,
@@ -129,7 +129,7 @@ const localData = reactive<Tags>({
   story_tags: [],
   affection: ''
 })
-// 選項數據（運行時從知識庫解析填充）
+// 選項資料（運行時從知識庫解析填充）
 const themeOptions = ref<any[]>([])
 const categoryOptions = ref<string[]>([])
 const relationshipOptions = ref<string[]>([])
@@ -152,12 +152,12 @@ const handleRandomize = () => {
   randomizeAll()
 }
 
-// 保存
+// 儲存
 const saveTags = async () => {
   isSaving.value = true
   try {
     await cardStore.modifyCard(props.card.id, { content: localData });
-    ElMessage.success('已保存標籤設置')
+    ElMessage.success('已儲存標籤設定')
   } catch (error) {
     // 錯誤消息已在 store 處理
   } finally {

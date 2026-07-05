@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div
     v-show="props.visible"
     ref="panelRef"
@@ -83,7 +83,7 @@
 
     <!-- 底部控制區（最小化時隱藏）-->
     <div v-show="!isMinimized" class="panel-footer">
-      <!-- 進度信息 -->
+      <!-- 進度資訊 -->
       <div v-if="completedFields > 0" class="progress-info">
         <el-icon><Check /></el-icon>
         <span>已生成 {{ completedFields }} 個字段</span>
@@ -248,7 +248,7 @@ const panelStyle = computed(() => {
 // ==================== 懸浮窗控制方法 ====================
 
 /**
- * 初始化默認位置（右下角，留出一定邊距）
+ * 初始化預設位置（右下角，留出一定邊距）
  */
 function initPosition() {
   const width = 360 // 估計寬度
@@ -717,7 +717,7 @@ html.dark .panel-footer {
   box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
   border: 1px solid rgba(0,0,0,0.05);
   padding-right: 8px;
-  background-color: var(--el-fill-color-blank); /* 顯式設置背景色 */
+  background-color: var(--el-fill-color-blank); /* 顯式設定背景色 */
 }
 
 /* 暗色模式下輸入框增強 */

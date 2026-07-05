@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="prompt-workshop">
     <div class="toolbar">
       <h2>提示詞工坊</h2>
@@ -31,7 +31,7 @@
         </el-form-item>
         <el-form-item label="結構化編輯">
           <el-switch v-model="useStructured" />
-          <span class="hint">（開啓後按 Role/Skills/Goals/Knowledge/OutputFormat 分區編輯，保存時會自動組合模板並寫入數據庫）</span>
+          <span class="hint">（開啓後按 Role/Skills/Goals/Knowledge/OutputFormat 分區編輯，儲存時會自動組合模板並寫入資料庫）</span>
         </el-form-item>
 
         <!-- 結構化編輯模式 -->
@@ -61,7 +61,7 @@
           </div>
 
           <el-divider content-position="left">OutputFormat（可選）</el-divider>
-          <el-input v-model="structured.outputFormat" type="textarea" :rows="2" placeholder="默認：請嚴格根據提供的Json Schema返回結果" />
+          <el-input v-model="structured.outputFormat" type="textarea" :rows="2" placeholder="預設：請嚴格根據提供的Json Schema返回結果" />
 
           <el-divider content-position="left">預覽</el-divider>
           <el-input :model-value="composedTemplate" type="textarea" :rows="10" readonly />
@@ -78,7 +78,7 @@
       <template #footer>
         <div class="drawer-footer">
           <el-button @click="drawerVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleSave" :loading="saving">保存</el-button>
+          <el-button type="primary" @click="handleSave" :loading="saving">儲存</el-button>
         </div>
       </template>
     </el-drawer>
@@ -156,7 +156,7 @@ async function fetchPrompts() {
   try {
     prompts.value = await listPrompts()
   } catch (error) {
-    ElMessage.error('加載提示詞列表失敗')
+    ElMessage.error('載入提示詞列表失敗')
   } finally {
     loading.value = false
   }
@@ -220,7 +220,7 @@ function parseKnowledgeBlock(tpl: string) {
 
 async function tryParseStructured(tpl?: string) {
   if (!tpl) return resetStructuredDefaults()
-  // 粗略解析，僅在常見格式時填充字段，解析失敗保持默認
+  // 粗略解析，僅在常見格式時填充字段，解析失敗保持預設
   try {
     const r = /-\s*Role:\s*(.*)/i.exec(tpl)
     const s = /-\s*Skills?:\s*([\s\S]*?)(?:\n-\s*Goals?:|\n-\s*knowledge:|\n-\s*OutputFormat\s*[:：]|$)/i.exec(tpl)
@@ -262,11 +262,11 @@ async function handleSave() {
         } else {
           await createPrompt(payload)
         }
-        ElMessage.success('保存成功')
+        ElMessage.success('儲存成功')
         drawerVisible.value = false
         fetchPrompts()
       } catch (error) {
-        ElMessage.error('保存失敗')
+        ElMessage.error('儲存失敗')
       } finally {
         saving.value = false
       }

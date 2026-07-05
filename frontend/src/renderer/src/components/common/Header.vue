@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { Setting, Sunny, Moon, Document } from '@element-plus/icons-vue'
@@ -56,7 +56,7 @@ function openIdeasWorkbench() {
       <el-button type="primary" plain title="工作流" @click="openWorkflowManager">工作流</el-button>
       <el-button :icon="isDarkMode ? Moon : Sunny" @click="toggleTheme" circle title="切換主題" />
       <el-badge :is-dot="updateStore.hasUpdate" type="warning">
-        <el-button :icon="Setting" @click="openSettingsDialog" circle title="設置" />
+        <el-button :icon="Setting" @click="openSettingsDialog" circle title="設定" />
       </el-badge>
     </div>
   </header>

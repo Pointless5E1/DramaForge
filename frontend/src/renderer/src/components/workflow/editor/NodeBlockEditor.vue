@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="node-block-editor">
     <!-- 節點塊列表 -->
     <div class="node-blocks">
@@ -113,7 +113,7 @@
                   filterable
                   :allow-create="field.name === 'project_name'"
                   :default-first-option="field.name === 'project_name'"
-                  placeholder="選擇項目"
+                  placeholder="選擇專案"
                   size="small"
                   @change="saveParamEdit"
                 >
@@ -132,7 +132,7 @@
                   filterable
                   :allow-create="field.name === 'llm_name'"
                   :default-first-option="field.name === 'llm_name'"
-                  placeholder="選擇LLM配置"
+                  placeholder="選擇LLM設定"
                   size="small"
                   @change="saveParamEdit"
                 >
@@ -242,7 +242,7 @@
                   size="small"
                   @change="saveParamEdit"
                 >
-                  <el-option value="search_cards" label="搜索卡片" />
+                  <el-option value="search_cards" label="搜尋卡片" />
                   <el-option value="create_card" label="創建卡片" />
                   <el-option value="update_card" label="更新卡片" />
                   <el-option value="delete_card" label="刪除卡片" />
@@ -291,7 +291,7 @@
                     type="success"
                     @click.stop="saveParamEdit"
                   >
-                    保存
+                    儲存
                   </el-button>
                 </div>
                 
@@ -464,7 +464,7 @@ const llmConfigStore = useLLMConfigStore()
 const promptStore = usePromptStore()
 const cardStore = useCardStore()
 
-// 從 stores 獲取響應式數據
+// 從 stores 獲取響應式資料
 const { projects: projectList } = storeToRefs(projectListStore)
 const { llmConfigs: llmConfigList } = storeToRefs(llmConfigStore)
 const { prompts: promptList } = storeToRefs(promptStore)
@@ -483,7 +483,7 @@ const paramInputRef = ref(null)
 // 變量名編輯狀態
 const editingVariable = ref(null)
 const variableInputRef = ref(null)
-// 智能選擇器數據
+// 智能選擇器資料
 const variableList = ref([]) // 所有的變量列表
 const fileDialogVisible = ref(false)
 const builtinResponseModels = ref([])
@@ -513,7 +513,7 @@ async function parseCodeToNodes(code) {
   if (!code || !code.trim()) return []
 
   try {
-    // 直接發送代碼給後端解析（後端會處理元數據註釋）
+    // 直接發送代碼給後端解析（後端會處理元資料註釋）
     const response = await request.post('/workflows/parse', { code }, '/api')
     
     if (!response.success || !response.statements) {
@@ -648,7 +648,7 @@ async function fetchNodeOutputs(node) {
           required: fieldDef.required || false,
           default: fieldDef.default,
           value: formattedValue,  // 確保是字符串
-          rawSchema: fieldDef  // 保存原始 schema，用於獲取 x-component
+          rawSchema: fieldDef  // 儲存原始 schema，用於獲取 x-component
         }
       })
     
@@ -720,7 +720,7 @@ async function fetchNodeOutputs(node) {
 
     console.log('[fetchNodeOutputs] 節點字段:', node.nodeType, node.fields)
   } catch (error) {
-    console.error('獲取節點元數據失敗:', error)
+    console.error('獲取節點元資料失敗:', error)
     node.outputs = []
     node.fields = []
   }
@@ -746,7 +746,7 @@ function parseParams(paramsStr) {
 // 將節點塊轉換爲註釋標記 DSL 代碼
 function buildNodeBlockCode(node, idx = -1) {
   if (!node?.variable || !node?.nodeType) {
-    console.warn(`[buildNodeBlockCode] 節點 ${idx} 缺少必要信息`)
+    console.warn(`[buildNodeBlockCode] 節點 ${idx} 缺少必要資訊`)
     return ''
   }
 
@@ -1199,7 +1199,7 @@ function startParamEdit(nodeIndex, fieldIndex) {
     
     console.log('[startParamEdit] 數組解析結果:', arrayItems)
     
-    // 保存到 editingParam
+    // 儲存到 editingParam
     editValue = arrayItems
   }
   // 如果是字符串類型且有引號，去掉引號
@@ -1234,7 +1234,7 @@ function removeArrayItem(index) {
   editingParam.value.arrayItems.splice(index, 1)
 }
 
-// 保存參數編輯
+// 儲存參數編輯
 async function saveParamEdit() {
   if (!editingParam.value) return
   
@@ -1243,7 +1243,7 @@ async function saveParamEdit() {
   
   if (!node || !node.fields || !node.fields[fieldIndex]) {
     console.error('[saveParamEdit] 節點或字段不存在:', { nodeIndex, fieldIndex })
-    ElMessage.error('保存失敗：節點數據異常')
+    ElMessage.error('儲存失敗：節點資料異常')
     editingParam.value = null
     return
   }
@@ -1252,7 +1252,7 @@ async function saveParamEdit() {
   const fieldType = field.type || editingParam.value.fieldType || 'string'
   const previousFieldValue = field.value
   
-  console.log('[saveParamEdit] 保存參數:', { 
+  console.log('[saveParamEdit] 儲存參數:', { 
     nodeIndex, 
     fieldIndex, 
     fieldName, 
@@ -1337,8 +1337,8 @@ async function saveParamEdit() {
     
     editingParam.value = null
   } catch (error) {
-    console.error('[saveParamEdit] 保存參數失敗:', error)
-    ElMessage.error(`保存失敗：${error.message}`)
+    console.error('[saveParamEdit] 儲存參數失敗:', error)
+    ElMessage.error(`儲存失敗：${error.message}`)
     editingParam.value = null
   }
 }
@@ -1353,7 +1353,7 @@ async function openFolderDialog() {
         const path = result.filePaths[0]
         // 轉義 Windows 路徑反斜槓
         editingParam.value.value = path.replace(/\\/g, '\\\\')
-        // 自動保存
+        // 自動儲存
         saveParamEdit()
       }
     }
@@ -1366,7 +1366,7 @@ async function openFolderDialog() {
 function showAvailableParams(nodeIndex) {
   const node = nodes.value[nodeIndex]
   if (!node.fields || node.fields.length === 0) {
-    ElMessage.info('該節點沒有可配置的參數')
+    ElMessage.info('該節點沒有可設定的參數')
     return
   }
   
@@ -1385,7 +1385,7 @@ function showAvailableParams(nodeIndex) {
 function formatParamValue(value) {
   // 處理空值
   if (value === undefined || value === null || value === '') {
-    return '(未設置)'
+    return '(未設定)'
   }
   
   // 轉換爲字符串
@@ -1421,13 +1421,13 @@ function getStatusText(status) {
   return texts[status] || ''
 }
 
-// 加載節點類型
+// 載入節點類型
 async function loadNodeTypes() {
   try {
     const response = await request.get('/nodes/types', undefined, '/api', { showLoading: false })
     nodeTypes.value = response.node_types || []
   } catch (error) {
-    console.error('加載節點類型失敗:', error)
+    console.error('載入節點類型失敗:', error)
   }
 }
 
@@ -1533,7 +1533,7 @@ function startVariableEdit(nodeIndex, currentVariable) {
   })
 }
 
-// 保存變量名編輯
+// 儲存變量名編輯
 async function saveVariableEdit() {
   console.log('[saveVariableEdit] 函數被調用')
   console.log('[saveVariableEdit] editingVariable:', editingVariable.value)
@@ -1546,7 +1546,7 @@ async function saveVariableEdit() {
   const { nodeIndex, value, originalValue } = editingVariable.value
   const newVariable = value.trim()
   
-  console.log('[saveVariableEdit] 保存變量名:', { nodeIndex, newVariable, originalValue })
+  console.log('[saveVariableEdit] 儲存變量名:', { nodeIndex, newVariable, originalValue })
   
   // 驗證變量名
   if (!newVariable) {
@@ -1633,7 +1633,7 @@ function cancelVariableEdit() {
 // 格式化顯示值（去掉引號和 $ 前綴）
 function formatDisplayValue(field) {
   if (ParameterFormatter.isEmpty(field.value)) {
-    return field.default || '(未設置)'
+    return field.default || '(未設定)'
   }
   
   // 使用 ParameterFormatter 解析顯示值
@@ -1650,7 +1650,7 @@ function formatDisplayValue(field) {
       displayValue = project.name
     }
   } else if (xComponent === 'LLMSelect') {
-    // 顯示 LLM 配置名稱
+    // 顯示 LLM 設定名稱
     const llmConfigId = parseInt(displayValue)
     const llmConfig = llmConfigList.value.find(cfg => cfg.id === llmConfigId)
     if (llmConfig) {
@@ -1705,23 +1705,23 @@ function resolveFieldType(fieldDef) {
   return 'string'
 }
 
-// 組件掛載時加載節點類型和數據
+// 組件掛載時載入節點類型和資料
 onMounted(async () => {
   loadNodeTypes()
 
-  // 使用 stores 加載數據
+  // 使用 stores 載入資料
   try {
     await Promise.all([
       projectListStore.fetchProjects(),
       llmConfigStore.fetchLLMConfigs(),
       promptStore.fetchPrompts(),
-      cardStore.fetchInitialData() // 這會加載 cardTypes
+      cardStore.fetchInitialData() // 這會載入 cardTypes
     ])
 
     try {
       builtinResponseModels.value = await getContentModels()
     } catch (e) {
-      console.warn('[NodeBlockEditor] 加載內置響應模型失敗，使用回退列表', e)
+      console.warn('[NodeBlockEditor] 載入內置響應模型失敗，使用回退列表', e)
       builtinResponseModels.value = [
         'OneSentence',
         'ChapterOutline',
@@ -1735,14 +1735,14 @@ onMounted(async () => {
     }
 
     // 調試日誌
-    console.log('[NodeBlockEditor] 數據加載完成:')
+    console.log('[NodeBlockEditor] 資料載入完成:')
     console.log('  - 項目列表:', projectList.value.length, '個')
-    console.log('  - LLM配置:', llmConfigList.value.length, '個')
+    console.log('  - LLM設定:', llmConfigList.value.length, '個')
     console.log('  - 提示詞:', promptList.value.length, '個')
     console.log('  - 卡片類型:', cardTypeList.value.length, '個')
     console.log('  - 內置響應模型:', builtinResponseModels.value.length, '個')
   } catch (error) {
-    console.error('加載數據失敗:', error)
+    console.error('載入資料失敗:', error)
   }
 })
 </script>

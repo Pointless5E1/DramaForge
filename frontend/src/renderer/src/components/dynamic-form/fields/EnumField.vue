@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <el-form-item :label="label" :prop="prop">
     <el-select
       :model-value="modelValue"
@@ -81,7 +81,7 @@ const placeholder = computed(() => {
 
 const noDataText = computed(() => {
   if (isLoading.value) {
-    return '正在加載選項'
+    return '正在載入選項'
   }
   if (props.schema['x-knowledge-source']) {
     return '未找到可用選項，請先在知識庫中維護'

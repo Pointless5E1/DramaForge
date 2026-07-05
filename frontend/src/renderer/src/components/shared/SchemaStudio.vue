@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <el-dialog
     :model-value="visible"
     @update:model-value="(v:boolean) => emit('update:visible', v)"
@@ -11,7 +11,7 @@
         <template v-if="mode==='type'">
           <el-form label-position="top" class="modelname-form">
             <el-form-item label="模型名稱">
-              <el-input v-model="modelName" placeholder="不填則默認等於卡片類型名" />
+              <el-input v-model="modelName" placeholder="不填則預設等於卡片類型名" />
             </el-form-item>
           </el-form>
         </template>
@@ -41,7 +41,7 @@
           <el-button @click="saveForCard" type="primary">僅此卡生效</el-button>
         </template>
         <template v-else>
-          <el-button type="primary" @click="saveForType">保存到類型</el-button>
+          <el-button type="primary" @click="saveForType">儲存到類型</el-button>
         </template>
       </div>
     </template>
@@ -93,7 +93,7 @@ const schemaObject = computed(() => {
         if (found?.json_schema) defs[name] = found.json_schema
       }
     }
-    // 若類型模式且設置了模型名，可作爲當前模型名稱引用（供外部使用）
+    // 若類型模式且設定了模型名，可作爲當前模型名稱引用（供外部使用）
     if (Object.keys(defs).length) base.$defs = defs
     return base
   } catch { return null }
@@ -129,28 +129,28 @@ async function loadSchema() {
       }
     } catch {}
   } catch (e:any) {
-    ElMessage.error('加載 Schema 失敗')
+    ElMessage.error('載入 Schema 失敗')
   }
 }
 
 async function saveForType() {
   try {
-    // 先保存模型名（如有修改）
+    // 先儲存模型名（如有修改）
     if (props.mode === 'type') {
       await updateCardType(props.targetId, { model_name: modelName.value || null } as any)
     }
     await updateCardTypeSchema(props.targetId, schemaObject.value || {})
-    ElMessage.success('已保存到類型結構')
+    ElMessage.success('已儲存到類型結構')
     emit('saved')
-  } catch (e:any) { ElMessage.error('保存失敗') }
+  } catch (e:any) { ElMessage.error('儲存失敗') }
 }
 
 async function saveForCard() {
   try {
     await updateCardSchema(props.targetId, schemaObject.value || {})
-    ElMessage.success('已保存，僅此卡生效')
+    ElMessage.success('已儲存，僅此卡生效')
     emit('saved')
-  } catch (e:any) { ElMessage.error('保存失敗') }
+  } catch (e:any) { ElMessage.error('儲存失敗') }
 }
 
 async function restoreFollowType() {

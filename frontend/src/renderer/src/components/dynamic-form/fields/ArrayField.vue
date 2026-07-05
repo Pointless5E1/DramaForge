@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <el-card shadow="never" class="array-field-card">
     <template #header>
       <div class="card-header">
@@ -7,7 +7,7 @@
     </template>
 
     <div v-if="!modelValue || modelValue.length === 0" class="empty-state">
-      <p>暫無項目</p>
+      <p>暫無資料</p>
     </div>
 
     <div v-for="(item, index) in modelValue" :key="index" class="array-item">
@@ -16,7 +16,7 @@
         <component
           v-if="isSimpleTypeForIndex(index)"
           :is="getSimpleFieldComponentForIndex(index)"
-          :label="`項目 ${index + 1}`"
+          :label="`第 ${index + 1} 筆`"
           :prop="String(index)"
           :schema="getItemSchemaForIndex(index)"
           :model-value="item"
@@ -25,7 +25,7 @@
         <!-- 對於元組類型（array + prefixItems/anyOf），使用 TupleField 渲染每個元素 -->
         <TupleField
           v-else-if="isTupleTypeForIndex(index)"
-          :label="`項目 ${index + 1}`"
+          :label="`第 ${index + 1} 筆`"
           :prop="String(index)"
           :schema="getItemSchemaForIndex(index)"
           :model-value="item"
@@ -52,7 +52,7 @@
       </div>
     </div>
     <el-button type="primary" :icon="Plus" plain @click="addItem" class="add-button">
-      添加 {{ (displayNameMap && displayNameMap[itemSchema.title || '']) || itemSchema.title || '新項目' }}
+      添加 {{ (displayNameMap && displayNameMap[itemSchema.title || '']) || itemSchema.title || '新資料' }}
     </el-button>
   </el-card>
 </template>
@@ -91,7 +91,7 @@ const itemSchema = computed((): JSONSchema => {
   if (props.schema.items) {
     return resolveActualSchema(props.schema.items, props.schema)
   }
-  return { type: 'string', title: '項目' }
+  return { type: 'string', title: '資料項' }
 })
 
 function getItemSchemaForIndex(index: number): JSONSchema {
@@ -151,7 +151,7 @@ function addItem() {
   let defaultValue: any
 
   if ((base as any).anyOf) {
-    // 默認新增爲 character，可在 UI 改 entity_type 觸發切換
+    // 預設新增爲 character，可在 UI 改 entity_type 觸發切換
     defaultValue = { name: '', entity_type: 'character', life_span: '短期' }
   } else {
     defaultValue = createArrayItemDefaultValue(base)
@@ -162,12 +162,12 @@ function addItem() {
 }
 
 /**
- * 智能地爲任何 schema 創建一個有效的默認值，能夠處理嵌套對象。
+ * 智能地爲任何 schema 創建一個有效的預設值，能夠處理嵌套對象。
  */
 // 移除重複的createDefaultValue函數，使用公共服務
 
 /**
- * 爲數組項創建默認值，確保與ModelDrivenForm兼容
+ * 爲數組項創建預設值，確保與ModelDrivenForm兼容
  */
 function createArrayItemDefaultValue(schema: JSONSchema): any {
   const actualSchema = resolveActualSchema(schema, props.schema)

@@ -1,7 +1,7 @@
-﻿<template>
-  <el-dialog v-model="visible" title="導出項目卡片" width="560px" destroy-on-close>
+<template>
+  <el-dialog v-model="visible" title="匯出專案卡片" width="560px" destroy-on-close>
     <el-form label-position="top">
-      <el-form-item label="導出範圍">
+      <el-form-item label="匯出範圍">
         <el-radio-group v-model="scope">
           <el-radio value="all">全部卡片</el-radio>
           <el-radio value="single">單個卡片</el-radio>
@@ -31,11 +31,11 @@
         </el-select>
       </el-form-item>
 
-      <el-form-item label="導出格式">
+      <el-form-item label="匯出格式">
         <el-select v-model="format" style="width: 100%">
           <el-option label="TXT 文本 (.txt)" value="txt" />
           <el-option label="Markdown (.md)" value="md" />
-          <el-option label="JSON 數據 (.json)" value="json" />
+          <el-option label="JSON 資料 (.json)" value="json" />
         </el-select>
       </el-form-item>
     </el-form>
@@ -45,7 +45,7 @@
     <template #footer>
       <el-button @click="visible = false">取消</el-button>
       <el-button type="primary" :loading="exporting" :disabled="!canExport" @click="handleExport">
-        導出
+        匯出
       </el-button>
     </template>
   </el-dialog>
@@ -100,8 +100,8 @@ const canExport = computed(() => {
 })
 
 const summaryText = computed(() => {
-  if (filteredCards.value.length === 0) return '當前條件下沒有可導出的卡片。'
-  return `將導出 ${filteredCards.value.length} 張卡片，格式爲 ${format.value.toUpperCase()}。`
+  if (filteredCards.value.length === 0) return '當前條件下沒有可匯出的卡片。'
+  return `將匯出 ${filteredCards.value.length} 張卡片，格式爲 ${format.value.toUpperCase()}。`
 })
 
 watch(
@@ -179,10 +179,10 @@ async function handleExport() {
     const response = await exportCardsForProject(props.projectId, payload)
     const filename = response.filename || buildFallbackFilename()
     triggerDownload(response.blob, filename)
-    ElMessage.success(`導出成功，共 ${filteredCards.value.length} 張卡片`)
+    ElMessage.success(`匯出成功，共 ${filteredCards.value.length} 張卡片`)
     visible.value = false
   } catch (error) {
-    console.error('導出失敗:', error)
+    console.error('匯出失敗:', error)
   } finally {
     exporting.value = false
   }

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <el-dialog
     :model-value="modelValue"
     title="引用卡片/上下文"
@@ -18,7 +18,7 @@
 
         <!-- 按標題模式：原有卡片列表 -->
         <template v-if="mode === 'title'">
-          <el-input v-model="cardSearch" placeholder="搜索卡片..." clearable class="mt8" />
+          <el-input v-model="cardSearch" placeholder="搜尋卡片..." clearable class="mt8" />
           <el-scrollbar class="list-container">
             <ul class="card-list">
               <li
@@ -239,7 +239,7 @@ const selectionPreview = computed(() => {
   const pathSpec = buildPathSpec()
   if (mode.value === 'title') {
     if (!selectedKard.value) return ''
-    // 標題模式：未選字段時默認 .content
+    // 標題模式：未選字段時預設 .content
     if (!pathSpec) return `@${selectedKard.value.title}.content`
     return `@${selectedKard.value.title}${pathSpec}`
   }
@@ -258,7 +258,7 @@ const selectionPreview = computed(() => {
     else if (typeFilterMode.value === 'first') filter = '[first]'
     else if (typeFilterMode.value === 'last') filter = '[last]'
     else if (typeFilterMode.value === 'index') filter = `[index=${indexExpr.value.trim()}]`
-    // 類型模式：未選字段時默認 .content
+    // 類型模式：未選字段時預設 .content
     if (!pathSpec) return `@type:${selectedTypeName.value}${filter}.content`
     return `@type:${selectedTypeName.value}${filter}${pathSpec}`
   }
@@ -270,7 +270,7 @@ const selectionPreview = computed(() => {
     if (selectedFieldPath.value) {
       return `@${specialKey.value}${pathSpec}`
     }
-    // 特殊：parent/self 默認 .content；stage/chapters 按原規則
+    // 特殊：parent/self 預設 .content；stage/chapters 按原規則
     let s = `@${specialKey.value}`
     if (specialKey.value === 'parent' || specialKey.value === 'self') {
       s += `.content`
@@ -373,7 +373,7 @@ function findCurrentStage(cards: CardRead[], currentCardId?: number): { stage: a
 const stageFound = ref<boolean>(false)
 const stageMeta = ref<{ volume?: number; chapter?: number; name?: string } | null>(null)
 
-// 當選擇特殊引用爲 parent 時，自動加載父卡片 schema 並渲染字段樹
+// 當選擇特殊引用爲 parent 時，自動載入父卡片 schema 並渲染字段樹
 watch(specialKey, async (key) => {
   selectedFieldPath.value = null
   selectedFieldPaths.value = []
@@ -418,7 +418,7 @@ async function handleCardSelect(card: CardRead) {
 }
 
 async function handleTypeChange() {
-  // 根據類型名選取任意同類型卡片以加載其 schema
+  // 根據類型名選取任意同類型卡片以載入其 schema
   selectedFieldPath.value = null
   selectedFieldPaths.value = []
   fieldPaths.value = []

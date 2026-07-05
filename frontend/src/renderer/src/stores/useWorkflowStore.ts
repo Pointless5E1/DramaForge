@@ -1,4 +1,4 @@
-﻿import { defineStore } from 'pinia'
+import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { 
     getRun, 
@@ -8,14 +8,14 @@ import {
     type WorkflowNodeType 
 } from '@/api/workflows'
 
-// 簡單的運行信息接口，用於狀態欄顯示
+// 簡單的運行資訊接口，用於狀態欄顯示
 export interface RunInfo {
     id: number
     workflow_id: number
     workflow_name?: string
     status: string
     created_at?: string
-    error?: string // 從 error_json 提取的錯誤信息
+    error?: string // 從 error_json 提取的錯誤資訊
     current_node?: string // 當前執行的節點
     progress?: number // 執行進度（0-100）
 }
@@ -32,11 +32,11 @@ interface SSEConnection {
 /**
  * 統一的工作流 Store
  * 管理：
- * 1. 節點類型、卡片類型等元數據
+ * 1. 節點類型、卡片類型等元資料
  * 2. 工作流運行狀態和 SSE 連接
  */
 export const useWorkflowStore = defineStore('workflow', () => {
-    // ==================== 元數據管理 ====================
+    // ==================== 元資料管理 ====================
     const nodeTypes = ref<WorkflowNodeType[]>([])
     const cardTypes = ref<any[]>([])
     const isLoadingNodeTypes = ref(false)
@@ -110,7 +110,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
             id,
             workflow_id: 0,
             status: 'running',
-            workflow_name: workflowName || '加載中...',
+            workflow_name: workflowName || '載入中...',
             progress: 0
         })
 
@@ -149,7 +149,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
             if (run) {
                 const existingRun = runs.value.get(id)
                 
-                // 從 error_json 提取錯誤信息
+                // 從 error_json 提取錯誤資訊
                 let errorMessage: string | undefined
                 if (run.error_json) {
                     errorMessage = typeof run.error_json === 'object' 
@@ -164,8 +164,8 @@ export const useWorkflowStore = defineStore('workflow', () => {
                     status: run.status,
                     created_at: run.created_at || undefined,
                     error: errorMessage,
-                    current_node: existingRun?.current_node, // 保留當前節點信息
-                    progress: existingRun?.progress // 保留進度信息
+                    current_node: existingRun?.current_node, // 保留當前節點資訊
+                    progress: existingRun?.progress // 保留進度資訊
                 })
             }
         } catch (e) {
@@ -381,9 +381,9 @@ export const useWorkflowStore = defineStore('workflow', () => {
                 runId
             )
 
-            // 保存連接信息
+            // 儲存連接資訊
             if (currentRunId) {
-                console.log('[WorkflowStore] 保存 SSE 連接:', currentRunId)
+                console.log('[WorkflowStore] 儲存 SSE 連接:', currentRunId)
                 sseConnections.value.set(currentRunId, {
                     runId: currentRunId,
                     workflowId,
@@ -424,7 +424,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     }
 
     return {
-        // 元數據
+        // 元資料
         nodeTypes,
         cardTypes,
         isLoadingNodeTypes,

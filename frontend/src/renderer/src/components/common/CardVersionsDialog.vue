@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <el-dialog v-model="visible" title="歷史版本" width="80%">
     <div class="toolbar">
       <el-button size="small" @click="reload">刷新</el-button>
@@ -7,7 +7,7 @@
           <el-button size="small" type="danger" plain>清空全部</el-button>
         </template>
       </el-popconfirm>
-      <span class="tip">歷史版本僅保存在前端，最多保留最近20條。</span>
+      <span class="tip">歷史版本僅儲存在前端，最多保留最近20條。</span>
     </div>
 
     <el-table :data="versions" style="width:100%" height="50vh" size="small" v-loading="loading">
@@ -150,7 +150,7 @@ function restore(v: CardVersionSnapshot) {
 }
 
 // 輕量行級差異算法（LCS 對齊）
-// 輸入兩段文本，按行拆分後計算最短編輯路徑對齊，輸出左右並排渲染所需的數據結構
+// 輸入兩段文本，按行拆分後計算最短編輯路徑對齊，輸出左右並排渲染所需的資料結構
 interface DiffPart { text: string; type: 'equal' | 'add' | 'del' }
 interface DiffRow { left?: DiffPart; right?: DiffPart }
 

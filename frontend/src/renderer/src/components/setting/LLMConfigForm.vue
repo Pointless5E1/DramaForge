@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <el-form :model="form" ref="formRef" :rules="rules" label-width="140px" autocomplete="off">
     <div style="height: 0; overflow: hidden; position: absolute; opacity: 0;">
       <input type="text" autocomplete="username" tabindex="-1">
@@ -15,7 +15,7 @@
     </el-form-item>
 
     <el-form-item label="顯示名稱" prop="display_name">
-      <el-input v-model="form.display_name" placeholder="可選，留空時自動設置爲模型名稱" />
+      <el-input v-model="form.display_name" placeholder="可選，留空時自動設定爲模型名稱" />
     </el-form-item>
 
     <el-form-item label="API Base" prop="api_base">
@@ -32,7 +32,7 @@
         v-model="form.api_key"
         type="password"
         :input-props="{ autocomplete: 'new-password', name: 'api_key_no_fill' }"
-        placeholder="API密鑰將直接保存在後端"
+        placeholder="API密鑰將直接儲存在後端"
         show-password
       />
     </el-form-item>
@@ -62,10 +62,10 @@
         <div class="transport-summary">
           <div class="transport-copy">
             <div class="transport-title">多數平臺只需 API Base</div>
-            <div class="transport-desc">非標準網關再展開兼容設置。</div>
+            <div class="transport-desc">非標準網關再展開兼容設定。</div>
           </div>
           <el-button text type="primary" @click="showAdvancedTransport = !showAdvancedTransport">
-            {{ showAdvancedTransport ? '收起設置' : '兼容設置' }}
+            {{ showAdvancedTransport ? '收起設定' : '兼容設定' }}
           </el-button>
         </div>
 
@@ -96,7 +96,7 @@
             <el-form-item label="模型列表路徑" label-width="96px" class="inline-item">
               <el-input
                 v-model="form.models_path"
-                placeholder="可選，默認 /models"
+                placeholder="可選，預設 /models"
                 :disabled="!isOpenAIProvider"
               />
             </el-form-item>
@@ -135,7 +135,7 @@
             :disabled="!canApplyCapabilityRecommendation"
             @click="applyCapabilityRecommendation"
           >
-            應用推薦配置
+            應用推薦設定
           </el-button>
         </div>
 
@@ -172,7 +172,7 @@
 
     <el-form-item>
       <el-button @click="handleCancel">取消</el-button>
-      <el-button type="primary" @click="handleSubmit">保存</el-button>
+      <el-button type="primary" @click="handleSubmit">儲存</el-button>
       <el-button @click="handleTest">測試連接</el-button>
     </el-form-item>
   </el-form>
@@ -418,7 +418,7 @@ async function handleTest() {
 async function handleCapabilityTest(tryRepair: boolean) {
   const valid = await formRef.value?.validate().catch(() => false)
   if (!valid) {
-    ElMessage.warning('請先填寫必要的模型配置')
+    ElMessage.warning('請先填寫必要的模型設定')
     return
   }
 
@@ -441,9 +441,9 @@ async function handleCapabilityTest(tryRepair: boolean) {
       applyCapabilityRecommendationToForm()
       if (form.id) {
         emit('refresh')
-        ElMessage.success('兼容配置已保存')
+        ElMessage.success('兼容設定已儲存')
       } else {
-        ElMessage.success('已應用兼容配置，請點擊保存')
+        ElMessage.success('已應用兼容設定，請點擊儲存')
       }
     } else {
       ElMessage.success(tryRepair ? '兼容修復檢測完成' : '能力檢測完成')
@@ -458,11 +458,11 @@ async function handleCapabilityTest(tryRepair: boolean) {
 function applyCapabilityRecommendation() {
   if (!capabilityResult.value) return
   if (!canApplyCapabilityRecommendation.value) {
-    ElMessage.warning('基礎連接未通過，不能應用爲普通寫作/審核配置')
+    ElMessage.warning('基礎連接未通過，不能應用爲普通寫作/審核設定')
     return
   }
   applyCapabilityRecommendationToForm()
-  ElMessage.success('已應用到當前表單，請保存後生效')
+  ElMessage.success('已應用到當前表單，請儲存後生效')
 }
 
 function applyCapabilityRecommendationToForm() {

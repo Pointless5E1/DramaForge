@@ -1,4 +1,4 @@
-﻿import { defineStore } from 'pinia'
+import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
 export const useAppStore = defineStore('app', () => {
@@ -8,11 +8,11 @@ export const useAppStore = defineStore('app', () => {
   // 主題狀態
   const isDarkMode = ref(false)
 
-  // 設置對話框狀態
+  // 設定對話框狀態
   const settingsDialogVisible = ref(false)
   const settingsInitialTab = ref<string>('llm')
 
-  // 全局加載狀態
+  // 全局載入狀態
   const globalLoading = ref(false)
 
   // 全局錯誤狀態

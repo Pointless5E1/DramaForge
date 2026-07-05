@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 更新檢測狀態管理 Store
  */
 import { defineStore } from 'pinia'
@@ -10,7 +10,7 @@ export const useUpdateStore = defineStore('update', () => {
   // 當前版本
   const currentVersion = ref(getCurrentVersion())
   
-  // 最新版本信息
+  // 最新版本資訊
   const latestVersion = ref<string | null>(null)
   const releaseInfo = ref<ReleaseInfo | null>(null)
   
@@ -27,7 +27,7 @@ export const useUpdateStore = defineStore('update', () => {
   // 自動檢測開關（持久化到 localStorage）
   const autoCheckEnabled = ref(true)
   
-  // 初始化時從 localStorage 讀取設置
+  // 初始化時從 localStorage 讀取設定
   const STORAGE_KEY = 'novelforge_auto_update_enabled'
   const storedSetting = localStorage.getItem(STORAGE_KEY)
   if (storedSetting !== null) {

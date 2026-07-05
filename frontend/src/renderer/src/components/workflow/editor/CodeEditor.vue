@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div ref="editorRef" class="code-editor"></div>
 </template>
 
@@ -133,7 +133,7 @@ onMounted(() => {
   // 監聽暗黑模式變化
   const observer = new MutationObserver(() => {
     if (view) {
-      // 重新配置主題
+      // 重新設定主題
       view.dispatch({
         effects: EditorView.reconfigure.of([
           createTheme(),
@@ -148,7 +148,7 @@ onMounted(() => {
     attributeFilter: ['class']
   })
   
-  // 保存 observer 以便清理
+  // 儲存 observer 以便清理
   view._themeObserver = observer
 })
 

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="relation-graph-panel">
     <div class="toolbar">
       <el-input v-model="filters.keyword" placeholder="關鍵詞（實體/關係/事實）" clearable class="w-keyword" @keyup.enter="reload" />
@@ -14,14 +14,14 @@
 
     <div class="actions">
       <el-button type="primary" @click="openCreate">新增關係</el-button>
-      <el-button @click="openBatchCreate">批量新增</el-button>
-      <el-button @click="openImport">導入</el-button>
-      <el-button :disabled="selectedKeys.length === 0" @click="exportSelected('json')">導出 JSON</el-button>
-      <el-button :disabled="selectedKeys.length === 0" @click="exportSelected('csv')">導出 CSV</el-button>
-      <el-button :disabled="selectedKeys.length === 0" type="danger" @click="batchDelete">批量刪除</el-button>
-      <el-button :disabled="selectedKeys.length === 0" @click="batchKindVisible = true">批量改類型</el-button>
-      <el-button :disabled="selectedKeys.length === 0" @click="batchStanceVisible = true">批量改立場</el-button>
-      <el-button :disabled="selectedKeys.length === 0" @click="batchEventsVisible = true">批量追加事件</el-button>
+      <el-button @click="openBatchCreate">批次新增</el-button>
+      <el-button @click="openImport">匯入</el-button>
+      <el-button :disabled="selectedKeys.length === 0" @click="exportSelected('json')">匯出 JSON</el-button>
+      <el-button :disabled="selectedKeys.length === 0" @click="exportSelected('csv')">匯出 CSV</el-button>
+      <el-button :disabled="selectedKeys.length === 0" type="danger" @click="batchDelete">批次刪除</el-button>
+      <el-button :disabled="selectedKeys.length === 0" @click="batchKindVisible = true">批次改類型</el-button>
+      <el-button :disabled="selectedKeys.length === 0" @click="batchStanceVisible = true">批次改立場</el-button>
+      <el-button :disabled="selectedKeys.length === 0" @click="batchEventsVisible = true">批次追加事件</el-button>
     </div>
 
     <el-table :data="rows" border stripe v-loading="loading" @selection-change="onSelectionChange">
@@ -81,11 +81,11 @@
       </el-form>
       <template #footer>
         <el-button @click="editVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitEdit">保存</el-button>
+        <el-button type="primary" @click="submitEdit">儲存</el-button>
       </template>
     </el-dialog>
 
-    <el-dialog v-model="batchKindVisible" title="批量修改關係類型" width="420px">
+    <el-dialog v-model="batchKindVisible" title="批次修改關係類型" width="420px">
       <el-select v-model="batchKind" placeholder="選擇新類型" style="width: 100%">
         <el-option v-for="k in kindOptions" :key="k" :label="k" :value="k" />
       </el-select>
@@ -95,7 +95,7 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="batchStanceVisible" title="批量修改立場" width="420px">
+    <el-dialog v-model="batchStanceVisible" title="批次修改立場" width="420px">
       <el-select v-model="batchStance" clearable placeholder="選擇新立場" style="width: 100%">
         <el-option v-for="s in stanceOptions" :key="s" :label="s" :value="s" />
       </el-select>
@@ -105,7 +105,7 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="batchEventsVisible" title="批量追加事件" width="520px">
+    <el-dialog v-model="batchEventsVisible" title="批次追加事件" width="520px">
       <el-input v-model="batchEventsText" type="textarea" :rows="6" placeholder="每行一條事件摘要" />
       <template #footer>
         <el-button @click="batchEventsVisible = false">取消</el-button>
@@ -113,7 +113,7 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="batchCreateVisible" title="批量新增關係" width="680px">
+    <el-dialog v-model="batchCreateVisible" title="批次新增關係" width="680px">
       <div class="tip">支持 JSON 數組，或每行 CSV：source,target,kind_cn,stance</div>
       <el-input v-model="batchCreateText" type="textarea" :rows="12" />
       <template #footer>
@@ -122,7 +122,7 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="importVisible" title="導入關係圖" width="680px">
+    <el-dialog v-model="importVisible" title="匯入關係圖" width="680px">
       <div class="toolbar compact">
         <el-select v-model="importFormat" class="w-select">
           <el-option label="JSON" value="json" />
@@ -134,7 +134,7 @@
       <el-input v-model="importContent" type="textarea" :rows="12" />
       <template #footer>
         <el-button @click="importVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitImport">導入</el-button>
+        <el-button type="primary" @click="submitImport">匯入</el-button>
       </template>
     </el-dialog>
   </div>
@@ -218,7 +218,7 @@ const selectedKeys = computed<RelationGraphKey[]>(() =>
 
 function getProjectId(): number {
   const pid = projectStore.currentProject?.id
-  if (!pid) throw new Error('請先選擇項目')
+  if (!pid) throw new Error('請先選擇專案')
   return pid
 }
 
@@ -275,7 +275,7 @@ async function reload() {
     rows.value = resp.items || []
     total.value = resp.total || 0
   } catch (e: any) {
-    ElMessage.error(e?.message || '加載關係圖失敗')
+    ElMessage.error(e?.message || '載入關係圖失敗')
   } finally {
     loading.value = false
   }
@@ -323,10 +323,10 @@ async function submitEdit() {
     }
 
     editVisible.value = false
-    ElMessage.success('保存成功')
+    ElMessage.success('儲存成功')
     reload()
   } catch (e: any) {
-    ElMessage.error(e?.message || '保存失敗')
+    ElMessage.error(e?.message || '儲存失敗')
   }
 }
 
@@ -343,7 +343,7 @@ async function removeOne(row: RelationGraphRecord) {
 async function batchDelete() {
   try {
     const projectId = getProjectId()
-    await ElMessageBox.confirm(`確認刪除已勾選的 ${selectedKeys.value.length} 條關係嗎？`, '批量刪除', { type: 'warning' })
+    await ElMessageBox.confirm(`確認刪除已勾選的 ${selectedKeys.value.length} 條關係嗎？`, '批次刪除', { type: 'warning' })
     const resp = await batchDeleteRelationGraph({ project_id: projectId, keys: selectedKeys.value })
     ElMessage.success(`已刪除 ${resp.affected || 0} 條`)
     reload()
@@ -363,7 +363,7 @@ async function applyBatchKind() {
     batchKind.value = ''
     reload()
   } catch (e: any) {
-    ElMessage.error(e?.message || '批量更新失敗')
+    ElMessage.error(e?.message || '批次更新失敗')
   }
 }
 
@@ -380,7 +380,7 @@ async function applyBatchStance() {
     batchStance.value = ''
     reload()
   } catch (e: any) {
-    ElMessage.error(e?.message || '批量更新失敗')
+    ElMessage.error(e?.message || '批次更新失敗')
   }
 }
 
@@ -394,7 +394,7 @@ async function applyBatchEvents() {
     batchEventsText.value = ''
     reload()
   } catch (e: any) {
-    ElMessage.error(e?.message || '批量更新失敗')
+    ElMessage.error(e?.message || '批次更新失敗')
   }
 }
 
@@ -426,7 +426,7 @@ async function submitBatchCreate() {
     batchCreateText.value = ''
     reload()
   } catch (e: any) {
-    ElMessage.error(e?.message || '批量新增失敗')
+    ElMessage.error(e?.message || '批次新增失敗')
   }
 }
 
@@ -445,9 +445,9 @@ async function exportSelected(format: 'json' | 'csv') {
     const projectId = getProjectId()
     const resp = await exportRelationGraph({ project_id: projectId, format, keys: selectedKeys.value })
     saveDownload(resp.filename || `relation-graph.${format}`, resp.content || '', resp.mime_type || 'text/plain')
-    ElMessage.success('導出完成')
+    ElMessage.success('匯出完成')
   } catch (e: any) {
-    ElMessage.error(e?.message || '導出失敗')
+    ElMessage.error(e?.message || '匯出失敗')
   }
 }
 
@@ -470,14 +470,14 @@ async function submitImport() {
   try {
     const projectId = getProjectId()
     const resp = await importRelationGraph({ project_id: projectId, format: importFormat.value, content: importContent.value })
-    ElMessage.success(`導入完成：新增 ${resp.created || 0}，更新 ${resp.updated || 0}，失敗 ${resp.failed || 0}`)
+    ElMessage.success(`匯入完成：新增 ${resp.created || 0}，更新 ${resp.updated || 0}，失敗 ${resp.failed || 0}`)
     if ((resp.errors || []).length > 0) {
       ElMessage.warning(`存在 ${resp.errors?.length} 條錯誤，請檢查輸入格式`)
     }
     importVisible.value = false
     reload()
   } catch (e: any) {
-    ElMessage.error(e?.message || '導入失敗')
+    ElMessage.error(e?.message || '匯入失敗')
   }
 }
 
@@ -487,7 +487,7 @@ async function loadMeta() {
     kindOptions.value = (meta.kinds || []).map((item) => item.kind_cn).filter(Boolean)
     stanceOptions.value = (meta.stances || []).filter(Boolean)
   } catch (e: any) {
-    ElMessage.error(e?.message || '加載關係元數據失敗')
+    ElMessage.error(e?.message || '載入關係元資料失敗')
   }
 }
 

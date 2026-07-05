@@ -33,7 +33,7 @@
             </div>
           </el-card>
         </div>
-        <el-empty v-else description="未找到匹配的卡片" />
+        <el-empty v-else description="未找到配對的卡片" />
       </div>
 
       <div v-else>

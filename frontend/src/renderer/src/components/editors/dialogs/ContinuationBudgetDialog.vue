@@ -1,7 +1,7 @@
-﻿<template>
+<template>
   <el-dialog
     :model-value="visible"
-    title="續寫配置"
+    title="續寫設定"
     width="560px"
     @close="handleCancel"
   >

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="knowledge-manager">
     <div class="header">
       <h4>知識庫</h4>
@@ -34,7 +34,7 @@
       </el-form>
       <template #footer>
         <el-button @click="editor.visible=false">取消</el-button>
-        <el-button type="primary" @click="save">保存</el-button>
+        <el-button type="primary" @click="save">儲存</el-button>
       </template>
     </el-dialog>
   </div>
@@ -56,7 +56,7 @@ async function fetchList() {
   try {
     items.value = await listKnowledge()
   } catch (e:any) {
-    ElMessage.error('加載知識庫失敗')
+    ElMessage.error('載入知識庫失敗')
   } finally {
     loading.value = false
   }
@@ -89,7 +89,7 @@ async function save() {
     }
     editor.value.visible = false
   } catch (e:any) {
-    ElMessage.error('保存失敗')
+    ElMessage.error('儲存失敗')
   }
 }
 

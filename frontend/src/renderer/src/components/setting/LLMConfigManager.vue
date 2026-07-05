@@ -1,8 +1,8 @@
-﻿<template>
+<template>
   <div class="llm-config-manager">
     <div class="header">
-      <h4>LLM配置管理</h4>
-      <el-button type="primary" size="small" @click="openEditDialog()">新增配置</el-button>
+      <h4>LLM設定管理</h4>
+      <el-button type="primary" size="small" @click="openEditDialog()">新增設定</el-button>
     </div>
 
     <el-table :data="llmConfigs" style="width: 100%" size="small">
@@ -12,7 +12,7 @@
       <el-table-column label="API Base" width="240">
         <template #default="{ row }">
           <span v-if="row.provider === 'openai_compatible'">{{ row.api_base }}</span>
-          <span v-else style="color: #909399; font-style: italic;">默認 ({{ row.provider }})</span>
+          <span v-else style="color: #909399; font-style: italic;">預設 ({{ row.provider }})</span>
         </template>
       </el-table-column>
       <el-table-column prop="token_limit" label="Token上限" width="90" />
@@ -87,7 +87,7 @@
     </el-table>
 
     <!-- 編輯對話框 -->
-    <el-dialog v-model="editDialogVisible" :title="editConfig ? '編輯LLM配置' : '新增LLM配置'" width="500px">
+    <el-dialog v-model="editDialogVisible" :title="editConfig ? '編輯LLM設定' : '新增LLM設定'" width="500px">
       <LLMConfigForm
         v-if="editDialogVisible"
         :initial-data="editConfig"
@@ -159,16 +159,16 @@ async function loadLLMConfigs() {
     llmConfigs.value = await listLLMConfigs()
   } catch (error) {
     console.error('Failed to load LLM configs:', error)
-    ElMessage.error('加載LLM配置失敗')
+    ElMessage.error('載入LLM設定失敗')
   }
 }
 
 function openEditDialog(config?: LLMConfig) {
   if (config) {
-    // 編輯現有配置
+    // 編輯現有設定
     editConfig.value = config
   } else {
-    // 新增配置
+    // 新增設定
     editConfig.value = null
   }
   editDialogVisible.value = true
@@ -178,28 +178,28 @@ async function handleSave(data: any) {
   try {
     if (data.id) {
       await updateLLMConfig(data.id, data)
-      ElMessage.success('LLM配置更新成功！')
+      ElMessage.success('LLM設定更新成功！')
     } else {
       await createLLMConfig(data)
-      ElMessage.success('LLM配置創建成功！')
+      ElMessage.success('LLM設定創建成功！')
     }
     editDialogVisible.value = false
-    await loadLLMConfigs() // 重新加載列表
+    await loadLLMConfigs() // 重新載入列表
   } catch (error) {
-    ElMessage.error('保存失敗，請檢查輸入信息')
+    ElMessage.error('儲存失敗，請檢查輸入資訊')
   }
 }
 
 async function deleteConfig(id: number) {
   try {
-    await ElMessageBox.confirm('確定要刪除這個LLM配置嗎？', '確認刪除', {
+    await ElMessageBox.confirm('確定要刪除這個LLM設定嗎？', '確認刪除', {
       confirmButtonText: '確定',
       cancelButtonText: '取消',
       type: 'warning'
     })
     await deleteLLMConfig(id)
     ElMessage.success('刪除成功')
-    await loadLLMConfigs() // 重新加載列表
+    await loadLLMConfigs() // 重新載入列表
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('刪除失敗')
@@ -209,7 +209,7 @@ async function deleteConfig(id: number) {
 
 async function handleReset(row: LLMConfig) {
   try {
-    await ElMessageBox.confirm('確認將該配置的統計（輸入/輸出token、調用次數）清零？', '重置統計', {
+    await ElMessageBox.confirm('確認將該設定的統計（輸入/輸出token、調用次數）清零？', '重置統計', {
       type: 'warning', confirmButtonText: '確定', cancelButtonText: '取消'
     })
   } catch (e) {
@@ -227,11 +227,11 @@ async function handleReset(row: LLMConfig) {
 async function handleCopy(row: LLMConfig) {
   try {
     await copyLLMConfig(row.id)
-    ElMessage.success('配置複製成功')
+    ElMessage.success('設定複製成功')
     await loadLLMConfigs()
   } catch (error) {
-    console.error('複製配置失敗:', error)
-    ElMessage.error('複製配置失敗')
+    console.error('複製設定失敗:', error)
+    ElMessage.error('複製設定失敗')
   }
 }
 

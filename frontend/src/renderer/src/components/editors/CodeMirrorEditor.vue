@@ -1,4 +1,4 @@
-﻿<template>
+<template>
 	<div class="chapter-studio">
 	<div class="toolbar">
 		<div class="toolbar-row">
@@ -139,7 +139,7 @@
 		<div class="toolbar-status-row">
 			<div class="toolbar-status-spacer"></div>
 			<div class="ai-status-strip">
-				<span class="status-pill">模型 · {{ selectedModelName || '未設置' }}</span>
+				<span class="status-pill">模型 · {{ selectedModelName || '未設定' }}</span>
 				<span class="status-pill">目標 · {{ activeContinuationConfig.targetWordCount }} 字</span>
 				<span class="status-pill">模式 · {{ formatContinuationMode(activeContinuationConfig.wordControlMode) }}</span>
 			</div>
@@ -296,10 +296,10 @@
 			@confirm="handleContinuationDialogConfirm"
 		/>
 
-		<el-dialog v-model="previewDialogVisible" title="動態信息預覽" width="70%">
+		<el-dialog v-model="previewDialogVisible" title="動態資訊預覽" width="70%">
 			<template #header>
 				<div class="preview-dialog-header">
-					<div class="preview-dialog-header__title">動態信息預覽</div>
+					<div class="preview-dialog-header__title">動態資訊預覽</div>
 				</div>
 			</template>
 			<div v-if="previewData">
@@ -308,7 +308,7 @@
 						type="warning"
 						:closable="false"
 						show-icon
-						title="以下角色在本章正文中被提取到了，但當前項目裏還沒有對應角色卡。確認更新時這些角色會被跳過；如果需要，請先手動新建對應角色卡，再回到當前預覽繼續確認。"
+						title="以下角色在本章正文中被提取到了，但當前專案裏還沒有對應角色卡。確認更新時這些角色會被跳過；如果需要，請先手動新建對應角色卡，再回到當前預覽繼續確認。"
 					/>
 					<div class="missing-card-list">
 						<div v-for="item in dynamicMissingCards" :key="item.key" class="missing-card-item">
@@ -324,7 +324,7 @@
 						type="info"
 						:closable="false"
 						show-icon
-						title="以下角色仍在本章參與實體裏，但這次動態提取結果中沒有出現。若確認他們已不再參與本章節，可將其移出本章參與實體；如果只是本章沒有新的動態信息，也可以忽略。"
+						title="以下角色仍在本章參與實體裏，但這次動態提取結果中沒有出現。若確認他們已不再參與本章節，可將其移出本章參與實體；如果只是本章沒有新的動態資訊，也可以忽略。"
 					/>
 					<div class="missing-card-list">
 						<div v-for="item in dynamicParticipantReviewNotices" :key="item.key" class="missing-card-item">
@@ -337,7 +337,7 @@
 				</div>
 				<el-empty
 					v-if="isDynamicPreviewEmpty"
-					description="本次未提取到可寫回的角色動態信息。你可以直接關閉預覽，或調整提示詞後重試。"
+					description="本次未提取到可寫回的角色動態資訊。你可以直接關閉預覽，或調整提示詞後重試。"
 				/>
 				<div v-for="(role, roleIndex) in validDynamicPreviewRoles" :key="role.name" class="role-block">
 					<el-input
@@ -358,7 +358,7 @@
 						<div class="cat-title">{{ formatCategory(catKey) }}</div>
 						<el-table :data="items as any[]" size="small" border class="preview-table">
 							<el-table-column prop="id" label="ID" width="60" />
-							<el-table-column label="信息" min-width="360">
+							<el-table-column label="資訊" min-width="360">
 								<template #default="scope">
 									<el-input
 										v-if="isPreviewEditing(buildPreviewEditKey('dynamic-role', roleIndex, String(catKey), scope.$index, 'info'))"
@@ -429,7 +429,7 @@
 				</div>
 				<el-empty
 					v-if="isRelationsPreviewEmpty"
-					description="本次未提取到可入圖的關係信息。你可以直接關閉預覽，或調整模型參數後重試。"
+					description="本次未提取到可入圖的關係資訊。你可以直接關閉預覽，或調整模型參數後重試。"
 				/>
 				<div style="margin-top: 16px" v-if="validRelationPreviewItems.length">
 					<h4>關係項</h4>
@@ -601,7 +601,7 @@
 						type="warning"
 						:closable="false"
 						show-icon
-						title="以下實體在本章正文中被提取到了，但當前項目裏還沒有對應卡片。確認寫入時這些實體會被跳過；如果需要，請先手動新建對應卡片，再回到當前預覽繼續確認。"
+						title="以下實體在本章正文中被提取到了，但當前專案裏還沒有對應卡片。確認寫入時這些實體會被跳過；如果需要，請先手動新建對應卡片，再回到當前預覽繼續確認。"
 					/>
 					<div class="missing-card-list">
 						<div v-for="item in memoryMissingCards" :key="item.key" class="missing-card-item">
@@ -1196,7 +1196,7 @@ const props = defineProps<{
 }>()
 
 const previewConfirmReminder =
-	'若信息提取有誤，如卡片名稱不準確，請手動編輯調整後再確認，避免數據回寫對應卡片失敗'
+	'若資訊提取有誤，如卡片名稱不準確，請手動編輯調整後再確認，避免資料回寫對應卡片失敗'
 
 const emit = defineEmits<{
 	(e: 'update:chapter', value: any): void
@@ -1335,7 +1335,7 @@ const paramSummary = computed(() => {
 watch(() => props.card, async (newCard) => {
 	if (!newCard) return
 	await loadAIOptions()
-	// 優先讀取後端"有效參數"（類型默認或實例覆蓋）
+	// 優先讀取後端"有效參數"（類型預設或實例覆蓋）
 	try {
 		const resp = await getCardAIParams(newCard.id)
 		const eff = (resp as any)?.effective_params
@@ -1375,7 +1375,7 @@ watch(() => props.card?.content, (newContent) => {
 				: currentText.length,
 		}
 
-		// 只有當內容真的不同，且不是由當前編輯器觸發的保存時，才更新
+		// 只有當內容真的不同，且不是由當前編輯器觸發的儲存時，才更新
 		// （通過比較 originalContent 判斷：如果相同說明是外部修改）
 		if (newText !== currentText && newText !== originalContent.value) {
 			console.log('🔄 [CodeMirror] 檢測到外部內容更新，同步到編輯器')
@@ -1410,7 +1410,7 @@ watch(() => props.card?.content, (newContent) => {
 }, { deep: true })
 
 function applyAndSavePerCardParams() {
-	try { perCardStore.setForCard(props.card.id, { ...editingParams.value }); ElMessage.success('已保存到本卡片設置') } catch { ElMessage.error('保存失敗') }
+	try { perCardStore.setForCard(props.card.id, { ...editingParams.value }); ElMessage.success('已儲存到本卡片設定') } catch { ElMessage.error('儲存失敗') }
 }
 function resetToPreset() {
 	const preset = getPresetForType(props.card.card_type?.name)
@@ -1504,7 +1504,7 @@ function ensureNoPendingAiEdit(): boolean {
 // 高亮管理
 const currentHighlight = ref<{ from: number; to: number } | { mode: 'compare' } | null>(null)
 
-// 設置高亮
+// 設定高亮
 function setHighlight(from: number, to: number) {
 	if (!view) return
 	// CodeMirror 不允許空範圍的 decoration
@@ -1516,7 +1516,7 @@ function setHighlight(from: number, to: number) {
 	view.dispatch({
 		effects: setHighlightEffect.of({ mode: 'single', from, to })
 	})
-	console.log('✨ [Highlight] 設置高亮:', { from, to })
+	console.log('✨ [Highlight] 設定高亮:', { from, to })
 }
 
 // 清除高亮
@@ -1741,7 +1741,7 @@ const memoryPreviewEmptyDescription = computed(() => {
 		case 'item_state':
 			return '本次未提取到可寫回的物品狀態。你可以直接關閉預覽，或調整提示詞後重試。'
 		case 'concept_state':
-			return '本次未提取到可寫回的概念掌握信息。你可以直接關閉預覽，或調整提示詞後重試。'
+			return '本次未提取到可寫回的概念掌握資訊。你可以直接關閉預覽，或調整提示詞後重試。'
 		default:
 			return '本次未提取到可寫回的內容。'
 	}
@@ -1864,7 +1864,7 @@ function isCanceledRequest(error: unknown): boolean {
 		|| candidate?.message === 'CanceledError'
 }
 
-// 字號/行距（默認 16px / 1.8）
+// 字號/行距（預設 16px / 1.8）
 const fontSize = ref<number>(16)
 const lineHeight = ref<number>(1.8)
 
@@ -1941,7 +1941,7 @@ function buildChapterReviewTarget(
 		participants?: string[]
 	}
 ): string {
-	const lines: string[] = ['【章節信息】']
+	const lines: string[] = ['【章節資訊】']
 	lines.push(`標題：${options.title || '未命名章節'}`)
 	if (options.volumeNumber != null) lines.push(`卷號：${options.volumeNumber}`)
 	if (options.chapterNumber != null) lines.push(`章節號：${options.chapterNumber}`)
@@ -2080,7 +2080,7 @@ function initEditor() {
 	if (!cmRoot.value) return
 	const initialText = String((localCard.content as any)?.content || '')
 
-	// 保存原始內容
+	// 儲存原始內容
 	originalContent.value = initialText
 	isDirty.value = false
 	emit('update:dirty', false)
@@ -2089,7 +2089,7 @@ function initEditor() {
 		{
 			key: 'Enter',
 			run: (v: EditorView) => {
-				// 執行默認的換行
+				// 執行預設的換行
 				insertNewline(v)
 				return true
 			}
@@ -2190,7 +2190,7 @@ function initEditor() {
 }
 
 
-// 加載可用提示詞列表
+// 載入可用提示詞列表
 async function loadPrompts() {
 	try {
 		const options = await getAIConfigOptions()
@@ -2204,7 +2204,7 @@ async function loadPrompts() {
 		polishPrompts.value = allPromptNames.length > 0 ? allPromptNames : ['潤色']
 		expandPrompts.value = allPromptNames.length > 0 ? allPromptNames : ['擴寫']
 
-		// 設置默認選中的提示詞
+		// 設定預設選中的提示詞
 		if (allPromptNames.includes('潤色')) {
 			currentPolishPrompt.value = '潤色'
 		} else if (allPromptNames.length > 0) {
@@ -2245,10 +2245,10 @@ async function handleTitleBlur() {
 
 async function handleTitleEnter() {
 	if (!titleElement.value) return
-	titleElement.value.blur() // 觸發 blur 事件統一保存
+	titleElement.value.blur() // 觸發 blur 事件統一儲存
 }
 
-// 保存標題：同時更新 card.title 與 content.title，保證上下文使用的 @self.content.title 爲最新
+// 儲存標題：同時更新 card.title 與 content.title，保證上下文使用的 @self.content.title 爲最新
 async function saveTitle(newTitle: string) {
 	try {
 		const trimmed = newTitle.trim()
@@ -2273,7 +2273,7 @@ async function saveTitle(newTitle: string) {
 	}
 }
 
-// 保存正文：可選接收來自父級的最新標題，一次性寫入 card.title 與 content.title
+// 儲存正文：可選接收來自父級的最新標題，一次性寫入 card.title 與 content.title
 async function handleSave(newTitle?: string) {
 	if (props.chapter) { emit('save'); return }
 	const effectiveTitle = (typeof newTitle === 'string' && newTitle.trim()) ? newTitle.trim() : localCard.title
@@ -2297,12 +2297,12 @@ async function handleSave(newTitle?: string) {
 	localCard.content = nextContent as any
 	await cardStore.modifyCard(localCard.id, updatePayload)
 
-	// 保存成功後重置dirty狀態
+	// 儲存成功後重置dirty狀態
 	originalContent.value = getText()
 	isDirty.value = false
 	emit('update:dirty', false)
 
-	// 返回保存的內容供歷史版本使用
+	// 返回儲存的內容供歷史版本使用
 	return updatePayload.content
 }
 
@@ -2422,7 +2422,7 @@ async function executeReview() {
 
 	const llmConfigId = resolveLlmConfigId()
 	if (!llmConfigId) {
-		ElMessage.error('請先設置有效的模型ID')
+		ElMessage.error('請先設定有效的模型ID')
 		return
 	}
 
@@ -2561,9 +2561,9 @@ async function runContinuationWithConfig(payload: {
 }) {
 	if (!ensureNoPendingAiEdit()) return
 	const llmConfigId = resolveLlmConfigId()
-	if (!llmConfigId) { ElMessage.error('請先設置有效的模型ID'); return }
+	if (!llmConfigId) { ElMessage.error('請先設定有效的模型ID'); return }
 	const promptName = resolvePromptName()
-	if (!promptName) { ElMessage.error('未設置生成任務名（prompt）'); return }
+	if (!promptName) { ElMessage.error('未設定生成任務名（prompt）'); return }
 
 	aiLoading.value = true
 
@@ -2576,7 +2576,7 @@ async function runContinuationWithConfig(payload: {
 	}
 
 	// 2. 格式化事實子圖（參與實體）
-	// 3. 組合完整的上下文信息
+	// 3. 組合完整的上下文資訊
 	const contextParts: string[] = []
 	if (resolvedContextTemplate) {
 		contextParts.push(`【引用上下文】\n${resolvedContextTemplate}`)
@@ -2668,21 +2668,21 @@ function handleEditorContextMenu(e: MouseEvent) {
 	// 檢查是否有選中文本
 	const selection = getSelectionWithLineInfo()
 	if (!selection || !selection.text.trim()) {
-		console.log('⚠️ [ContextMenu] 沒有選中文本，使用默認菜單')
-		return // 沒有選中文本，使用默認右鍵菜單
+		console.log('⚠️ [ContextMenu] 沒有選中文本，使用預設菜單')
+		return // 沒有選中文本，使用預設右鍵菜單
 	}
 
 
 	e.preventDefault()
 	e.stopPropagation()
 
-	// 保存選中的文本信息
+	// 儲存選中的文本資訊
 	contextMenu.selectedText = selection
 	contextMenu.visible = true
 	contextMenu.expanded = false
 	contextMenu.userRequirement = ''
 
-	// 設置自定義高亮，替代默認選中效果
+	// 設定自定義高亮，替代預設選中效果
 	setHighlight(selection.from, selection.to)
 
 	// 計算菜單位置（避免超出屏幕）
@@ -2770,7 +2770,7 @@ async function handleContextMenuReference() {
 	closeContextMenu()
 	const projectId = projectStore.currentProject?.id || props.card.project_id
 	if (!projectId) {
-		ElMessage.error('未找到當前項目，無法引用')
+		ElMessage.error('未找到當前專案，無法引用')
 		return
 	}
 	const projectName = projectStore.currentProject?.name || ''
@@ -2817,7 +2817,7 @@ async function executeAIEdit(
 
 	const llmConfigId = resolveLlmConfigId()
 	if (!llmConfigId) {
-		ElMessage.error('請先設置有效的模型ID')
+		ElMessage.error('請先設定有效的模型ID')
 		return
 	}
 
@@ -2836,7 +2836,7 @@ async function executeAIEdit(
 
 	// 2. 格式化事實子圖（參與實體）
 
-	// 3. 組合上下文信息：引用上下文 + 事實子圖 + 用戶要求 + 上文 + 選中內容 + 下文
+	// 3. 組合上下文資訊：引用上下文 + 事實子圖 + 用戶要求 + 上文 + 選中內容 + 下文
 	const contextParts: string[] = []
 	if (resolvedContextTemplate) {
 		contextParts.push(`【引用上下文】\n${resolvedContextTemplate}`)
@@ -3331,7 +3331,7 @@ function extractCharacterParticipantsForCurrentChapter(): string[] {
 }
 
 
-// 觸發“動態信息提取”（右欄調用）
+// 觸發“動態資訊提取”（右欄調用）
 editorStore.setTriggerExtractDynamicInfo(async (opts) => {
 	if (typeof opts?.llm_config_id === 'number') {
 		await extractDynamicInfoWithLlm(opts.llm_config_id, opts)
@@ -3405,18 +3405,18 @@ editorStore.setApplyChapterReplacements(async (pairs) => {
 	setText(replaced)
 })
 
-// 靈感助手引用正文片段時，需要先確認保存當前正文，
+// 靈感助手引用正文片段時，需要先確認儲存當前正文，
 // 這樣後端按行替換工具才能看到最新文本與行號。
 editorStore.setPersistActiveChapterDraft(async () => {
 	if (!view) return false
 	if (!isDirty.value) return true
 	try {
 		await ElMessageBox.confirm(
-			'你引用的正文片段包含未保存修改。爲確保靈感助手按行替換時能定位到最新正文，需要先保存當前章節。是否現在保存？',
-			'請先保存章節',
+			'你引用的正文片段包含未儲存修改。爲確保靈感助手按行替換時能定位到最新正文，需要先儲存當前章節。是否現在儲存？',
+			'請先儲存章節',
 			{
 				type: 'warning',
-				confirmButtonText: '保存後繼續',
+				confirmButtonText: '儲存後繼續',
 				cancelButtonText: '取消',
 			},
 		)
@@ -3429,14 +3429,14 @@ editorStore.setPersistActiveChapterDraft(async () => {
 
 async function extractDynamicInfo() {
 	const llmConfigId = resolveLlmConfigId()
-	if (!llmConfigId) { ElMessage.error('請先選擇一個有效的AI參數配置（模型）'); return }
+	if (!llmConfigId) { ElMessage.error('請先選擇一個有效的AI參數設定（模型）'); return }
 	await extractDynamicInfoWithLlm(llmConfigId, { llm_config_id: llmConfigId })
 }
 
 async function extractDynamicInfoWithLlm(llmConfigId: number, opts?: ChapterExtractRunOptions) {
 	try {
 		const projectId = projectStore.currentProject?.id || (localCard as any).project_id
-		if (!projectId) { ElMessage.error('未找到當前項目ID'); return }
+		if (!projectId) { ElMessage.error('未找到當前專案ID'); return }
 		const participants = extractParticipantsWithTypeForCurrentChapter()
 		const chapterText = getText() || ''
 		const extraContext = (props.contextParams as any)?.extra_context_fn()
@@ -3456,7 +3456,7 @@ async function extractDynamicInfoWithLlm(llmConfigId: number, opts?: ChapterExtr
 		previewDialogVisible.value = true
 	} catch (e) {
 		console.error(e)
-		ElMessage.error('提取動態信息失敗')
+		ElMessage.error('提取動態資訊失敗')
 	}
 }
 
@@ -3499,16 +3499,16 @@ async function confirmApplyUpdates() {
 				appendedCount = await appendParticipantsToCurrentChapter(collectConfirmedDynamicParticipantNames())
 			} catch (syncError) {
 				console.error(syncError)
-				ElMessage.warning('動態信息已寫入，但同步本章參與實體失敗')
+				ElMessage.warning('動態資訊已寫入，但同步本章參與實體失敗')
 			}
-			ElMessage.success(`動態信息已更新：${resp.updated_card_count} 個角色卡${appendedCount > 0 ? `，並補充 ${appendedCount} 個參與實體` : ''}`)
+			ElMessage.success(`動態資訊已更新：${resp.updated_card_count} 個角色卡${appendedCount > 0 ? `，並補充 ${appendedCount} 個參與實體` : ''}`)
 			try { await cardStore.fetchCards(projectId) } catch {}
 		} else {
-			ElMessage.warning('未檢測到需要更新的動態信息')
+			ElMessage.warning('未檢測到需要更新的動態資訊')
 		}
 	} catch (e) {
 		console.error(e)
-		ElMessage.error('更新動態信息失敗')
+		ElMessage.error('更新動態資訊失敗')
 	} finally {
 		dynamicPreviewApplying.value = false
 		previewDialogVisible.value = false
@@ -3518,7 +3518,7 @@ async function confirmApplyUpdates() {
 
 async function handleIngestRelations() {
 	const llmConfigId = resolveLlmConfigId()
-	if (!llmConfigId) { ElMessage.error('請先選擇一個有效的AI參數配置（模型）'); return }
+	if (!llmConfigId) { ElMessage.error('請先選擇一個有效的AI參數設定（模型）'); return }
 	await extractRelationsWithLlm(llmConfigId, { llm_config_id: llmConfigId })
 }
 
@@ -3602,7 +3602,7 @@ async function extractRelationsWithLlm(llmConfigId: number, opts?: ChapterExtrac
 async function extractMemoryByCode(extractorCode: MemoryExtractorCode, llmConfigId: number, opts?: ChapterExtractRunOptions) {
 	try {
 		const projectId = projectStore.currentProject?.id || (localCard as any).project_id
-		if (!projectId) { ElMessage.error('未找到當前項目ID'); return }
+		if (!projectId) { ElMessage.error('未找到當前專案ID'); return }
 		const text = getText() || ''
 		const participants = extractParticipantsWithTypeForCurrentChapter()
 		const vol = (localCard as any)?.content?.volume_number ?? (props.contextParams as any)?.volume_number
@@ -4194,7 +4194,7 @@ async function nfAssistantPatchAcceptCurrent() {
     return
   }
   if (!nfAssistantHasCurrentBatchPreview()) {
-    ElMessage.warning('當前沒有可接受的批量建議預覽')
+    ElMessage.warning('當前沒有可接受的批次建議預覽')
     return
   }
   const idx = nfAssistantPatchIndex.value
@@ -4210,7 +4210,7 @@ async function nfAssistantPatchRejectCurrent() {
     return
   }
   if (!nfAssistantHasCurrentBatchPreview()) {
-    ElMessage.warning('當前沒有可拒絕的批量建議預覽')
+    ElMessage.warning('當前沒有可拒絕的批次建議預覽')
     return
   }
   const idx = nfAssistantPatchIndex.value

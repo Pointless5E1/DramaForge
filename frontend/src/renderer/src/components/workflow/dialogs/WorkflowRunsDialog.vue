@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <el-dialog
     v-model="visible"
     title="工作流運行記錄"
@@ -238,7 +238,7 @@ async function loadRuns(silent = false) {
       params.status = statusFilter.value
     }
 
-    // 如果指定了 workflowId，只加載該工作流的運行記錄
+    // 如果指定了 workflowId，只載入該工作流的運行記錄
     const url = props.workflowId 
       ? `/workflows/${props.workflowId}/runs`
       : '/runs'
@@ -246,7 +246,7 @@ async function loadRuns(silent = false) {
     const response = await request.get<WorkflowRun[]>(url, params, '/api')
     runs.value = response
 
-    // 加載運行中任務的進度
+    // 載入運行中任務的進度
     for (const run of runs.value) {
       if (run.status === 'running' || run.status === 'paused') {
         loadProgress(run.id)
@@ -254,7 +254,7 @@ async function loadRuns(silent = false) {
     }
   } catch (error: any) {
     if (!silent) {
-      ElMessage.error(`加載運行列表失敗：${error.message || error}`)
+      ElMessage.error(`載入運行列表失敗：${error.message || error}`)
     }
   } finally {
     if (!silent) {
@@ -280,7 +280,7 @@ async function loadProgress(runId: number) {
     }
   } catch (error) {
     // 靜默失敗，避免幹擾用戶
-    console.warn(`[WorkflowRunsDialog] 加載進度失敗: runId=${runId}`, error)
+    console.warn(`[WorkflowRunsDialog] 載入進度失敗: runId=${runId}`, error)
   }
 }
 
@@ -346,7 +346,7 @@ async function viewNodeStatus(runId: number) {
     const status = await request.get<RunStatusResponse>(`/workflows/runs/${runId}/status`, {}, '/api')
     nodeStatuses.value = status.nodes || []
   } catch (error: any) {
-    ElMessage.error(`加載節點狀態失敗：${error.message || error}`)
+    ElMessage.error(`載入節點狀態失敗：${error.message || error}`)
   } finally {
     loadingNodeStatus.value = false
   }
@@ -405,12 +405,12 @@ function formatTime(time?: string | number): string {
   if (!time) return '-'
   
   // 如果是數字（Unix 時間戳），需要乘以 1000 轉換爲毫秒
-  // 但如果數字很小（< 100000000），說明可能是錯誤的數據
+  // 但如果數字很小（< 100000000），說明可能是錯誤的資料
   if (typeof time === 'number') {
     console.warn('[formatTime] 收到數字類型的時間戳:', time)
     if (time < 100000000) {
-      console.error('[formatTime] 時間戳異常小，可能是錯誤數據')
-      return '數據異常'
+      console.error('[formatTime] 時間戳異常小，可能是錯誤資料')
+      return '資料異常'
     }
     time = time * 1000 // 轉換爲毫秒
   }

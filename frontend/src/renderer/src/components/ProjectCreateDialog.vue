@@ -1,16 +1,16 @@
-﻿
+
 <template>
   <el-dialog v-model="visible" :title="dialogTitle" width="500" >
     <el-form :model="form" ref="formRef" :rules="rules" label-width="80px" @submit.prevent="handleConfirm">
-      <el-form-item label="項目名稱" prop="name">
+      <el-form-item label="專案名稱" prop="name">
         <el-input v-model="form.name" />
       </el-form-item>
-      <el-form-item label="項目描述" prop="description">
+      <el-form-item label="專案描述" prop="description">
         <el-input v-model="form.description" type="textarea" />
       </el-form-item>
-      <el-form-item v-if="!isEditMode" label="項目模板">
-        <el-select v-model="selectedTemplate" placeholder="選擇項目模板（可選）" filterable clearable :loading="loadingTemplates" style="width:100%">
-          <el-option label="空白項目" :value="null" />
+      <el-form-item v-if="!isEditMode" label="專案模板">
+        <el-select v-model="selectedTemplate" placeholder="選擇專案模板（可選）" filterable clearable :loading="loadingTemplates" style="width:100%">
+          <el-option label="空白專案" :value="null" />
           <el-option v-for="tpl in projectTemplates" :key="tpl.template" :label="tpl.workflow_name" :value="tpl.template" />
         </el-select>
       </el-form-item>
@@ -58,10 +58,10 @@ const projectTemplates = ref<ProjectTemplate[]>([])
 const loadingTemplates = ref(false)
 
 const isEditMode = computed(() => !!editingProject.value)
-const dialogTitle = computed(() => isEditMode.value ? '編輯項目' : '新建項目')
+const dialogTitle = computed(() => isEditMode.value ? '編輯專案' : '新建專案')
 
 const rules = reactive<FormRules>({
-  name: [{ required: true, message: '請輸入項目名稱', trigger: 'blur' }]
+  name: [{ required: true, message: '請輸入專案名稱', trigger: 'blur' }]
 })
 
 const emit = defineEmits(['create', 'update'])
@@ -72,13 +72,13 @@ async function loadProjectTemplates() {
     const response = await getProjectTemplates()
     projectTemplates.value = response.templates || []
     
-    // 默認選擇第一個模板（如果有）
+    // 預設選擇第一個模板（如果有）
     if (projectTemplates.value.length > 0) {
       selectedTemplate.value = projectTemplates.value[0].template
     }
   } catch (error) {
-    console.error('加載項目模板失敗:', error)
-    ElMessage.error('加載項目模板失敗')
+    console.error('載入專案模板失敗:', error)
+    ElMessage.error('載入專案模板失敗')
   } finally {
     loadingTemplates.value = false
   }
@@ -97,7 +97,7 @@ function open(project: Project | null = null) {
       form.name = ''
       form.description = ''
       selectedTemplate.value = null
-      // 加載項目模板
+      // 載入項目模板
       loadProjectTemplates()
     }
   })

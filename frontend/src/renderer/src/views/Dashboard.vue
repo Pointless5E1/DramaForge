@@ -1,6 +1,6 @@
-﻿<template>
+<template>
   <div class="dashboard-container">
-    <!-- 頂部橫幅：視覺層級 + 關鍵信息與CTA -->
+    <!-- 頂部橫幅：視覺層級 + 關鍵資訊與CTA -->
     <section class="dashboard-hero">
       <div class="hero-text">
         <h1>我的書架</h1>
@@ -11,9 +11,9 @@
       </el-button>
     </section>
 
-    <!-- 工具條：搜索 + 排序 -->
+    <!-- 工具條：搜尋 + 排序 -->
     <div class="toolbar">
-      <el-input v-model="searchQuery" placeholder="搜索項目（按名稱/描述包含匹配）" clearable class="search-input" />
+      <el-input v-model="searchQuery" placeholder="搜尋專案（按名稱/描述包含配對）" clearable class="search-input" />
       <el-select v-model="sortKey" class="sort-select" size="default">
         <el-option label="按創建時間（最新優先）" value="created-desc" />
         <el-option label="按創建時間（最舊優先）" value="created-asc" />
@@ -23,8 +23,8 @@
     </div>
 
     <main class="dashboard-main" v-loading="isLoading">
-      <el-empty v-if="displayProjects.length === 0" description="沒有匹配的項目，試試新建一個吧！">
-        <el-button type="primary" :icon="Plus" @click="handleOpenCreateDialog">新建項目</el-button>
+      <el-empty v-if="displayProjects.length === 0" description="沒有配對的專案，試試新建一個吧！">
+        <el-button type="primary" :icon="Plus" @click="handleOpenCreateDialog">新建專案</el-button>
       </el-empty>
       <el-row :gutter="20" v-else>
         <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6" v-for="project in displayProjects" :key="project.id">
@@ -36,7 +36,7 @@
             <div class="card-content">
               <div class="title-row">
                 <h3 class="title" :title="project.name">{{ project.name }}</h3>
-                <!-- 懸浮顯隱的操作按鈕：避免信息噪點 -->
+                <!-- 懸浮顯隱的操作按鈕：避免資訊噪點 -->
                 <div class="card-actions" @click.stop>
                   <el-tooltip content="編輯"><el-button :icon="Edit" circle plain size="small" @click="handleProjectEdit(project)" /></el-tooltip>
                   <el-tooltip content="刪除"><el-button :icon="Delete" circle plain type="danger" size="small" @click="handleProjectDelete(project)" /></el-tooltip>
@@ -70,7 +70,7 @@ const { projects, isLoading } = storeToRefs(projectListStore)
 const createDialogRef = ref<InstanceType<typeof ProjectCreateDialog>>()
 const emit = defineEmits(['project-selected'])
 
-// 搜索與排序（僅前端，不改接口）
+// 搜尋與排序（僅前端，不改接口）
 const searchQuery = ref('')
 // 說明：後端 Project 未提供 created_at 字段，這裏用 id 自增作爲“創建時間”的近似排序
 type SortKey = 'created-desc' | 'created-asc' | 'name-asc' | 'name-desc'
@@ -120,7 +120,7 @@ async function handleProjectDelete(project: Project) {
   try {
     if ((project.name || '') === '__free__') return
     await ElMessageBox.confirm(
-      `確定要刪除項目 "${project.name}" 嗎？此操作將永久刪除該項目及其所有內容，且無法恢復。`,
+      `確定要刪除專案 "${project.name}" 嗎？此操作將永久刪除該專案及其所有內容，且無法恢復。`,
       '警告',
       {
         confirmButtonText: '確定刪除',
@@ -216,7 +216,7 @@ function getCoverClass(name: string) {
 .title { margin: 0; font-size: 16px; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .desc { margin: 6px 0 0; color: var(--el-text-color-regular); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 42px; }
 
-/* 懸浮操作：默認透明，懸浮時顯現 */
+/* 懸浮操作：預設透明，懸浮時顯現 */
 .card-actions { display: flex; gap: 6px; opacity: 0; transition: opacity .18s ease; }
 .project-card:hover .card-actions { opacity: 1; }
 

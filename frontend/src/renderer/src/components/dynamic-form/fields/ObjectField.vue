@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <el-card shadow="never" class="object-field-card">
     <template #header>
       <div class="card-header">
@@ -29,7 +29,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
-// 當 schema 未聲明 properties 但數據存在時，按數據鍵名動態補齊，保證可渲染
+// 當 schema 未聲明 properties 但資料存在時，按資料鍵名動態補齊，保證可渲染
 const effectiveSchema = computed<JSONSchema>(() => {
   const sch = props.schema || { type: 'object' }
   const hasProps = sch && typeof sch === 'object' && (sch as any).properties && Object.keys((sch as any).properties as any).length > 0

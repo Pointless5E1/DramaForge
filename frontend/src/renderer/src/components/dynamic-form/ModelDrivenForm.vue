@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div v-if="schema && modelValue !== undefined && typeof modelValue === 'object'" class="model-driven-form">
     <el-card shadow="never" class="form-card">
       <el-form :model="modelValue" label-position="top">
@@ -35,7 +35,7 @@ const ObjectField = defineAsyncComponent(() => import('./fields/ObjectField.vue'
 const ArrayField = defineAsyncComponent(() => import('./fields/ArrayField.vue'))
 const EnumField = defineAsyncComponent(() => import('./fields/EnumField.vue'))
 const TupleField = defineAsyncComponent(() => import('./fields/TupleField.vue'))
-// 用於不支持類型的默認回退組件
+// 用於不支持類型的預設回退組件
 const FallbackField = defineAsyncComponent(() => import('./fields/FallbackField.vue'))
 
 // --- Props & Emits ---
@@ -52,7 +52,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
-// --- 默認值 ---
+// --- 預設值 ---
 const readonlyFields = props.readonlyFields || []
 
 const visibleProperties = computed(() => {

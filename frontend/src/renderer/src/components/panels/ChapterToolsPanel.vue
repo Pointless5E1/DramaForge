@@ -1,4 +1,4 @@
-﻿<template>
+<template>
 	<div class="chapter-tools-panel">
 		<div class="panel-toolbar">
 			<el-popover
@@ -13,7 +13,7 @@
 						<template #icon>
 							<el-icon><Setting /></el-icon>
 						</template>
-						模型：{{ selectedModelName || '未設置' }}
+						模型：{{ selectedModelName || '未設定' }}
 					</el-button>
 				</template>
 
@@ -45,7 +45,7 @@
 					</el-form-item>
 					<el-form-item>
 						<div class="config-actions">
-							<el-button type="primary" size="small" @click="saveConfig">保存</el-button>
+							<el-button type="primary" size="small" @click="saveConfig">儲存</el-button>
 							<el-button size="small" @click="resetEditingConfigToPreset">重置爲預設</el-button>
 						</div>
 					</el-form-item>
@@ -62,7 +62,7 @@
 			<template #header>
 				<div class="card-header">
 					<el-icon><User /></el-icon>
-					<span>角色動態信息</span>
+					<span>角色動態資訊</span>
 				</div>
 			</template>
 			<div class="card-body">
@@ -288,7 +288,7 @@ function saveConfig() {
 	Object.assign(extractConfig, nextConfig)
 	writeSavedConfig(nextConfig)
 	settingsVisible.value = false
-	ElMessage.success('提取模型配置已保存到本地')
+	ElMessage.success('提取模型設定已儲存到本地')
 }
 
 function buildExtractOptions(): ChapterExtractRunOptions | null {

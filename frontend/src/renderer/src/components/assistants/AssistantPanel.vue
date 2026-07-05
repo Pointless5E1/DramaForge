@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="assistant-panel" :style="assistantPanelStyle">
     <div class="panel-header">
       <div class="header-title-row">
@@ -159,10 +159,10 @@
     <!-- 選擇器對話框 -->
     <el-dialog v-model="selectorVisible" title="添加引用卡片" width="760px">
       <div style="display:flex; gap:12px; align-items:center; margin-bottom:10px;">
-        <el-select v-model="selectorSourcePid" placeholder="來源項目" style="width: 260px" @change="onSelectorProjectChange($event as any)">
+        <el-select v-model="selectorSourcePid" placeholder="來源專案" style="width: 260px" @change="onSelectorProjectChange($event as any)">
           <el-option v-for="p in assistantStore.projects" :key="p.id" :label="p.name" :value="p.id" />
         </el-select>
-        <el-input v-model="selectorSearch" placeholder="搜索標題..." clearable style="flex:1" />
+        <el-input v-model="selectorSearch" placeholder="搜尋標題..." clearable style="flex:1" />
       </div>
       <el-tree :data="selectorTreeData" :props="{ label: 'label', children: 'children' }" node-key="key" show-checkbox highlight-current :default-expand-all="false" :check-strictly="false" @check="onTreeCheck" style="max-height:360px; overflow:auto; border:1px solid var(--el-border-color-light); padding:8px; border-radius:6px;" />
       <template #footer>
@@ -252,13 +252,13 @@ let streamCtl: { cancel: () => void } | null = null
 let streamCanceled = false
 const { messageListRef, scrollToBottom } = useMessageListScroll()
 
-// ---- 多卡片數據引用（跨項目，使用 Pinia） ----
+// ---- 多卡片資料引用（跨項目，使用 Pinia） ----
 const assistantStore = useAssistantStore()
 const projectStore = useProjectStore()
 const editorStore = useEditorStore()
 
 // 思考過程摺疊狀態：key 爲 bucket 標識（例如 plain-0-0 / pre-0-0 / g-0-1-0），值爲是否展開
-// 默認收起（false），用戶點擊後再展開
+// 預設收起（false），用戶點擊後再展開
 const reasoningBucketsOpen = ref<Record<string, boolean>>({})
 
 function isReasoningBucketOpen(key: string): boolean {
@@ -299,7 +299,7 @@ const {
 const lastRun = ref<{ prev: string; tail: string; targetIdx: number } | null>(null)
 const canRegenerate = computed(() => !isStreaming.value && !!lastRun.value && messages.value[lastRun.value.targetIdx]?.role === 'assistant')
 
-// 模型選擇（覆蓋卡片配置，按項目記憶）
+// 模型選擇（覆蓋卡片設定，按項目記憶）
 const llmOptions = ref<LLMConfigRead[]>([])
 const overrideLlmId = ref<number | null>(null)
 const effectiveLlmId = computed(() => overrideLlmId.value || props.llmConfigId || null)
@@ -450,7 +450,7 @@ async function startStreaming(targetIdx: number) {
       }
     } catch (error) {
       console.error('Failed to persist active chapter draft before assistant run:', error)
-      ElMessage.error('正文保存失敗，請先保存章節後重試')
+      ElMessage.error('正文儲存失敗，請先儲存章節後重試')
       isStreaming.value = false
       return
     }
@@ -913,7 +913,7 @@ function nfMaybeDispatchTextPatchBatchFromMessage(targetIdx: number): boolean {
       return true
     }
   } else if (nfLooksLikeTextPatchSuggestions(msg.content || '')) {
-    ElMessage.warning('檢測到修改建議文本，但未能解析爲“原文/新文/理由”結構；請讓助手按該格式重新輸出，或啓用支持工具調用的模型配置。')
+    ElMessage.warning('檢測到修改建議文本，但未能解析爲“原文/新文/理由”結構；請讓助手按該格式重新輸出，或啓用支持工具調用的模型設定。')
   }
   return false
 }
@@ -980,7 +980,7 @@ function handleToolsExecuted(targetIdx: number, tools: Array<{tool_name: string,
   }
 }
 
-// 消息變化時自動保存（防抖，避免頻繁保存）
+// 消息變化時自動儲存（防抖，避免頻繁儲存）
 // 優化：僅監聽數組長度和最後一條消息，避免深度監聽導致性能問題
 let saveDebounceTimer: any = null
 watch([
@@ -990,7 +990,7 @@ watch([
   if (messages.value.length > 0) {
     // 清除之前的定時器
     if (saveDebounceTimer) clearTimeout(saveDebounceTimer)
-    // 300ms 後保存
+    // 300ms 後儲存
     saveDebounceTimer = setTimeout(() => {
       saveCurrentSession()
     }, 300)

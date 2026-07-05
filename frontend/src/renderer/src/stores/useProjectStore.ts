@@ -1,4 +1,4 @@
-﻿import { defineStore } from 'pinia'
+import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { components } from '@renderer/types/generated'
 import { getFreeProject } from '@renderer/api/projects'
@@ -6,10 +6,10 @@ import { getFreeProject } from '@renderer/api/projects'
 type Project = components['schemas']['ProjectRead']
 
 export const useProjectStore = defineStore('project', () => {
-  // 當前項目數據
+  // 當前項目資料
   const currentProject = ref<Project | null>(null)
 
-  // 加載狀態
+  // 載入狀態
   const isLoading = ref(false)
   const isSaving = ref(false)
 

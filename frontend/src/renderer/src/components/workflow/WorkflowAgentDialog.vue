@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="workflow-agent-widget" :style="widgetStyle" ref="widgetRef">
     <div v-if="!visible" class="agent-trigger" @mousedown="handleMouseDown" @click="handleTriggerClick">
       <el-icon class="trigger-icon"><MagicStick /></el-icon>
@@ -751,14 +751,14 @@ async function loadLlmOptions() {
   try {
     llmOptions.value = await listLLMConfigs()
     if (!llmOptions.value.length) {
-      ElMessage.warning('當前沒有可用模型，請先在設置中配置 LLM。')
+      ElMessage.warning('當前沒有可用模型，請先在設定中設定 LLM。')
     }
     if (!selectedLlmId.value && llmOptions.value.length) {
       selectedLlmId.value = llmOptions.value[0].id
     }
   } catch (error: any) {
     llmOptions.value = []
-    ElMessage.error(error?.message || '加載模型列表失敗')
+    ElMessage.error(error?.message || '載入模型列表失敗')
   } finally {
     llmLoading.value = false
   }

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="workflow-container">
     <!-- 頂部工具欄 -->
     <div class="workflow-toolbar">
@@ -42,7 +42,7 @@
 
       <div class="toolbar-right">
         <div class="toolbar-switch-item">
-          <span class="switch-label">持久化保存</span>
+          <span class="switch-label">持久化儲存</span>
           <el-switch
             v-model="keepRunHistory"
             @change="onKeepRunHistoryChange"
@@ -74,7 +74,7 @@
         
         <el-button @click="saveWorkflow">
           <el-icon><Document /></el-icon>
-          <span>保存</span>
+          <span>儲存</span>
         </el-button>
         
         <el-divider direction="vertical" />
@@ -304,7 +304,7 @@ const notebookCells = reactive([])
 let currentWorkflowId = ref(null) // 當前工作流ID
 let currentWorkflowName = ref('未命名工作流') // 當前工作流名稱
 const currentWorkflowRevision = ref('')
-const keepRunHistory = ref(false) // 是否持久化保存運行記錄
+const keepRunHistory = ref(false) // 是否持久化儲存運行記錄
 const workflowList = ref([]) // 工作流列表
 
 // 拖動調整寬度
@@ -350,7 +350,7 @@ function stopResizing() {
   window.removeEventListener('mouseup', stopResizing)
 }
 
-// 加載工作流列表
+// 載入工作流列表
 const loadWorkflowList = async () => {
   try {
     const workflows = await listWorkflows()
@@ -359,8 +359,8 @@ const loadWorkflowList = async () => {
       return wf.dsl_version === 2
     })
   } catch (error) {
-    console.error('[Workflow] 加載工作流列表失敗:', error)
-    ElMessage.error('加載工作流列表失敗')
+    console.error('[Workflow] 載入工作流列表失敗:', error)
+    ElMessage.error('載入工作流列表失敗')
   }
 }
 
@@ -381,7 +381,7 @@ const onWorkflowChange = async (workflowId) => {
 project = Logic.SelectProject(project_id=1)
 #</node>
 
-#@node(description="加載小說目錄")
+#@node(description="載入小說目錄")
 novel = Novel.Load(root_path="E:\\\\Novels\\\\book")
 #</node>
 
@@ -402,11 +402,11 @@ cards = Card.BatchUpsert(
     currentWorkflowName.value = workflow.name
     code.value = workflow.code || ''
     currentWorkflowRevision.value = workflow.revision || ''
-    keepRunHistory.value = workflow.keep_run_history || false // 加載持久化設置
+    keepRunHistory.value = workflow.keep_run_history || false // 載入持久化設定
     notebookCells.length = 0 // 清空輸出
   } catch (error) {
-    console.error('[Workflow] 加載工作流失敗:', error)
-    ElMessage.error('加載工作流失敗')
+    console.error('[Workflow] 載入工作流失敗:', error)
+    ElMessage.error('載入工作流失敗')
   }
 }
 
@@ -485,7 +485,7 @@ const deleteWorkflow = async () => {
 project = Logic.SelectProject(project_id=1)
 #</node>
 
-#@node(description="加載小說目錄")
+#@node(description="載入小說目錄")
 novel = Novel.Load(root_path="E:\\\\Novels\\\\book")
 #</node>
 
@@ -540,8 +540,8 @@ const onKeepRunHistoryChange = async (value) => {
     })
     ElMessage.success(value ? '已開啓運行記錄持久化' : '已關閉運行記錄持久化')
   } catch (error) {
-    console.error('[Workflow] 更新持久化設置失敗:', error)
-    ElMessage.error('更新持久化設置失敗')
+    console.error('[Workflow] 更新持久化設定失敗:', error)
+    ElMessage.error('更新持久化設定失敗')
     // 恢復原值
     keepRunHistory.value = !value
   }
@@ -554,7 +554,7 @@ const runWorkflow = async () => {
   notebookCells.length = 0 // 清空之前的輸出
 
   try {
-    // 1. 每次執行都重新保存工作流（確保代碼是最新的）
+    // 1. 每次執行都重新儲存工作流（確保代碼是最新的）
     if (currentWorkflowId.value) {
       // 更新現有工作流
       await updateWorkflow(currentWorkflowId.value, {
@@ -685,7 +685,7 @@ const pauseCurrentRun = async () => {
     // 1. 先通過 store 關閉 SSE 連接（停止接收事件）
     pauseWorkflow(execution.runId)
     
-    // 2. 調用 pause API 更新數據庫狀態（後端會停止執行）
+    // 2. 調用 pause API 更新資料庫狀態（後端會停止執行）
     await request.post(`/workflows/runs/${execution.runId}/pause`, {}, '/api')
     
     // 3. 狀態機轉換到暫停狀態
@@ -824,7 +824,7 @@ const cancelCurrentRun = async () => {
   }
 }
 
-// 保存工作流
+// 儲存工作流
 const saveWorkflow = async () => {
   try {
     if (currentWorkflowId.value) {
@@ -841,7 +841,7 @@ const saveWorkflow = async () => {
       ElMessage.success('工作流已更新')
     } else {
       // 創建新工作流，先詢問名稱
-      const { value: name } = await ElMessageBox.prompt('請輸入工作流名稱', '保存工作流', {
+      const { value: name } = await ElMessageBox.prompt('請輸入工作流名稱', '儲存工作流', {
         confirmButtonText: '確定',
         cancelButtonText: '取消',
         inputValue: currentWorkflowName.value,
@@ -849,17 +849,17 @@ const saveWorkflow = async () => {
         inputErrorMessage: '工作流名稱不能爲空'
       })
 
-      // 保存代碼式工作流
+      // 儲存代碼式工作流
       const workflow = await saveCodeWorkflow(name, code.value)
       currentWorkflowId.value = workflow.id
       currentWorkflowName.value = workflow.name
       currentWorkflowRevision.value = ''
-      ElMessage.success(`工作流"${workflow.name}"已保存`)
+      ElMessage.success(`工作流"${workflow.name}"已儲存`)
     }
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('[Workflow] 保存工作流失敗:', error)
-      ElMessage.error(error.message || '保存工作流失敗')
+      console.error('[Workflow] 儲存工作流失敗:', error)
+      ElMessage.error(error.message || '儲存工作流失敗')
     }
   }
 }
@@ -867,7 +867,7 @@ const saveWorkflow = async () => {
 // 校驗工作流
 const validateWorkflowCode = async () => {
   if (!currentWorkflowId.value) {
-    ElMessage.warning('請先選擇或保存工作流')
+    ElMessage.warning('請先選擇或儲存工作流')
     return
   }
 
@@ -1033,7 +1033,7 @@ const onResumeRun = async (run) => {
   // 清空之前的輸出
   notebookCells.length = 0
   
-  // 加載工作流代碼
+  // 載入工作流代碼
   let workflowData
   try {
     workflowData = await getCodeWorkflow(run.workflow_id)
@@ -1042,8 +1042,8 @@ const onResumeRun = async (run) => {
     currentWorkflowId.value = run.workflow_id
     currentWorkflowRevision.value = workflowData.revision || ''
   } catch (error) {
-    console.error('[Workflow] 加載工作流失敗:', error)
-    ElMessage.error('加載工作流失敗')
+    console.error('[Workflow] 載入工作流失敗:', error)
+    ElMessage.error('載入工作流失敗')
     return
   }
   
@@ -1141,7 +1141,7 @@ onUnmounted(() => {
   // SSE 連接由 store 管理，組件卸載時不需要手動清理
 })
 
-// 組件掛載時加載工作流列表
+// 組件掛載時載入工作流列表
 onMounted(() => {
   loadWorkflowList()
 })

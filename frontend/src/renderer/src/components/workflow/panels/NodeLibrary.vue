@@ -1,10 +1,10 @@
-﻿<template>
+<template>
   <div class="node-library">
     <div class="library-header">
       <h3>節點庫</h3>
       <el-input
         v-model="searchQuery"
-        placeholder="搜索節點..."
+        placeholder="搜尋節點..."
         clearable
         :prefix-icon="Search"
         size="small"
@@ -128,7 +128,7 @@ const getCategoryLabel = (category) => {
     'trigger': '觸發器',
     'logic': '邏輯控制',
     'card': '卡片操作',
-    'data': '數據處理',
+    'data': '資料處理',
     'ai': 'AI 生成',
     'novel': '小說處理',
     'prompt': '提示詞',
@@ -155,14 +155,14 @@ const handleNodeClick = (node) => {
   emit('add-node', node.type)
 }
 
-// 加載節點類型
+// 載入節點類型
 async function loadNodeTypes() {
   loading.value = true
   try {
     const response = await request.get('/nodes/types', undefined, '/api', { showLoading: false })
     nodeTypes.value = response.node_types || []
   } catch (error) {
-    console.error('加載節點類型失敗:', error)
+    console.error('載入節點類型失敗:', error)
   } finally {
     loading.value = false
   }

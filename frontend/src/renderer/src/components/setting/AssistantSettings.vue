@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { computed } from 'vue'
 import { QuestionFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
@@ -9,7 +9,7 @@ import {
   unlockTaskDoneSound
 } from '@renderer/utils/taskDoneNotifier'
 
-// 通過組合式統一管理靈感助手偏好，方便在設置頁與助手面板之間複用
+// 通過組合式統一管理靈感助手偏好，方便在設定頁與助手面板之間複用
 const prefs = useAssistantPreferences()
 
 const ctxSummaryEnabled = computed({
@@ -91,7 +91,7 @@ async function setTaskDoneDesktopNotificationEnabled(val: boolean): Promise<void
 
   prefs.setTaskDoneDesktopNotificationEnabled(false)
   if (permission === 'denied') {
-    ElMessage.warning('桌面通知權限已被系統或瀏覽器拒絕，請在系統/瀏覽器設置中允許通知。')
+    ElMessage.warning('桌面通知權限已被系統或瀏覽器拒絕，請在系統/瀏覽器設定中允許通知。')
     return
   }
   if (permission === 'unsupported') {
@@ -104,14 +104,14 @@ async function setTaskDoneDesktopNotificationEnabled(val: boolean): Promise<void
 
 <template>
   <div class="assistant-settings-root">
-    <h3 class="section-title">Agent 設置</h3>
+    <h3 class="section-title">Agent 設定</h3>
     <p class="section-desc">
-      配置通用 Agent 的高級能力，靈感助手與工作流 Agent 共享這些參數與模式。
+      設定通用 Agent 的高級能力，靈感助手與工作流 Agent 共享這些參數與模式。
     </p>
 
     <el-form label-width="160px" class="assistant-form" size="small">
-      <!-- 參數配置組 -->
-      <div class="group-title">參數設置</div>
+      <!-- 參數設定組 -->
+      <div class="group-title">參數設定</div>
 
       <el-form-item>
         <template #label>
@@ -119,7 +119,7 @@ async function setTaskDoneDesktopNotificationEnabled(val: boolean): Promise<void
             助手字體大小
             <el-tooltip placement="top" effect="dark">
               <template #content>
-                控制靈感助手消息、工具結果和輸入框的主要文字大小。默認 16px，不影響正文編輯器字號。
+                控制靈感助手消息、工具結果和輸入框的主要文字大小。預設 16px，不影響正文編輯器字號。
               </template>
               <el-icon class="field-help-icon"><QuestionFilled /></el-icon>
             </el-tooltip>
@@ -142,7 +142,7 @@ async function setTaskDoneDesktopNotificationEnabled(val: boolean): Promise<void
             <el-tooltip placement="top" effect="dark">
               <template #content>
                 控制輸出的隨機性，數值越大越有創意、越發散，越小越保守、越穩定。<br/>
-                建議範圍 0.4 ~ 0.9。默認值爲 0.6。
+                建議範圍 0.4 ~ 0.9。預設值爲 0.6。
               </template>
               <el-icon class="field-help-icon"><QuestionFilled /></el-icon>
             </el-tooltip>
@@ -166,7 +166,7 @@ async function setTaskDoneDesktopNotificationEnabled(val: boolean): Promise<void
             <el-tooltip placement="top" effect="dark">
               <template #content>
                 控制單次回覆的最大長度。值越大，回覆可以越長，但也會增加響應時間和費用。<br/>
-                默認值爲 -1（不限制）。
+                預設值爲 -1（不限制）。
               </template>
               <el-icon class="field-help-icon"><QuestionFilled /></el-icon>
             </el-tooltip>
@@ -189,7 +189,7 @@ async function setTaskDoneDesktopNotificationEnabled(val: boolean): Promise<void
             <el-tooltip placement="top" effect="dark">
               <template #content>
                 限制單次調用的最長等待時間，避免請求長時間掛起。<br/>
-                默認值爲 90 秒。
+                預設值爲 90 秒。
               </template>
               <el-icon class="field-help-icon"><QuestionFilled /></el-icon>
             </el-tooltip>
@@ -207,8 +207,8 @@ async function setTaskDoneDesktopNotificationEnabled(val: boolean): Promise<void
 
       <el-divider />
 
-      <!-- React 配置組 -->
-      <div class="group-title">模式設置</div>
+      <!-- React 設定組 -->
+      <div class="group-title">模式設定</div>
       <el-form-item>
         <template #label>
           <span>

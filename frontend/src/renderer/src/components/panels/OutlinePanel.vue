@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="outline-panel">
     <div class="panel-pad">
       <template v-if="hasAny">
@@ -36,7 +36,7 @@
           </div>
           <div v-if="outline.main_target" class="section">
             <div class="sec-title">🎯 主線目標</div>
-            <p class="text"><b>名稱：</b>{{ outline.main_target.name || '未設置' }}</p>
+            <p class="text"><b>名稱：</b>{{ outline.main_target.name || '未設定' }}</p>
             <p class="text"><b>概述：</b>{{ outline.main_target.overview || '暫無概述' }}</p>
           </div>
           <div v-if="Array.isArray(outline.branch_line) && outline.branch_line.length" class="section">

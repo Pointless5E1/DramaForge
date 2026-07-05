@@ -1,7 +1,7 @@
 ﻿<template>
   <div class="card-filter-bar">
     <div class="left">
-      <el-input v-model="keyword" placeholder="搜索卡片標題..." clearable class="search-input" @clear="emitChange" @input="emitChange">
+      <el-input v-model="keyword" placeholder="搜尋卡片標題..." clearable class="search-input" @clear="emitChange" @input="emitChange">
         <template #prefix>
           <el-icon><Search /></el-icon>
         </template>

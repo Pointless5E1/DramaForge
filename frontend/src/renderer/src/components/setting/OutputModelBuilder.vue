@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="schema-builder">
     <div class="toolbar">
       <el-button type="primary" @click="addField">新增字段</el-button>
@@ -70,7 +70,7 @@
           <div v-else class="rel-config muted">—</div>
         </template>
       </el-table-column>
-      <el-table-column label="關係配置" min-width="200">
+      <el-table-column label="關係設定" min-width="200">
         <template #default="{ row }">
           <div v-if="row.kind==='relation'" class="rel-config">
             <el-select v-model="row.relation.targetModelName" filterable placeholder="選擇目標輸出模型" style="width:260px">

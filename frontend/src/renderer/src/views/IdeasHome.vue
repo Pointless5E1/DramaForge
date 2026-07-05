@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useProjectStore } from '@renderer/stores/useProjectStore'
@@ -14,7 +14,7 @@ const cardStore = useCardStore()
 const { cardTree } = storeToRefs(cardStore)
 
 onMounted(async () => {
-  // 若未加載或不是保留項目，則加載保留項目
+  // 若未載入或不是保留項目，則載入保留項目
   if (!currentProject.value || (currentProject.value.name || '') !== '__free__') {
     await projectStore.loadFreeProject()
   }
@@ -69,7 +69,7 @@ async function openTransferDialog() {
   targetProjectId.value = null
   targetParentId.value = null
   targetProjectCards.value = []
-  // 加載項目列表（排除 __free__）
+  // 載入項目列表（排除 __free__）
   try {
     const list = await getProjects()
     projectOptions.value = (list || []).filter(p => (p.name || '') !== '__free__').map(p => ({ id: p.id!, name: p.name! }))
@@ -107,7 +107,7 @@ async function confirmTransfer() {
   <div class="ideas-home">
     <div class="topbar" v-if="currentProject">
       <div class="left">
-        <el-button size="small" @click="openTransferDialog">移動/複製到項目</el-button>
+        <el-button size="small" @click="openTransferDialog">移動/複製到專案</el-button>
       </div>
       <div class="right"></div>
     </div>
@@ -120,17 +120,17 @@ async function confirmTransfer() {
 
     
 
-    <el-dialog v-model="transferDialog" title="移動/複製到項目" width="760px" class="nf-transfer-dialog">
+    <el-dialog v-model="transferDialog" title="移動/複製到專案" width="760px" class="nf-transfer-dialog">
       <div style="display:flex; gap:12px; align-items:center; margin-bottom:10px;">
         <el-radio-group v-model="transferOp" size="small">
           <el-radio-button label="copy">複製</el-radio-button>
           <el-radio-button label="move">移動</el-radio-button>
         </el-radio-group>
-        <el-select v-model="targetProjectId" placeholder="目標項目" style="width: 240px" @change="onTargetProjectChange($event as any)">
+        <el-select v-model="targetProjectId" placeholder="目標專案" style="width: 240px" @change="onTargetProjectChange($event as any)">
           <el-option v-for="p in projectOptions" :key="p.id" :label="p.name" :value="p.id" />
         </el-select>
         <el-tree-select v-model="targetParentId" :data="targetProjectCards" :props="treeSelectProps" check-strictly clearable :render-after-expand="false" placeholder="目標父級（可選）" style="width: 280px" />
-        <el-input v-model="transferSearch" placeholder="搜索自由卡標題..." clearable style="flex:1" />
+        <el-input v-model="transferSearch" placeholder="搜尋自由卡標題..." clearable style="flex:1" />
       </div>
       <el-table :data="filteredFreeCards" height="360px" border @selection-change="(rows:any[])=>selectedIds = rows.map(r=>r.id)">
         <el-table-column type="selection" width="48" />

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="ctx-panel">
     <div class="panel-header">
       <h3 class="panel-title">參與實體</h3>
@@ -93,7 +93,7 @@
         
       </div>
       <pre class="pre" v-if="!assembled.facts_structured && assembled.facts_subgraph">{{ assembled.facts_subgraph }}</pre>
-      <div v-if="!assembled.facts_structured && !assembled.facts_subgraph">關鍵事實：暫無（相關實體之間信息尚未收集）。</div>
+      <div v-if="!assembled.facts_structured && !assembled.facts_subgraph">關鍵事實：暫無（相關實體之間資訊尚未收集）。</div>
     </div>
   </div>
 </template>
@@ -217,7 +217,7 @@ async function assemble() {
     })
     assembled.value = res
     emit('context-updated', res)
-    // 將最新本地值回寫父層，確保保存時同步
+    // 將最新本地值回寫父層，確保儲存時同步
     emitParticipants(); emitVolume(); emitStage(); emitChapter();
     ElMessage.success('上下文已裝配')
   } catch (e:any) {
