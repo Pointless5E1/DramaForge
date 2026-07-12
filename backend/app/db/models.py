@@ -84,6 +84,10 @@ class Prompt(SQLModel, table=True):
     template: str
     version: int = 1
     built_in: bool = Field(default=False)
+    is_review_prompt: bool = Field(
+        default=False,
+        sa_column=Column(sa.Boolean, nullable=False, server_default=sa.false()),
+    )
 
 
 

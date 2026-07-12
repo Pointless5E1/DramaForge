@@ -2,18 +2,51 @@
   <div class="ctx-panel">
     <div class="panel-header">
       <h3 class="panel-title">參與實體</h3>
-      <el-button size="small" type="primary" :loading="assembling" @click="assemble">刷新上下文</el-button>
+      <el-button size="small" type="primary" :loading="assembling" @click="assemble">查詢實體狀態</el-button>
     </div>
     
-    <el-form label-width="70px" class="controls">
-      <el-form-item label="參與者">
-        <el-select v-model="localParticipants" multiple filterable allow-create default-first-option placeholder="輸入或選擇參與者" @change="onParticipantsChange">
-          <el-option-group v-for="g in participantGroups" :key="g.label" :label="g.label">
-            <el-option v-for="p in g.values" :key="p" :label="p" :value="p" />
-          </el-option-group>
-        </el-select>
-      </el-form-item>
-    </el-form>
+    <div class="entity-sections">
+      <el-alert
+        v-if="localParticipants.length > 10"
+        class="entity-count-warning"
+        type="warning"
+        :closable="false"
+        show-icon
+        title="參與實體較多"
+        :description="`目前共 ${localParticipants.length} 個實體。系統不會自動裁剪；建議確認每個實體都會直接參與或影響本段內容。`"
+      />
+      <section v-for="g in participantGroups" :key="g.label" class="entity-section">
+        <div class="entity-section__head">
+          <span class="entity-section__title">{{ g.label }}</span>
+          <span class="entity-section__count">{{ participantsForGroup(g.label).length }}</span>
+        </div>
+        <div class="entity-chip-list">
+          <button
+            v-for="name in participantsForGroup(g.label)"
+            :key="name"
+            type="button"
+            class="entity-chip"
+            :title="`移除 ${name}`"
+            @click="removeParticipant(g.label, name)"
+          >
+            <span>{{ name }}</span>
+            <span class="entity-chip__remove" aria-hidden="true">×</span>
+          </button>
+          <el-select
+            v-model="pendingParticipant[g.label]"
+            class="entity-add-select"
+            filterable
+            :allow-create="g.label === '其他'"
+            default-first-option
+            placeholder="＋"
+            :aria-label="`新增${g.label}實體`"
+            @change="value => addParticipant(g.label, String(value || ''))"
+          >
+            <el-option v-for="p in availableForGroup(g)" :key="p" :label="p" :value="p" />
+          </el-select>
+        </div>
+      </section>
+    </div>
 
     <div v-if="assembled" class="assembled">
       <div class="facts-structured" v-if="assembled.facts_structured">
@@ -120,6 +153,7 @@ const assembled = ref<AssembleContextResponse | null>(null)
 type Group = { label: string; values: string[] }
 const participantGroups = ref<Group[]>([])
 const localParticipants = ref<string[]>(props.participants || [])
+const pendingParticipant = ref<Record<string, string>>({})
 const localVolumeNumber = ref<number | null>(props.volumeNumber ?? null)
 const localStageNumber = ref<number | null>(props.stageNumber ?? null)
 const localChapterNumber = ref<number | null>(props.chapterNumber ?? null)
@@ -193,7 +227,6 @@ async function buildAllGroups() {
     }
     participantGroups.value = order
       .map(label => ({ label, values: Array.from(buckets.get(label) || []).sort((a,b)=>a.localeCompare(b)) }))
-      .filter(g => g.values.length > 0)
   } catch {
     participantGroups.value = []
   }
@@ -201,6 +234,41 @@ async function buildAllGroups() {
 
 function onParticipantsChange() {
   emitParticipants();
+}
+
+function participantsForGroup(label: string): string[] {
+  return localParticipants.value.filter(name => (nameToGroup.value[name] || '其他') === label)
+}
+
+function updateGroupParticipants(label: string, values: string[]) {
+  const retained = localParticipants.value.filter(name => (nameToGroup.value[name] || '其他') !== label)
+  const selected = values.map(value => String(value).trim()).filter(Boolean)
+  if (label === '其他') {
+    selected.forEach(name => { if (!nameToGroup.value[name]) nameToGroup.value[name] = '其他' })
+  }
+  localParticipants.value = Array.from(new Set([...retained, ...selected]))
+  onParticipantsChange()
+}
+
+function availableForGroup(group: Group): string[] {
+  const selected = new Set(participantsForGroup(group.label))
+  return group.values.filter(name => !selected.has(name))
+}
+
+function addParticipant(label: string, value: string) {
+  const name = value.trim()
+  if (!name) return
+  if (!nameToGroup.value[name]) nameToGroup.value[name] = label
+  localParticipants.value = Array.from(new Set([...localParticipants.value, name]))
+  pendingParticipant.value[label] = ''
+  onParticipantsChange()
+}
+
+function removeParticipant(label: string, name: string) {
+  updateGroupParticipants(
+    label,
+    participantsForGroup(label).filter(participant => participant !== name),
+  )
 }
 
 onMounted(async () => { await buildNameGroupCache(); await buildAllGroups(); if (props.prefetched) assembled.value = props.prefetched })
@@ -244,7 +312,109 @@ async function assemble() {
   font-weight: 600;
   color: var(--el-text-color-primary);
 }
-.controls { padding: 12px 16px; border-bottom: 1px solid var(--el-border-color-light); }
+.entity-sections {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  padding: 4px 16px 12px;
+  overflow-y: auto;
+}
+.entity-count-warning { margin: 8px 0; }
+.entity-section {
+  min-width: 0;
+  padding: 12px 0;
+  background: transparent;
+}
+.entity-section__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 24px;
+  margin-bottom: 7px;
+}
+.entity-section__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+.entity-section__count {
+  min-width: 24px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  color: var(--el-text-color-secondary);
+  background: var(--el-fill-color-light);
+  text-align: center;
+  font-size: 11px;
+}
+.entity-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.entity-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 26px;
+  padding: 0 9px 0 10px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--el-text-color-primary);
+  background: var(--nf-surface-control, var(--el-fill-color));
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 0.16s ease, background-color 0.16s ease;
+}
+.entity-chip:hover,
+.entity-chip:focus-visible {
+  color: var(--el-color-primary);
+  background: var(--nf-surface-raised, var(--el-fill-color-light));
+  outline: none;
+}
+.entity-chip__remove {
+  color: var(--el-text-color-secondary);
+  font-size: 14px;
+  line-height: 1;
+}
+.entity-add-select {
+  flex: 0 0 26px;
+  width: 26px;
+  min-width: 26px;
+  max-width: 26px;
+}
+.entity-add-select :deep(.el-select__wrapper) {
+  width: 26px;
+  min-width: 26px;
+  min-height: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 50% !important;
+  background: var(--nf-surface-control, var(--el-fill-color));
+  box-shadow: none !important;
+  cursor: pointer;
+}
+.entity-add-select :deep(.el-select__wrapper:hover),
+.entity-add-select :deep(.el-select__wrapper.is-focused) {
+  background: var(--nf-surface-raised, var(--el-fill-color-light));
+}
+.entity-add-select :deep(.el-select__placeholder) {
+  width: 100%;
+  color: var(--el-text-color-primary);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 26px;
+  text-align: center;
+}
+.entity-add-select :deep(.el-select__suffix) {
+  display: none;
+}
+.entity-add-select :deep(.el-select__input) {
+  margin: 0;
+  text-align: center;
+}
 .actions { display: flex; gap: 8px; }
 .assembled { padding: 16px; overflow: auto; color: var(--el-text-color-primary); font-size: 14px; line-height: 1.8; }
 .pre { white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 13px; color: var(--el-text-color-primary); }

@@ -1,6 +1,6 @@
 <template>
-  <el-card shadow="never" class="array-field-card">
-    <template #header>
+  <section class="array-field">
+    <template v-if="label">
       <div class="card-header">
         <span>{{ label }}</span>
       </div>
@@ -51,10 +51,10 @@
         />
       </div>
     </div>
-    <el-button type="primary" :icon="Plus" plain @click="addItem" class="add-button">
-      添加 {{ (displayNameMap && displayNameMap[itemSchema.title || '']) || itemSchema.title || '新資料' }}
+    <el-button :icon="Plus" text @click="addItem" class="add-button">
+      添加 {{ addItemLabel }}
     </el-button>
-  </el-card>
+  </section>
 </template>
 
 <script setup lang="ts">
@@ -92,6 +92,18 @@ const itemSchema = computed((): JSONSchema => {
     return resolveActualSchema(props.schema.items, props.schema)
   }
   return { type: 'string', title: '資料項' }
+})
+
+const addItemLabel = computed(() => {
+  const explicitItemTitle = String(props.schema['x-item-title'] || '').trim()
+  if (explicitItemTitle) return explicitItemTitle
+
+  const fieldLabel = String(props.label || '').trim()
+  const singularFieldLabel = fieldLabel.replace(/(?:資料)?列表$/, '').trim()
+  if (singularFieldLabel) return singularFieldLabel
+
+  const schemaTitle = String(itemSchema.value.title || '').trim()
+  return (props.displayNameMap && props.displayNameMap[schemaTitle]) || schemaTitle || '新資料'
 })
 
 function getItemSchemaForIndex(index: number): JSONSchema {
@@ -197,10 +209,14 @@ function resolveAnyOfForValue(base: JSONSchema, value: any): JSONSchema | null {
 </script>
 
 <style scoped>
-.array-field-card {
-  margin-top: 10px;
-  margin-bottom: 20px;
-  background-color: var(--el-fill-color-lighter);
+.array-field {
+  margin: 0;
+}
+.card-header {
+  margin-bottom: 14px;
+  color: var(--el-text-color-primary);
+  font-size: 15px;
+  font-weight: 600;
 }
 .empty-state {
   text-align: center;
@@ -210,10 +226,11 @@ function resolveAnyOfForValue(base: JSONSchema, value: any): JSONSchema | null {
 .array-item {
   display: flex;
   align-items: flex-start;
-  margin-bottom: 15px;
-  padding: 15px;
-  border: 1px dashed var(--el-border-color);
-  border-radius: 4px;
+  margin-bottom: 12px;
+  padding: 18px;
+  border: 1px solid var(--nf-divider-subtle, var(--el-border-color-lighter));
+  border-radius: 8px;
+  background: var(--nf-surface-section, var(--el-fill-color-extra-light));
 }
 .array-item-content {
   flex-grow: 1;
@@ -223,7 +240,14 @@ function resolveAnyOfForValue(base: JSONSchema, value: any): JSONSchema | null {
   flex-shrink: 0;
 }
 .add-button {
-  margin-top: 10px;
-  width: 100%;
+  margin-top: 2px;
+  padding: 6px 8px;
+  color: var(--el-text-color-secondary);
+  font-weight: 400;
+}
+.add-button:hover,
+.add-button:focus-visible {
+  color: var(--el-text-color-primary);
+  background: var(--el-fill-color-light);
 }
 </style>

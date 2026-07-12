@@ -3371,6 +3371,11 @@ export interface components {
             description?: string | null;
             /** Template */
             template: string;
+            /**
+             * Is Review Prompt
+             * @default false
+             */
+            is_review_prompt: boolean;
         };
         /** PromptRead */
         PromptRead: {
@@ -3380,6 +3385,11 @@ export interface components {
             description?: string | null;
             /** Template */
             template: string;
+            /**
+             * Is Review Prompt
+             * @default false
+             */
+            is_review_prompt: boolean;
             /** Id */
             id: number;
             /**
@@ -3396,6 +3406,8 @@ export interface components {
             description?: string | null;
             /** Template */
             template?: string | null;
+            /** Is Review Prompt */
+            is_review_prompt?: boolean | null;
         };
         /** QueryRequest */
         QueryRequest: {

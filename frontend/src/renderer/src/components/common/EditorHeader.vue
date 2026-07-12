@@ -6,71 +6,92 @@
           <el-breadcrumb-item>{{ projectName }}</el-breadcrumb-item>
           <el-breadcrumb-item>{{ cardType }}</el-breadcrumb-item>
           <el-breadcrumb-item>
-            <el-input v-model="titleProxy" size="small" class="title-input" />
+            <el-input
+              v-if="isEditingTitle"
+              ref="titleInputRef"
+              v-model="titleProxy"
+              size="small"
+              class="title-input"
+              @blur="finishTitleEditing"
+              @keydown.enter.prevent="finishTitleEditing"
+              @keydown.esc.prevent="cancelTitleEditing"
+            />
+            <span
+              v-else
+              class="title-text"
+              title="雙擊編輯卡片名稱"
+              @dblclick="startTitleEditing"
+            >
+              {{ title }}
+            </span>
           </el-breadcrumb-item>
         </el-breadcrumb>
         <el-tag :type="statusTag.type" size="small">{{ statusTag.label }}</el-tag>
         <span v-if="lastSavedAt" class="last-saved">上次儲存：{{ lastSavedAt }}</span>
       </div>
       <div class="right">
-        <div class="context-action-combo">
-          <el-tooltip content="打開上下文抽屜（Alt+K）">
-            <el-button type="primary" plain class="context-main-button" @click="$emit('open-context')">
-              上下文注入
-              <el-tag size="small" class="context-slot-tag" :type="getSlotTagType(activeContextTemplateKind)">
-                {{ contextTemplateLabels[activeContextTemplateKind] }}
-              </el-tag>
-            </el-button>
-          </el-tooltip>
-          <el-popover v-model:visible="slotPickerVisible" trigger="click" width="220" popper-class="context-slot-popper">
-            <template #reference>
-              <el-button type="primary" plain class="context-trigger-button" title="切換上下文槽位">
-                <el-icon><ArrowDown /></el-icon>
-              </el-button>
+        <div class="action-group content-actions">
+          <el-button v-if="showGenerateButton" type="primary" class="header-action" @click="$emit('generate')">生成</el-button>
+          <el-dropdown
+            v-if="showReviewButton"
+            split-button
+            class="review-action"
+            :loading="reviewing"
+            :disabled="reviewing"
+            @click="$emit('review')"
+            @command="(prompt: string) => $emit('select-review-prompt', prompt)"
+          >
+            {{ reviewing ? '審核中' : '審核' }}
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item
+                  v-for="prompt in reviewPrompts"
+                  :key="prompt"
+                  :command="prompt"
+                >
+                  <span>{{ prompt }}</span>
+                  <el-icon v-if="prompt === currentReviewPrompt" class="review-check"><Select /></el-icon>
+                </el-dropdown-item>
+              </el-dropdown-menu>
             </template>
-            <div class="slot-picker-panel">
-              <button
-                v-for="kind in contextTemplateKinds"
-                :key="kind"
-                type="button"
-                class="slot-picker-item"
-                :class="{ 'is-active': activeContextTemplateKind === kind }"
-                @click="selectContextTemplateKind(kind)"
-              >
-                <span>{{ contextTemplateLabels[kind] }}</span>
-                <el-icon v-if="activeContextTemplateKind === kind" class="check-icon"><Select /></el-icon>
-              </button>
-            </div>
-          </el-popover>
+          </el-dropdown>
         </div>
-        <el-button v-if="!isChapterContent" type="success" plain @click="$emit('generate')">AI 生成</el-button>
-        <el-button 
-          :type="canSaveComputed ? 'primary' : 'info'" 
-          :disabled="!canSaveComputed" 
-          :loading="saving" 
-          :class="{ 'needs-confirmation-btn': needsConfirmation }"
-          @click="$emit('save')"
-        >
-          {{ needsConfirmation ? '確認並儲存' : '儲存' }}
-        </el-button>
-        <el-dropdown>
-          <el-button text>更多</el-button>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item @click="$emit('open-versions')">歷史版本</el-dropdown-item>
-              <el-dropdown-item divided type="danger" @click="$emit('delete')">刪除</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
+        <span class="action-divider" aria-hidden="true"></span>
+        <div class="action-group document-actions">
+          <el-button
+            class="header-action"
+            :type="needsConfirmation ? 'warning' : undefined"
+            :disabled="!canSaveComputed"
+            :loading="saving"
+            :class="{ 'needs-confirmation-btn': needsConfirmation }"
+            @click="$emit('save')"
+          >
+            {{ needsConfirmation ? '確認並儲存' : '儲存' }}
+          </el-button>
+          <el-dropdown trigger="click" @command="handleSettingsCommand">
+            <el-button class="header-action settings-action">
+              設定
+              <el-icon class="settings-arrow"><ArrowDown /></el-icon>
+            </el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="generation-context">生成上下文設定</el-dropdown-item>
+                <el-dropdown-item command="review-context">審核上下文設定</el-dropdown-item>
+                <el-dropdown-item command="ai-params" divided>模型與生成參數</el-dropdown-item>
+                <el-dropdown-item command="schema">內容結構</el-dropdown-item>
+                <el-dropdown-item command="versions" divided>歷史版本</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, watch, ref } from 'vue'
+import { computed, nextTick, watch, ref } from 'vue'
 import { ArrowDown, Select } from '@element-plus/icons-vue'
-import { CONTEXT_TEMPLATE_LABELS, type ContextTemplateKind } from '@renderer/services/contextSlots'
 
 const props = defineProps<{
   projectName?: string
@@ -81,8 +102,10 @@ const props = defineProps<{
   lastSavedAt?: string
   canSave?: boolean
   isChapterContent?: boolean
+  reviewing?: boolean
+  reviewPrompts?: string[]
+  currentReviewPrompt?: string
   needsConfirmation?: boolean  // AI 修改需要確認
-  activeContextTemplateKind?: ContextTemplateKind
 }>()
 
 // 計算是否可以儲存：如果需要確認，即使沒有修改也可以儲存
@@ -91,36 +114,76 @@ const canSaveComputed = computed(() => {
   return props.canSave
 })
 
-const emit = defineEmits(['update:title','save','generate','open-versions','delete','open-context','update:active-context-template-kind'])
-const slotPickerVisible = ref(false)
-const contextTemplateKinds: ContextTemplateKind[] = ['generation', 'review']
-const contextTemplateLabels = CONTEXT_TEMPLATE_LABELS
-const activeContextTemplateKind = computed<ContextTemplateKind>(() => props.activeContextTemplateKind || 'generation')
+const showGenerateButton = computed(() => {
+  if (!props.isChapterContent) return true
+  return props.cardType === '劇本片段正文'
+})
+const showReviewButton = computed(() => !props.isChapterContent || props.cardType === '劇本片段正文')
+
+const emit = defineEmits([
+  'update:title',
+  'save',
+  'generate',
+  'review',
+  'select-review-prompt',
+  'open-versions',
+  'open-generation-context',
+  'open-review-context',
+  'open-ai-settings',
+  'open-schema',
+])
 
 const titleProxy = ref(props.title)
-watch(() => props.title, v => titleProxy.value = v)
-watch(titleProxy, v => emit('update:title', v))
+const isEditingTitle = ref(false)
+const titleInputRef = ref()
+
+watch(() => props.title, v => {
+  if (!isEditingTitle.value) titleProxy.value = v
+})
+
+async function startTitleEditing(): Promise<void> {
+  titleProxy.value = props.title
+  isEditingTitle.value = true
+  await nextTick()
+  titleInputRef.value?.focus()
+  titleInputRef.value?.select()
+}
+
+function finishTitleEditing(): void {
+  if (!isEditingTitle.value) return
+  isEditingTitle.value = false
+  if (titleProxy.value !== props.title) emit('update:title', titleProxy.value)
+}
+
+function cancelTitleEditing(): void {
+  titleProxy.value = props.title
+  isEditingTitle.value = false
+}
 
 const statusTag = computed(() => {
   if (props.needsConfirmation) return { type: 'warning', label: 'AI 已修改' }
-  if (props.saving) return { type: 'warning', label: '儲存中' }
+  if (props.saving) return { type: 'success', label: '儲存中' }
   if (props.dirty) return { type: 'info', label: '未儲存' }
   return { type: 'success', label: '已儲存' }
 })
 
-function selectContextTemplateKind(kind: ContextTemplateKind) {
-  emit('update:active-context-template-kind', kind)
-  slotPickerVisible.value = false
-}
-
-function getSlotTagType(kind: ContextTemplateKind): 'success' | 'warning' | 'info' {
-  switch (kind) {
-    case 'generation':
-      return 'success'
-    case 'review':
-      return 'warning'
-    default:
-      return 'info'
+function handleSettingsCommand(command: string): void {
+  switch (command) {
+    case 'generation-context':
+      emit('open-generation-context')
+      break
+    case 'review-context':
+      emit('open-review-context')
+      break
+    case 'ai-params':
+      emit('open-ai-settings')
+      break
+    case 'schema':
+      emit('open-schema')
+      break
+    case 'versions':
+      emit('open-versions')
+      break
   }
 }
 </script>
@@ -137,31 +200,99 @@ function getSlotTagType(kind: ContextTemplateKind): 'success' | 'warning' | 'inf
   flex-wrap: wrap;
   gap: 8px;
   padding: 8px 12px; 
-  border-bottom: 1px solid var(--el-border-color-light); 
-  background: var(--el-bg-color);
+  border-bottom: 0;
+  background: transparent;
 }
 
-.left { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-.right { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.context-action-combo { display: inline-flex; align-items: stretch; }
-.context-main-button { 
-  border-top-right-radius: 0; 
-  border-bottom-right-radius: 0; 
+.left {
   display: flex;
   align-items: center;
   gap: 8px;
+  height: 30px;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--nf-surface-control, var(--el-fill-color));
+  font-size: 13px;
+  white-space: nowrap;
 }
-.context-slot-tag {
-  margin-left: 4px;
+.left :deep(.el-breadcrumb),
+.left :deep(.el-breadcrumb__inner),
+.left :deep(.el-breadcrumb__separator) {
+  font-size: 13px;
+}
+.left :deep(.el-tag) {
+  height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 13px;
+}
+.right { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.action-group { display: inline-flex; align-items: center; gap: 8px; }
+.action-group :deep(.el-button + .el-button) { margin-left: 0; }
+.header-action {
+  min-width: 0;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 6px;
+  font-size: 13px;
   font-weight: 500;
 }
-.context-trigger-button { margin-left: -1px; border-top-left-radius: 0; border-bottom-left-radius: 0; padding-inline: 9px; }
-.slot-picker-panel { display: flex; flex-direction: column; gap: 6px; }
-.slot-picker-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; border: 1px solid var(--el-border-color-light); border-radius: 8px; background: var(--el-fill-color-blank); padding: 8px 10px; cursor: pointer; color: var(--el-text-color-primary); }
-.slot-picker-item.is-active { border-color: var(--el-color-primary); background: var(--el-color-primary-light-9); }
-.check-icon { color: var(--el-color-primary); }
+:deep(.review-action .el-button) {
+  height: 30px;
+  font-size: 13px;
+  font-weight: 500;
+}
+:deep(.review-action .el-button-group) {
+  display: inline-flex;
+  overflow: hidden;
+  border-radius: 6px;
+}
+:deep(.review-action .el-button-group > .el-button) {
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+:deep(.review-action .el-button:first-child) {
+  padding: 0 12px;
+  border-radius: 6px 0 0 6px !important;
+}
+:deep(.review-action .el-dropdown__caret-button) {
+  width: 30px;
+  padding: 0;
+  margin-left: 0;
+  border-left: 1px solid var(--nf-divider-strong, var(--el-border-color));
+  border-radius: 0 6px 6px 0 !important;
+}
+.right :deep(.el-button:not(.el-button--primary):not(.el-button--warning)) {
+  border: 0;
+  background: var(--nf-surface-control, var(--el-fill-color));
+  color: var(--el-text-color-primary);
+}
+.right :deep(.el-button:not(.el-button--primary):not(.el-button--warning):hover),
+.right :deep(.el-button:not(.el-button--primary):not(.el-button--warning):focus-visible) {
+  border: 0;
+  background: var(--nf-surface-raised, var(--el-fill-color-light));
+  color: var(--el-text-color-primary);
+}
+.review-check { margin-left: 12px; color: var(--el-color-primary); }
+.settings-action { min-width: 0; }
+.action-divider { width: 1px; height: 20px; background: var(--nf-divider-strong, var(--el-border-color)); }
+.settings-arrow { margin-left: 4px; }
 .title-input { width: 280px; }
-.last-saved { color: var(--el-text-color-secondary); font-size: 12px; }
+.title-text {
+  display: inline-block;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+  white-space: nowrap;
+  cursor: default;
+  user-select: none;
+}
+.last-saved { color: var(--el-text-color-secondary); font-size: 13px; }
 
 .needs-confirmation-btn {
   animation: pulse 2s infinite;

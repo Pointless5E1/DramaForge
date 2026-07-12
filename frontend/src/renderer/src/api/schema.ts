@@ -14,6 +14,7 @@ export interface JSONSchema {
   const?: any
   minLength?: number
   'x-knowledge-source'?: string
+  'x-item-title'?: string
 
   // Object properties
   properties?: { [key: string]: JSONSchema }

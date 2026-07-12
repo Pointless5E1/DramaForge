@@ -1,0 +1,45 @@
+# 工作流：劇本世界觀
+# 功能：劇本世界觀設定卡片保存時，自動提取主要勢力陣營並建立或更新組織卡
+# 觸發器：劇本世界觀設定卡片保存時自動觸發
+
+#@node(description="觸發器：監聽劇本世界觀設定卡片保存")
+trigger = Trigger.CardSaved(card_type="劇本世界觀設定")
+#</node>
+
+
+#@node(description="讀取當前劇本世界觀設定")
+card = Card.Read(card_id=trigger.card_id)
+#</node>
+
+
+#@node(description="提取主要勢力陣營列表")
+organizations = Logic.Expression(
+    expression="card.content.world_view.social_system.major_power_camps or []"
+  )
+#</node>
+
+
+#@node(description="建立或更新組織卡")
+org_cards = Card.BatchUpsert(
+    project_id=trigger.project_id,
+    parent_id=trigger.card_id,
+    card_type="組織卡",
+    title_template="{item.name}",
+    match_by="title",
+    items=organizations.result
+  )
+#</node>
+
+
+#@node(description="清空已完成拆卡的來源列表")
+update_result = Card.Update(
+    card_id=trigger.card_id,
+    content_merge={
+      "world_view": {
+        "social_system": {
+          "major_power_camps": []
+        }
+      }
+    }
+  )
+#</node>

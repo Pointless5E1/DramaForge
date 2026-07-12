@@ -7,7 +7,6 @@ import Header from './components/common/Header.vue'
 import SettingsDialog from './components/common/SettingsDialog.vue'
 import { useAppStore } from './stores/useAppStore'
 import { useProjectStore } from './stores/useProjectStore'
-import { useUpdateStore } from './stores/useUpdateStore'
 import { useWorkflowStore } from './stores/useWorkflowStore'
 import type { components } from '@renderer/types/generated'
 import { schemaService } from './api/schema'
@@ -20,7 +19,6 @@ type Project = components['schemas']['ProjectRead']
 
 const appStore = useAppStore()
 const projectStore = useProjectStore()
-const updateStore = useUpdateStore()
 const workflowStore = useWorkflowStore()
 
 const { currentView, settingsDialogVisible } = storeToRefs(appStore)
@@ -78,15 +76,6 @@ onMounted(async () => {
     cleanupWorkflowListener()
   })
   
-  // 自動檢測更新（如果開啓）
-  if (updateStore.autoCheckEnabled) {
-    try {
-      await updateStore.autoCheck()
-    } catch (error) {
-      // 靜默失敗，不打擾用戶
-      console.warn('自動檢測更新失敗:', error)
-    }
-  }
 })
 
 onBeforeUnmount(() => {

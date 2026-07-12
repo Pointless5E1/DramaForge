@@ -6,6 +6,12 @@
     </div>
     <el-table :data="prompts" style="width: 100%" v-loading="loading">
       <el-table-column prop="name" label="名稱" width="180" />
+      <el-table-column label="用途" width="110">
+        <template #default="{ row }">
+          <el-tag v-if="row.is_review_prompt" type="warning" size="small">審核</el-tag>
+          <span v-else class="usage-default">一般</span>
+        </template>
+      </el-table-column>
       <el-table-column prop="description" label="描述" />
       <el-table-column label="操作" width="220">
         <template #default="{ row }">
@@ -28,6 +34,10 @@
         </el-form-item>
         <el-form-item label="描述" prop="description">
           <el-input v-model="currentPrompt.description" type="textarea" :rows="2" />
+        </el-form-item>
+        <el-form-item label="用途">
+          <el-checkbox v-model="currentPrompt.is_review_prompt">可用於內容審核</el-checkbox>
+          <span class="hint">只有標記為審核用途的提示詞會出現在審核選單中。</span>
         </el-form-item>
         <el-form-item label="結構化編輯">
           <el-switch v-model="useStructured" />
@@ -97,6 +107,7 @@ interface Prompt {
   description: string
   template: string
   built_in?: boolean
+  is_review_prompt?: boolean
 }
 
 const DEFAULT_OUTPUT_FORMAT = '請嚴格根據提供的Json Schema返回結果'
@@ -177,7 +188,7 @@ function resetStructuredDefaults() {
 }
 
 function handleCreate() {
-  currentPrompt.value = { name: '', description: '', template: '' }
+  currentPrompt.value = { name: '', description: '', template: '', is_review_prompt: false }
   resetStructuredDefaults()
   useStructured.value = false
   drawerVisible.value = true
@@ -304,4 +315,5 @@ onMounted(async () => { await fetchKnowledgeList(); await fetchPrompts() })
 .knowledge-grid { display: flex; flex-direction: column; gap: 8px; }
 .row { display: flex; align-items: center; gap: 8px; }
 .label { color: var(--el-text-color-regular); }
+.usage-default { color: var(--el-text-color-secondary); font-size: 12px; }
 </style> 

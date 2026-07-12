@@ -48,7 +48,7 @@
     </div>
 
     <div class="composer">
-      <div class="inject-toolbar">
+      <div v-if="assistantStore.injectedRefs.length > 0" class="inject-toolbar">
         <!-- 引用卡片顯示區（分成兩個容器：標籤區 + 更多按鈕區） -->
         <div class="chips">
           <!-- 標籤顯示區（可滾動溢出） -->
@@ -116,17 +116,11 @@
           </div>
         </div>
 
-        <el-button size="small" :icon="Plus" @click="openInjectSelector" class="add-ref-btn">添加引用</el-button>
-      </div>
-
-      <div class="composer-subbar">
-        <el-select v-model="overrideLlmId" placeholder="選擇模型" size="small" style="width: 200px">
-          <el-option v-for="m in llmOptions" :key="m.id" :label="(m.display_name || m.model_name)" :value="m.id" />
-        </el-select>
       </div>
 
       <AgentComposer
         v-model="draft"
+        appearance="surface"
         :rows="4"
         placeholder="輸入你的想法、約束或追問"
         :disabled="isStreaming"
@@ -135,22 +129,34 @@
       >
         <template #actions>
           <div class="composer-actions">
+            <el-button
+              class="composer-tool-button add-ref-btn"
+              :icon="Plus"
+              circle
+              text
+              @click="openInjectSelector"
+              title="添加引用"
+            />
             <el-tooltip content="Thinking：啓用推理/思考模式（確保模型支持開啓/關閉思考）" placement="top">
               <el-switch 
                 v-model="useThinkingMode" 
                 size="small"
                 active-text="Thinking"
-                style="margin-right: auto"
               />
             </el-tooltip>
+            <el-select v-model="overrideLlmId" placeholder="選擇模型" size="small" class="composer-model-select">
+              <el-option v-for="m in llmOptions" :key="m.id" :label="(m.display_name || m.model_name)" :value="m.id" />
+            </el-select>
+            <span class="composer-action-spacer"></span>
             <el-button
-              :type="sendButtonType"
-              :icon="sendButtonIcon"
-              circle
+              class="composer-send-button"
               :disabled="!isStreaming && !canSend"
               @click="handlePrimaryAction"
               :title="sendButtonTitle"
-            />
+            >
+              <span v-if="isStreaming" class="composer-stop-icon" aria-hidden="true"></span>
+              <el-icon v-else><ArrowUpBold /></el-icon>
+            </el-button>
           </div>
         </template>
       </AgentComposer>
@@ -224,7 +230,7 @@
 import { ref, watch, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { generateContinuationStreaming, renderPromptWithKnowledge } from '@renderer/api/ai'
 import { listLLMConfigs, type LLMConfigRead } from '@renderer/api/setting'
-import { Plus, Promotion, ChatDotRound, Delete, Clock, Document, Close, VideoPause } from '@element-plus/icons-vue'
+import { Plus, ArrowUpBold, ChatDotRound, Delete, Clock, Document, Close } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import AgentMessageList from '@/components/shared/AgentMessageList.vue'
 import AgentComposer from '@/components/shared/AgentComposer.vue'
@@ -368,9 +374,7 @@ const canSend = computed(() => {
   const hasRefs = assistantStore.injectedRefs.length > 0
   return !!effectiveLlmId.value && (hasDraft || hasRefs)
 })
-const sendButtonType = computed(() => (isStreaming.value ? 'danger' : 'primary'))
 const sendButtonTitle = computed(() => (isStreaming.value ? '中止生成' : '發送'))
-const sendButtonIcon = computed(() => (isStreaming.value ? VideoPause : Promotion))
 
 const assistantPrefs = useAssistantPreferences()
 const assistantPanelStyle = computed(() => ({
@@ -1052,9 +1056,20 @@ onBeforeUnmount(() => {
 .composer { 
   display: flex; 
   flex-direction: column; 
-  gap: 6px; 
-  padding: 10px; 
-  border-top: 1px solid var(--el-border-color-light); 
+  gap: 8px; 
+  padding: 10px 12px 12px; 
+  border-top: 0;
+  background: var(--nf-surface-panel, var(--el-bg-color));
+}
+.composer :deep(.agent-composer) {
+  gap: 4px;
+  padding: 10px 10px 8px;
+  border-radius: 6px;
+  background: var(--nf-surface-control, var(--el-fill-color));
+}
+.composer :deep(.agent-composer:hover),
+.composer :deep(.agent-composer:focus-within) {
+  background: var(--nf-surface-control, var(--el-fill-color)) !important;
 }
 
 /* 引用卡片工具欄 - 固定高度，更緊湊 */
@@ -1120,6 +1135,34 @@ onBeforeUnmount(() => {
   min-height: 90px !important;
   font-size: var(--nf-assistant-font-size);
   line-height: var(--nf-assistant-line-height);
+  border: none;
+  border-radius: 10px;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 12px 12px 6px;
+  transition: none !important;
+}
+
+::deep(.agent-composer--surface .composer-input .el-textarea__inner:hover) {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+::deep(.agent-composer--surface .composer-input .el-textarea__inner:focus) {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.composer :deep(.el-select__wrapper) {
+  background: transparent;
+  box-shadow: none !important;
+}
+.composer :deep(.el-select__wrapper.is-focused) {
+  box-shadow: none !important;
+}
+.composer :deep(.el-select__wrapper:hover),
+.composer :deep(.el-select__wrapper.is-focused) {
+  background: transparent !important;
 }
 
 ::deep(.composer-input .el-textarea__inner::placeholder) {
@@ -1236,12 +1279,58 @@ onBeforeUnmount(() => {
 
 .composer-actions { 
   display: flex; 
-  gap: 6px; 
-  justify-content: flex-end; 
+  gap: 8px; 
+  justify-content: flex-start; 
   flex-wrap: nowrap; 
   align-items: center; 
-  padding: 4px 0 0 0;
+  padding: 0 2px;
   width: 100%;
+}
+.composer-action-spacer { flex: 1; }
+.composer-model-select { width: min(150px, 38%); }
+.composer-model-select :deep(.el-select__selected-item),
+.composer-model-select :deep(.el-select__placeholder) {
+  width: 100%;
+  text-align: right;
+}
+.composer-tool-button {
+  flex: 0 0 auto;
+  color: #ffffff !important;
+}
+.composer-tool-button:hover,
+.composer-tool-button:focus-visible {
+  background: transparent !important;
+  color: #ffffff !important;
+}
+.composer-send-button {
+  width: 32px;
+  height: 32px;
+  padding: 0 !important;
+  flex: 0 0 32px;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: #f2f2f2 !important;
+  color: #171717 !important;
+  box-shadow: none !important;
+}
+.composer-send-button:hover,
+.composer-send-button:focus-visible {
+  background: #f2f2f2 !important;
+  color: #171717 !important;
+}
+.composer-send-button.is-disabled {
+  background: color-mix(in srgb, #f2f2f2 42%, transparent) !important;
+  color: var(--el-text-color-disabled) !important;
+}
+.composer-send-button :deep(.el-icon) {
+  font-size: 14px;
+}
+.composer-stop-icon {
+  display: block;
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  background: currentColor;
 }
 
 ::deep(.composer .el-button) { padding: 6px 8px; font-size: 12px; }

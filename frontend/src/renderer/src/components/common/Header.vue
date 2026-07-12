@@ -1,20 +1,14 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { Setting, Sunny, Moon, Document } from '@element-plus/icons-vue'
+import { Setting, Document } from '@element-plus/icons-vue'
 import { useAppStore } from '@renderer/stores/useAppStore'
 import { useProjectStore } from '@renderer/stores/useProjectStore'
-import { useUpdateStore } from '@renderer/stores/useUpdateStore'
 import KnowledgeManager from '../setting/KnowledgeManager.vue'
 
 const appStore = useAppStore()
 const projectStore = useProjectStore()
-const updateStore = useUpdateStore()
-const { currentView, isDarkMode } = storeToRefs(appStore)
-
-function toggleTheme() {
-  appStore.toggleTheme()
-}
+const { currentView } = storeToRefs(appStore)
 
 function openSettingsDialog() {
   appStore.openSettings()
@@ -54,10 +48,7 @@ function openIdeasWorkbench() {
         <span style="margin-left:6px;">靈感</span>
       </el-button>
       <el-button type="primary" plain title="工作流" @click="openWorkflowManager">工作流</el-button>
-      <el-button :icon="isDarkMode ? Moon : Sunny" @click="toggleTheme" circle title="切換主題" />
-      <el-badge :is-dot="updateStore.hasUpdate" type="warning">
-        <el-button :icon="Setting" @click="openSettingsDialog" circle title="設定" />
-      </el-badge>
+      <el-button :icon="Setting" @click="openSettingsDialog" circle title="設定" />
     </div>
   </header>
 </template>
@@ -93,4 +84,4 @@ function openIdeasWorkbench() {
   display: flex;
   gap: 15px;
 }
-</style> 
+</style>

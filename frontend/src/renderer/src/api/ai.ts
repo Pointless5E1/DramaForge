@@ -65,7 +65,7 @@ export type AssistantRef = AssistantCardRef | ChapterExcerptRef | ReviewResultRe
 // Manually define AIConfigOptions if it's not in generated types
 export interface AIConfigOptions {
   llm_configs: Array<{ id: number; display_name: string }>
-  prompts: Array<{ id: number; name: string; description: string | null; built_in?: boolean }>
+  prompts: Array<{ id: number; name: string; description: string | null; built_in?: boolean; is_review_prompt?: boolean }>
   available_tasks?: string[]
   response_models: string[]
 }

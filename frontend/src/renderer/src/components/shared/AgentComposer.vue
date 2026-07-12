@@ -1,5 +1,5 @@
 ﻿<template>
-  <div class="agent-composer">
+  <div class="agent-composer" :class="{ 'agent-composer--surface': appearance === 'surface' }">
     <el-input
       v-model="innerValue"
       type="textarea"
@@ -26,12 +26,14 @@ const props = withDefaults(defineProps<{
   rows?: number
   resize?: 'none' | 'both' | 'horizontal' | 'vertical'
   inputClass?: string
+  appearance?: 'default' | 'surface'
 }>(), {
   placeholder: '請輸入內容',
   disabled: false,
   rows: 3,
   resize: 'none',
   inputClass: '',
+  appearance: 'default',
 })
 
 const emit = defineEmits<{
@@ -58,6 +60,22 @@ function handleKeydown(event: KeyboardEvent) {
 
 .composer-input {
   width: 100%;
+}
+
+.agent-composer--surface :deep(.el-textarea__inner) {
+  border: none !important;
+  border-radius: 8px;
+  background: transparent !important;
+  box-shadow: none !important;
+  transition: none !important;
+}
+.agent-composer--surface :deep(.el-textarea__inner:hover) {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.agent-composer--surface :deep(.el-textarea__inner:focus) {
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .composer-actions {

@@ -115,7 +115,13 @@ async def get_ai_config_options(session: Session = Depends(get_session)):
         response_models = get_content_models(session)
         return ApiResponse(data={
             "llm_configs": [{"id": config.id, "display_name": config.display_name or config.model_name} for config in llm_configs],
-            "prompts": [{"id": prompt.id, "name": prompt.name, "description": prompt.description, "built_in": getattr(prompt, 'built_in', False)} for prompt in prompts],
+            "prompts": [{
+                "id": prompt.id,
+                "name": prompt.name,
+                "description": prompt.description,
+                "built_in": getattr(prompt, 'built_in', False),
+                "is_review_prompt": getattr(prompt, 'is_review_prompt', False),
+            } for prompt in prompts],
             "available_tasks": [],
             "response_models": response_models
         })

@@ -30,7 +30,7 @@ defineProps<{
 
 .unsupported-text {
   margin: 0 0 10px 0;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--el-color-warning);
 }
 
@@ -42,7 +42,7 @@ defineProps<{
 
 .schema-preview {
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
   white-space: pre-wrap;
   word-break: break-all;
   background-color: var(--el-bg-color);

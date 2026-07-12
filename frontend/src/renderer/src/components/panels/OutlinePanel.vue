@@ -1,7 +1,55 @@
 <template>
   <div class="outline-panel">
     <div class="panel-pad">
-      <template v-if="hasAny">
+      <template v-if="isScreenplay">
+        <template v-if="screenplaySegmentOutline">
+          <h4 class="title">劇本片段大綱</h4>
+          <div class="section">
+            <div class="stage-head">
+              <span class="name">片段{{ screenplaySegmentOutline.segment_number || '-' }}｜{{ screenplaySegmentOutline.title || '未命名' }}</span>
+              <span class="badge">第{{ screenplaySegmentOutline.episode_number || '-' }}集</span>
+            </div>
+            <p class="text">{{ screenplaySegmentOutline.overview || '暫無概述' }}</p>
+          </div>
+        </template>
+
+        <template v-if="screenplayStageOutline">
+          <h4 class="title">劇本階段大綱</h4>
+          <div class="section">
+            <div class="stage-head">
+              <span class="name">{{ screenplayStageOutline.stage_name || `階段${screenplayStageOutline.stage_number || '-'}` }}</span>
+              <span v-if="Array.isArray(screenplayStageOutline.reference_segment) && screenplayStageOutline.reference_segment.length === 2" class="badge">
+                片段{{ screenplayStageOutline.reference_segment[0] }}–{{ screenplayStageOutline.reference_segment[1] }}
+              </span>
+            </div>
+            <p class="text">{{ screenplayStageOutline.overview || '暫無概述' }}</p>
+            <p v-if="screenplayStageOutline.analysis" class="analysis"><b>創作分析：</b>{{ screenplayStageOutline.analysis }}</p>
+          </div>
+        </template>
+
+        <template v-if="screenplayEpisodeOutline">
+          <h4 class="title">劇本分集大綱</h4>
+          <div class="section">
+            <div class="stage-head">
+              <span class="name">第{{ screenplayEpisodeOutline.episode_number || '-' }}集</span>
+            </div>
+            <div v-if="screenplayEpisodeOutline.main_target" class="sec-title">🎯 主線目標</div>
+            <p v-if="screenplayEpisodeOutline.main_target" class="text">
+              {{ screenplayEpisodeOutline.main_target.name || '' }}{{ screenplayEpisodeOutline.main_target.overview ? `：${screenplayEpisodeOutline.main_target.overview}` : '' }}
+            </p>
+            <div v-if="Array.isArray(screenplayEpisodeOutline.branch_line) && screenplayEpisodeOutline.branch_line.length" class="sec-title">🌿 支線劇情</div>
+            <ul v-if="Array.isArray(screenplayEpisodeOutline.branch_line) && screenplayEpisodeOutline.branch_line.length" class="list">
+              <li v-for="(branch, index) in screenplayEpisodeOutline.branch_line" :key="index">
+                {{ branch.name || `支線${Number(index) + 1}` }}：{{ branch.overview || '暫無概述' }}
+              </li>
+            </ul>
+          </div>
+        </template>
+
+        <div v-if="!hasScreenplayOutline" class="placeholder">暫無可用劇本大綱</div>
+      </template>
+
+      <template v-else-if="hasAny">
         <!-- 章節大綱 -->
         <template v-if="chapterOutline">
           <h4 class="title">章節大綱</h4>
@@ -86,6 +134,59 @@ const props = defineProps<{
 }>()
 
 const { cards } = storeToRefs(useCardStore())
+
+const isScreenplay = computed(() => props.activeCard?.card_type?.name === '劇本片段正文')
+
+function cardContent(card: CardRead | undefined | null): any {
+  return (card?.content as any) || {}
+}
+
+const screenplayNumbers = computed(() => {
+  const content = cardContent(props.activeCard)
+  return {
+    episode: Number(content.episode_number),
+    stage: Number(content.stage_number),
+    segment: Number(content.segment_number),
+  }
+})
+
+const screenplaySegmentOutline = computed(() => {
+  const { episode, stage, segment } = screenplayNumbers.value
+  if (![episode, stage, segment].every(Number.isFinite)) return null
+  const card = (cards.value || []).find(candidate => {
+    if (candidate.card_type?.name !== '劇本片段大綱') return false
+    const content = cardContent(candidate)
+    return Number(content.episode_number) === episode
+      && Number(content.stage_number) === stage
+      && Number(content.segment_number) === segment
+  })
+  return card ? { ...cardContent(card), title: cardContent(card).title || card.title } : null
+})
+
+const screenplayStageOutline = computed(() => {
+  const { episode, stage } = screenplayNumbers.value
+  if (![episode, stage].every(Number.isFinite)) return null
+  const card = (cards.value || []).find(candidate => {
+    if (candidate.card_type?.name !== '劇本階段大綱') return false
+    const content = cardContent(candidate)
+    return Number(content.episode_number) === episode && Number(content.stage_number) === stage
+  })
+  return card ? cardContent(card) : null
+})
+
+const screenplayEpisodeOutline = computed(() => {
+  const { episode } = screenplayNumbers.value
+  if (!Number.isFinite(episode)) return null
+  const card = (cards.value || []).find(candidate => {
+    if (candidate.card_type?.name !== '劇本分集大綱') return false
+    return Number(cardContent(candidate).episode_number) === episode
+  })
+  return card ? cardContent(card) : null
+})
+
+const hasScreenplayOutline = computed(() => Boolean(
+  screenplaySegmentOutline.value || screenplayStageOutline.value || screenplayEpisodeOutline.value,
+))
 
 // 內部狀態：當activeCard存在且outline未提供時，自動查找
 const internalOutline = ref<any | null>(null)

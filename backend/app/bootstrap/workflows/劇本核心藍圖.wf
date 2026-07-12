@@ -1,0 +1,85 @@
+# 工作流：劇本核心藍圖
+# 功能：劇本核心藍圖保存時，批量創建分集大綱、角色卡、場景卡
+# 觸發器：劇本核心藍圖卡片保存時自動觸發
+
+#@node(description="觸發器：監聽劇本核心藍圖卡片保存")
+trigger = Trigger.CardSaved(card_type="劇本核心藍圖")
+#</node>
+
+
+#@node(description="讀取劇本核心藍圖")
+blueprint = Card.Read(card_id=trigger.card_id)
+#</node>
+
+
+#@node(description="生成分集列表")
+episodes = Logic.Expression(
+    expression="[{'index': i} for i in range(1, (blueprint.content.episode_count or 0) + 1)]"
+  )
+#</node>
+
+
+#@node(async=true, description="批量創建劇本分集大綱")
+episode_cards = Card.BatchUpsert(
+    project_id=trigger.project_id,
+    card_type="劇本分集大綱",
+    title_template="第{item.index}集",
+    content_template={"episode_number": "{item.index}"},
+    match_by="title",
+    items=episodes.result
+  )
+#</node>
+
+
+#@node(description="提取角色列表")
+characters = Logic.Expression(
+    expression="blueprint.content.character_cards or []"
+  )
+#</node>
+
+
+#@node(async=true, description="批量創建角色卡")
+char_cards = Card.BatchUpsert(
+    project_id=trigger.project_id,
+    parent_id=trigger.card_id,
+    card_type="角色卡",
+    title_template="{item.name}",
+    match_by="title",
+    items=characters.result
+  )
+#</node>
+
+
+#@node(description="提取場景列表")
+scenes = Logic.Expression(
+    expression="blueprint.content.scene_cards or []"
+  )
+#</node>
+
+
+#@node(async=true, description="批量創建場景卡")
+scene_cards = Card.BatchUpsert(
+    project_id=trigger.project_id,
+    parent_id=trigger.card_id,
+    card_type="場景卡",
+    title_template="{item.name}",
+    match_by="title",
+    items=scenes.result
+  )
+#</node>
+
+
+#@node(description="等待所有異步任務完成")
+wait_result = Logic.Wait(tasks=[episode_cards, char_cards, scene_cards])
+#</node>
+
+
+#@node(description="清空來源列表")
+update_result = Card.Update(
+    card_id=trigger.card_id,
+    content_merge={
+      "character_cards": [],
+      "scene_cards": []
+    }
+  )
+#</node>

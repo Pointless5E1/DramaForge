@@ -46,8 +46,8 @@
       <el-button @click="visible=false">關閉</el-button>
     </template>
 
-    <!-- 預覽抽屜：改爲並排差異高亮渲染 -->
-    <el-drawer v-model="drawerVisible" title="版本預覽" size="70%">
+    <!-- 預覽使用與其他設定一致的中央浮窗 -->
+    <el-dialog v-model="drawerVisible" title="版本預覽" width="88%" append-to-body align-center>
       <div class="preview-wrap2">
         <div class="pane">
           <h4>內容對比</h4>
@@ -72,7 +72,10 @@
           </div>
         </div>
       </div>
-    </el-drawer>
+      <template #footer>
+        <el-button @click="drawerVisible = false">關閉</el-button>
+      </template>
+    </el-dialog>
   </el-dialog>
 </template>
 

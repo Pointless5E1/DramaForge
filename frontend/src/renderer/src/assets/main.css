@@ -54,23 +54,16 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
-/* Scrollbar Styling */
+/* Hide scrollbars globally while preserving mouse, touch, and keyboard scrolling. */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 /* Element Plus Overrides for Premium Feel */

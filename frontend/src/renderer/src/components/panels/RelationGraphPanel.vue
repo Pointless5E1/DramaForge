@@ -1,15 +1,15 @@
 <template>
   <div class="relation-graph-panel">
     <div class="toolbar">
-      <el-input v-model="filters.keyword" placeholder="關鍵詞（實體/關係/事實）" clearable class="w-keyword" @keyup.enter="reload" />
+      <el-input v-model="filters.keyword" placeholder="關鍵詞（實體/關係/事實）" :prefix-icon="Search" clearable class="w-keyword" @keyup.enter="reload" />
       <el-select v-model="filters.kind" clearable placeholder="關係類型" class="w-select">
         <el-option v-for="k in kindOptions" :key="k" :label="k" :value="k" />
       </el-select>
       <el-select v-model="filters.stance" clearable placeholder="立場" class="w-select">
         <el-option v-for="s in stanceOptions" :key="s" :label="s" :value="s" />
       </el-select>
-      <el-button type="primary" @click="reload">查詢</el-button>
-      <el-button @click="resetFilters">重置</el-button>
+      <el-button class="filter-action" @click="reload">查詢</el-button>
+      <el-button class="filter-action" @click="resetFilters">重置</el-button>
     </div>
 
     <div class="actions">
@@ -24,35 +24,34 @@
       <el-button :disabled="selectedKeys.length === 0" @click="batchEventsVisible = true">批次追加事件</el-button>
     </div>
 
-    <el-table :data="rows" border stripe v-loading="loading" @selection-change="onSelectionChange">
+    <div class="table-shell">
+    <el-table
+      :data="rows"
+      height="100%"
+      border
+      stripe
+      :default-sort="{ prop: 'updated_at', order: 'descending' }"
+      v-loading="loading"
+      @selection-change="onSelectionChange"
+    >
       <el-table-column type="selection" width="48" />
-      <el-table-column prop="source" label="A" min-width="140" />
-      <el-table-column prop="target" label="B" min-width="140" />
-      <el-table-column prop="kind_cn" label="關係" width="120" />
-      <el-table-column prop="stance" label="立場" width="100" />
-      <el-table-column prop="fact" label="事實" min-width="260" show-overflow-tooltip />
-      <el-table-column label="更新時間" width="180">
+      <el-table-column prop="source" label="A" min-width="140" sortable :sort-orders="sortOrders" />
+      <el-table-column prop="target" label="B" min-width="140" sortable :sort-orders="sortOrders" />
+      <el-table-column prop="kind_cn" label="關係" width="120" sortable :sort-orders="sortOrders" />
+      <el-table-column prop="stance" label="立場" width="100" sortable :sort-orders="sortOrders" />
+      <el-table-column prop="fact" label="事實" min-width="260" sortable :sort-orders="sortOrders" show-overflow-tooltip />
+      <el-table-column prop="updated_at" label="更新時間" width="180" sortable :sort-method="sortByUpdatedAt" :sort-orders="sortOrders">
         <template #default="{ row }">
           {{ row.updated_at ? new Date(row.updated_at).toLocaleString() : '' }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="140" fixed="right">
+      <el-table-column label="操作" width="160" fixed="right">
         <template #default="scope">
-          <el-button text size="small" @click="openEdit(scope.row)">編輯</el-button>
-          <el-button text size="small" type="danger" @click="removeOne(scope.row)">刪除</el-button>
+          <el-button size="small" type="primary" plain @click="openEdit(scope.row)">編輯</el-button>
+          <el-button size="small" type="danger" plain @click="removeOne(scope.row)">刪除</el-button>
         </template>
       </el-table-column>
     </el-table>
-
-    <div class="pager">
-      <el-pagination
-        v-model:current-page="page"
-        v-model:page-size="pageSize"
-        :total="total"
-        :page-sizes="[20, 50, 100]"
-        layout="total, sizes, prev, pager, next"
-        @change="reload"
-      />
     </div>
 
     <el-dialog v-model="editVisible" :title="editMode === 'create' ? '新增關係' : '編輯關係'" width="680px">
@@ -143,6 +142,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Search } from '@element-plus/icons-vue'
 import { useProjectStore } from '@renderer/stores/useProjectStore'
 import {
   batchAppendEventsRelationGraph,
@@ -167,10 +167,8 @@ const props = defineProps<{ refreshSeq?: number }>()
 const projectStore = useProjectStore()
 const loading = ref(false)
 const rows = ref<RelationGraphRecord[]>([])
-const total = ref(0)
-const page = ref(1)
-const pageSize = ref(20)
 const selectedRows = ref<RelationGraphRecord[]>([])
+const sortOrders = ['ascending', 'descending', null] as const
 
 const filters = reactive<{ keyword: string; kind: RelationGraphKind | ''; stance: RelationGraphStance | '' }>({
   keyword: '',
@@ -269,11 +267,10 @@ async function reload() {
       keyword: filters.keyword || undefined,
       kinds: filters.kind ? [filters.kind] : [],
       stances: filters.stance ? [filters.stance] : [],
-      offset: (page.value - 1) * pageSize.value,
-      limit: pageSize.value,
+      offset: 0,
+      limit: 10000,
     })
     rows.value = resp.items || []
-    total.value = resp.total || 0
   } catch (e: any) {
     ElMessage.error(e?.message || '載入關係圖失敗')
   } finally {
@@ -285,12 +282,17 @@ function resetFilters() {
   filters.keyword = ''
   filters.kind = ''
   filters.stance = ''
-  page.value = 1
   reload()
 }
 
 function onSelectionChange(list: RelationGraphRecord[]) {
   selectedRows.value = list || []
+}
+
+function sortByUpdatedAt(a: RelationGraphRecord, b: RelationGraphRecord): number {
+  const aTime = a.updated_at ? new Date(a.updated_at).getTime() : 0
+  const bTime = b.updated_at ? new Date(b.updated_at).getTime() : 0
+  return aTime - bTime
 }
 
 async function submitEdit() {
@@ -504,13 +506,67 @@ watch(() => props.refreshSeq, (next, prev) => {
 </script>
 
 <style scoped>
-.relation-graph-panel { display: flex; flex-direction: column; gap: 12px; padding: 12px; height: 100%; }
+.relation-graph-panel { display: flex; flex-direction: column; gap: 14px; padding: 16px 20px; height: 100%; box-sizing: border-box; font-size: 13px; }
 .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .toolbar.compact { padding: 0 0 8px 0; }
 .actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.filter-action {
+  border: 0;
+  background: var(--nf-surface-control, var(--el-fill-color));
+  color: var(--el-text-color-primary);
+}
+.filter-action:hover,
+.filter-action:focus-visible {
+  border: 0;
+  background: var(--nf-surface-raised, var(--el-fill-color-light));
+  color: var(--el-text-color-primary);
+}
+.toolbar :deep(.el-button + .el-button),
+.actions :deep(.el-button + .el-button) { margin-left: 0; }
 .w-keyword { width: 280px; }
 .w-select { width: 140px; }
-.pager { display: flex; justify-content: flex-end; padding-top: 8px; }
+.table-shell { flex: 1; min-height: 0; }
+.table-shell :deep(.el-table) {
+  border-radius: 4px;
+  --el-table-bg-color: var(--nf-surface-panel, var(--el-bg-color));
+  --el-table-tr-bg-color: var(--nf-surface-panel, var(--el-bg-color));
+  --el-table-header-bg-color: var(--nf-surface-control, var(--el-fill-color-light));
+  --el-table-row-hover-bg-color: var(--nf-surface-raised, var(--el-fill-color));
+  --el-table-border-color: var(--nf-divider-subtle, var(--el-border-color-lighter));
+}
+.relation-graph-panel :deep(.el-input__inner),
+.relation-graph-panel :deep(.el-select__selected-item),
+.relation-graph-panel :deep(.el-select__placeholder),
+.relation-graph-panel :deep(.el-table .cell),
+.relation-graph-panel :deep(.el-button),
+.relation-graph-panel :deep(.el-tag) {
+  font-size: 13px;
+}
+.table-shell :deep(.el-table__cell) {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+.table-shell :deep(.el-table__body tr.el-table__row--striped td.el-table__cell) {
+  background: var(--nf-surface-section, var(--el-fill-color-lighter));
+}
+.relation-graph-panel :deep(.el-input__wrapper),
+.relation-graph-panel :deep(.el-select__wrapper) {
+  background: var(--nf-surface-control, var(--el-fill-color));
+  box-shadow: none !important;
+}
+.relation-graph-panel :deep(.el-input__wrapper:hover),
+.relation-graph-panel :deep(.el-select__wrapper:hover) {
+  background: var(--nf-surface-raised, var(--el-fill-color-light));
+}
+.relation-graph-panel :deep(.el-input__wrapper.is-focus),
+.relation-graph-panel :deep(.el-select__wrapper.is-focused) {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--el-color-primary) 64%, transparent) inset !important;
+}
+.relation-graph-panel :deep(.el-input__wrapper),
+.relation-graph-panel :deep(.el-select__wrapper),
+.relation-graph-panel :deep(.el-button:not(.is-circle)) {
+  border-radius: 6px;
+}
 .hidden { display: none; }
 .tip { color: var(--el-text-color-secondary); font-size: 12px; margin-bottom: 8px; }
 </style>

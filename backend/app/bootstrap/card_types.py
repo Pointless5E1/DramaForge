@@ -4,6 +4,7 @@
 """
 
 import re
+from copy import deepcopy
 from typing import Any, Dict
 
 from sqlmodel import Session, select
@@ -69,6 +70,61 @@ FIELD_TITLE_ZH_MAP: Dict[str, str] = {
     "influence": "影響力",
     "relationship": "關係",
     "dynamic_info": "動態信息",
+    "format_type": "劇本形態",
+    "genre": "類型",
+    "tone": "語氣",
+    "format_notes": "格式備註",
+    "episode_count": "總集數",
+    "episode_number": "集數",
+    "segment_number": "片段序號",
+    "reference_segment": "參考片段範圍",
+    "segment_outline_list": "劇本片段大綱列表",
+    "format_version": "格式版本",
+    "screenplay_text": "劇本文本",
+    "blocks": "劇本段落",
+    "type": "段落類型",
+    "lines": "劇本行",
+    "line_type": "行類型",
+    "line_number": "行號",
+    "scene_id": "場景標識",
+    "character": "角色",
+    "social_system": "社會體系",
+    "civilization_level": "科技／文明發展水平",
+    "power_systems": "核心體系列表",
+    "system_type": "體系類型",
+    "levels": "等級／階層劃分",
+    "source": "能量／權力來源",
+}
+
+MODEL_TITLE_ZH_MAP: Dict[str, str] = {
+    "WorldBuilding": "世界觀設定",
+    "WorldviewTemplate": "世界觀",
+    "SocialSystem": "社會體系",
+    "CoreSystem": "核心體系",
+    "SpecialAbility": "金手指",
+    "CharacterCard": "角色",
+    "SceneCard": "場景",
+    "OrganizationCard": "組織／勢力",
+    "SettingItem": "世界觀設定項目",
+    "CharacterAction": "角色行動",
+    "StoryLine": "故事線",
+    "ChapterOutline": "章節大綱",
+}
+
+ARRAY_ITEM_TITLE_ZH_MAP: Dict[str, str] = {
+    "special_abilities": "金手指",
+    "currency_system": "貨幣",
+    "major_power_camps": "組織／勢力",
+    "power_systems": "核心體系",
+    "character_cards": "角色",
+    "scene_cards": "場景",
+    "new_character_cards": "角色",
+    "new_scene_cards": "場景",
+    "branch_line": "輔線",
+    "character_action_list": "角色行動",
+    "entity_snapshot": "實體狀態",
+    "chapter_outline_list": "章節大綱",
+    "entity_list": "實體",
 }
 
 _CJK_RE = re.compile(r"[\u4e00-\u9fff]")
@@ -99,6 +155,10 @@ def _localize_schema_titles(schema: Any) -> Any:
 
     def visit(node: Any) -> None:
         if isinstance(node, dict):
+            current_node_title = str(node.get("title") or "")
+            if current_node_title in MODEL_TITLE_ZH_MAP:
+                node["title"] = MODEL_TITLE_ZH_MAP[current_node_title]
+
             properties = node.get("properties")
             if isinstance(properties, dict):
                 for field_name, field_schema in properties.items():
@@ -111,11 +171,16 @@ def _localize_schema_titles(schema: Any) -> Any:
                         )
                         if localized:
                             field_schema["title"] = localized
+                    item_title = ARRAY_ITEM_TITLE_ZH_MAP.get(field_name)
+                    if item_title and "x-item-title" not in field_schema:
+                        field_schema["x-item-title"] = item_title
                     visit(field_schema)
 
             defs = node.get("$defs")
             if isinstance(defs, dict):
-                for def_schema in defs.values():
+                for def_name, def_schema in defs.items():
+                    if isinstance(def_schema, dict) and def_name in MODEL_TITLE_ZH_MAP:
+                        def_schema["title"] = MODEL_TITLE_ZH_MAP[def_name]
                     visit(def_schema)
 
             items = node.get("items")
@@ -255,6 +320,61 @@ def create_default_card_types(session: Session) -> None:
         "物品卡": {"default_ai_context_template": None, "is_ai_enabled": False},
         "概念卡": {"default_ai_context_template": None, "is_ai_enabled": False},
         "文件夾": {"is_singleton": False, "is_ai_enabled": False, "default_ai_context_template": None},
+        "劇本作品標籤": {"is_singleton": True, "is_ai_enabled": False, "default_ai_context_template": None},
+        "劇本一句話梗概": {"is_singleton": True, "default_ai_context_template": "劇本作品標籤: @劇本作品標籤.content"},
+        "劇本故事大綱": {"is_singleton": True, "default_ai_context_template": "劇本作品標籤: @劇本作品標籤.content\n劇本一句話梗概: @劇本一句話梗概.content.one_sentence"},
+        "劇本世界觀設定": {"is_singleton": True, "default_ai_context_template": "劇本作品標籤: @劇本作品標籤.content\n劇本故事大綱: @劇本故事大綱.content.overview"},
+        "劇本核心藍圖": {"is_singleton": True, "default_ai_context_template": (
+            "劇本作品標籤: @劇本作品標籤.content\n"
+            "劇本故事大綱: @劇本故事大綱.content.overview\n"
+            "劇本世界觀設定: @劇本世界觀設定.content\n"
+            "組織/勢力設定:@type:組織卡[previous:global].{content.name,content.description,content.influence,content.relationship}"
+        )},
+        "劇本分集大綱": {"default_ai_context_template": (
+            "總集數:@劇本核心藍圖.content.episode_count\n"
+            "劇本故事大綱:@劇本故事大綱.content.overview\n"
+            "劇本作品標籤:@劇本作品標籤.content\n"
+            "劇本世界觀設定: @劇本世界觀設定.content.world_view\n"
+            "組織/勢力設定:@type:組織卡[previous:global].{content.name,content.entity_type,content.life_span,content.description,content.influence,content.relationship}\n"
+            "角色卡信息:@type:角色卡[previous]\n"
+            "場景卡信息:@type:場景卡[previous]\n"
+            "上一集信息: @type:劇本分集大綱[index=$current.episodeNumber-1].content\n"
+            "接下來請你創作第 @self.content.episode_number 集的大綱\n"
+        )},
+        "劇本階段大綱": {"default_ai_context_template": (
+            "劇本世界觀設定: @劇本世界觀設定.content.world_view\n"
+            "組織/勢力設定:@type:組織卡[previous:global].{content.name,content.entity_type,content.life_span,content.description,content.influence,content.relationship}\n"
+            "本集主線:@parent.content.main_target\n"
+            "本集輔線:@parent.content.branch_line\n"
+            "角色卡信息:@type:角色卡[previous:global].{content.name,content.life_span,content.role_type,content.born_scene,content.description,content.personality,content.core_drive,content.character_arc}\n"
+            "場景卡信息:@type:場景卡[previous]\n"
+            "該集的角色行動簡述:@parent.content.character_action_list\n"
+            "之前的劇本階段大綱，確保片段範圍、劇情能夠銜接:@type:劇本階段大綱[previous:global:1].{content.stage_name,content.reference_segment,content.analysis,content.overview,content.entity_snapshot}\n"
+            "上一片段大綱概述，確保能夠銜接劇情:@type:劇本片段大綱[previous:global:1].{content.overview}\n"
+            "本集的StageCount總數爲：@parent.content.stage_count\n"
+            "注意，請務必在@parent.content.stage_count 個階段內將故事按本集主線收束，並達到集末實體快照狀態:@parent.content.entity_snapshot\n"
+            "接下來請你創作第 @self.content.stage_number 階段的劇本階段大綱。"
+        )},
+        "劇本片段大綱": {"default_ai_context_template": (
+            "劇本世界觀設定: @劇本世界觀設定.content\n"
+            "episode_number: @self.content.episode_number\n"
+            "episode_main_target: @type:劇本分集大綱[index=$current.episodeNumber].content.main_target\n"
+            "episode_branch_line: @type:劇本分集大綱[index=$current.episodeNumber].content.branch_line\n"
+            "當前劇本階段大綱: @parent.content.overview\n"
+            "當前階段覆蓋片段範圍: @parent.content.reference_segment\n"
+            "之前的劇本片段大綱: @type:劇本片段大綱[sibling].{content.segment_number,content.overview}\n"
+            "請開始創作第 @self.content.segment_number 個劇本片段的大綱，保證連貫性"
+        )},
+        "劇本片段正文": {"editor_component": "ScreenplayTextEditor", "default_ai_context_template": (
+            "劇本世界觀設定: @劇本世界觀設定.content\n"
+            "組織/勢力設定:@type:組織卡[index=filter:content.name in $self.content.entity_list].{content.name,content.description,content.influence,content.relationship,content.dynamic_state}\n"
+            "場景卡:@type:場景卡[index=filter:content.name in $self.content.entity_list].{content.name,content.description,content.dynamic_state}\n"
+            "當前劇本階段大綱: @parent.content.overview\n"
+            "角色卡:@type:角色卡[index=filter:content.name in $self.content.entity_list].{content.name,content.role_type,content.born_scene,content.description,content.personality,content.core_drive,content.character_arc,content.dynamic_info}\n"
+            "參與者實體列表:@self.content.entity_list\n"
+            "當前劇本片段大綱:@type:劇本片段大綱[index=filter:content.episode_number = $self.content.episode_number&&content.stage_number= $self.content.stage_number&&content.segment_number= $self.content.segment_number].{content.title,content.overview,content.entity_list}\n"
+            "下一劇本片段大綱:@type:劇本片段大綱[index=filter:content.episode_number = $self.content.episode_number && content.segment_number = $self.content.segment_number+1].{content.title,content.overview,content.entity_list}\n"
+        )},
     }
 
     # 類型默認 AI 參數預設（不包含 llm_config_id）
@@ -275,6 +395,14 @@ def create_default_card_types(session: Session) -> None:
         "組織卡": {"prompt_name": "關係提取", "temperature": 0.6, "max_tokens": 4096, "timeout": 120},
         "物品卡": None,
         "概念卡": None,
+        "劇本一句話梗概": {"prompt_name": "劇本一句話梗概", "temperature": 0.6, "max_tokens": 4096, "timeout": 120},
+        "劇本故事大綱": {"prompt_name": "劇本故事大綱", "temperature": 0.7, "max_tokens": 8192, "timeout": 120},
+        "劇本世界觀設定": {"prompt_name": "劇本世界觀設定", "temperature": 0.7, "max_tokens": 4096, "timeout": 150},
+        "劇本核心藍圖": {"prompt_name": "劇本核心藍圖", "temperature": 0.7, "max_tokens": 8192, "timeout": 150},
+        "劇本分集大綱": {"prompt_name": "劇本分集大綱", "temperature": 0.7, "max_tokens": 8192, "timeout": 150},
+        "劇本階段大綱": {"prompt_name": "劇本階段大綱", "temperature": 0.7, "max_tokens": 8192, "timeout": 120},
+        "劇本片段大綱": {"prompt_name": "劇本片段大綱", "temperature": 0.7, "max_tokens": 8192, "timeout": 120},
+        "劇本片段正文": {"prompt_name": "劇本片段正文", "temperature": 0.6, "max_tokens": 8192, "timeout": 120},
     }
 
     # 類型名稱到內置響應模型的映射（直接用於生成 json_schema）
@@ -298,6 +426,15 @@ def create_default_card_types(session: Session) -> None:
         "物品卡": "ItemCard",
         "概念卡": "ConceptCard",
         "文件夾": "Text",
+        "劇本作品標籤": "ScreenplayTags",
+        "劇本一句話梗概": "ScreenplayOneSentence",
+        "劇本故事大綱": "ScreenplayOverview",
+        "劇本世界觀設定": "ScreenplayWorldBuilding",
+        "劇本核心藍圖": "ScreenplayBlueprint",
+        "劇本分集大綱": "ScreenplayEpisodeOutline",
+        "劇本階段大綱": "ScreenplayStageLine",
+        "劇本片段大綱": "ScreenplaySegmentOutline",
+        "劇本片段正文": "ScreenplaySegmentContent",
     }
 
     overwrite_card_schemas = settings.bootstrap.should_overwrite_card_schemas
@@ -350,6 +487,13 @@ def create_default_card_types(session: Session) -> None:
                     schema = _localize_schema_titles(schema)
                     if ct.json_schema is None or overwrite_card_schemas:
                         ct.json_schema = schema
+                    elif name == "劇本分集大綱" and isinstance(ct.json_schema, dict):
+                        # 僅遷移這個曾由描述自動截斷的標題，保留使用者對其餘 Schema 的修改。
+                        stored_schema = deepcopy(ct.json_schema)
+                        thinking_schema = stored_schema.get("properties", {}).get("thinking")
+                        if isinstance(thinking_schema, dict):
+                            thinking_schema["title"] = "本集規劃思考"
+                            ct.json_schema = stored_schema
             except Exception:
                 pass
             # 若缺失 ai_params 則按預設填充（不覆蓋用戶已設置的）

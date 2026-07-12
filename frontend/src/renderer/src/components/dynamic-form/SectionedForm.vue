@@ -11,6 +11,7 @@
           v-model="proxy"
           :include-fields="sec.include"
           :exclude-fields="sec.exclude"
+          :hide-single-complex-field-label="sec.include?.length === 1"
         />
       </el-collapse-item>
     </el-collapse>
@@ -53,7 +54,25 @@ watch(() => props.sections, (secs) => {
 </script>
 
 <style scoped>
-.sectioned-form { display: flex; flex-direction: column; gap: 8px; }
-.sec-title { font-weight: 600; margin-right: 8px; }
-.sec-desc { color: var(--el-text-color-secondary); font-size: 12px; }
-</style> 
+.sectioned-form { display: flex; flex-direction: column; }
+.sectioned-form :deep(.el-collapse) {
+  border-top: none;
+  border-bottom: none;
+}
+.sectioned-form :deep(.el-collapse-item__header) {
+  background: var(--nf-surface-base, transparent);
+  border-bottom-color: var(--nf-divider-subtle, var(--el-border-color-lighter));
+  min-height: 56px;
+  height: auto;
+  padding: 8px 4px;
+}
+.sectioned-form :deep(.el-collapse-item__wrap) {
+  background: var(--nf-surface-base, transparent);
+  border-bottom-color: var(--nf-divider-subtle, var(--el-border-color-lighter));
+}
+.sectioned-form :deep(.el-collapse-item__content) {
+  padding: 22px 4px 32px;
+}
+.sec-title { font-size: 15px; font-weight: 600; margin-right: 8px; }
+.sec-desc { color: var(--el-text-color-secondary); font-size: 13px; }
+</style>

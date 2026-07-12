@@ -1,0 +1,52 @@
+# 工作流：項目創建·劇本創作法
+# 功能：當新項目創建時，自動創建劇本版雪花創作法初始卡片
+# 觸發器：項目創建時自動觸發
+
+#@node(description="觸發器：監聽劇本創作法項目創建事件")
+trigger = Trigger.ProjectCreated(template="screenplay")
+#</node>
+
+
+#@node(description="創建劇本作品標籤")
+tags = Card.Create(
+    project_id=trigger.project_id,
+    card_type="劇本作品標籤",
+    title="劇本作品標籤"
+  )
+#</node>
+
+
+#@node(description="創建劇本一句話梗概")
+one_sentence = Card.Create(
+    project_id=trigger.project_id,
+    card_type="劇本一句話梗概",
+    title="劇本一句話梗概"
+  )
+#</node>
+
+
+#@node(description="創建劇本故事大綱")
+outline = Card.Create(
+    project_id=trigger.project_id,
+    card_type="劇本故事大綱",
+    title="劇本故事大綱"
+  )
+#</node>
+
+
+#@node(description="創建劇本世界觀設定")
+world = Card.Create(
+    project_id=trigger.project_id,
+    card_type="劇本世界觀設定",
+    title="劇本世界觀設定"
+  )
+#</node>
+
+
+#@node(description="創建劇本核心藍圖")
+blueprint = Card.Create(
+    project_id=trigger.project_id,
+    card_type="劇本核心藍圖",
+    title="劇本核心藍圖"
+  )
+#</node>

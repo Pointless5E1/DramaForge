@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import LLMConfigManager from '../setting/LLMConfigManager.vue'
-import Versions from '../Versions.vue'
 import PromptWorkshop from '../setting/PromptWorkshop.vue'
 import CardTypeManager from '../setting/CardTypeManager.vue'
 import KnowledgeManager from '../setting/KnowledgeManager.vue'
 import AssistantSettings from '../setting/AssistantSettings.vue'
-import { useUpdateStore } from '@renderer/stores/useUpdateStore'
 
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits<{ 'update:modelValue': [value: boolean]; 'close': [] }>()
@@ -15,7 +13,6 @@ const activeTab = ref('llm')
 // 讀取全局 store 預設的初始 tab
 import { useAppStore } from '@renderer/stores/useAppStore'
 const appStore = useAppStore()
-const updateStore = useUpdateStore()
 activeTab.value = appStore.settingsInitialTab || 'llm'
 
 function handleClose() {
@@ -62,14 +59,6 @@ watch(() => props.modelValue, async (open) => { if (open) { await nextTick(); em
         </el-tab-pane>
         <el-tab-pane label="Agent 設定" name="assistant">
           <AssistantSettings />
-        </el-tab-pane>
-        <el-tab-pane name="about">
-          <template #label>
-            <el-badge :is-dot="updateStore.hasUpdate" type="warning">
-              <span>關於</span>
-            </el-badge>
-          </template>
-          <Versions />
         </el-tab-pane>
       </el-tabs>
     </div>

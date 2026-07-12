@@ -206,3 +206,141 @@ class Chapter(BaseModel):
     content:Optional[str]=Field(default="",description="章節正文內容")
     
 
+# === Screenplay Snowflake Schemas ===
+
+class ScreenplayTags(BaseModel):
+    """
+    劇本作品標籤。獨立於小說作品標籤，避免劇本流程依賴雪花創作法原始卡片。
+    """
+    format_type: Literal['劇集', '電影', '短片', '舞台劇', '其他'] = Field(default='劇集', description="劇本形態")
+    genre: str = Field(default="", description="類型/題材，例如：懸疑、愛情、職場、科幻、家庭")
+    audience: str = Field(default="", description="目標觀眾")
+    tone: str = Field(default="", description="整體語氣，例如：冷峻、輕喜劇、寫實、黑色幽默")
+    story_tags: List[Tuple[str, Literal['低權重', '中權重', '高權重']]] = Field(default=[], description="劇本標籤及權重檔位")
+    format_notes: Optional[str] = Field(default="", description="特殊格式或平台要求")
+
+
+class ScreenplayOneSentence(BaseModel):
+    """劇本一句話梗概"""
+    one_sentence_thinking: str = Field(description="從劇本標籤到一句話梗概的創作思考過程")
+    one_sentence: str = Field(description="一句話概述劇本核心故事")
+
+
+class ScreenplayOverview(BaseModel):
+    """劇本故事大綱"""
+    overview_thinking: str = Field(description="從一句話梗概到劇本故事大綱的創作思考過程")
+    overview: str = Field(description="劇本故事大綱，需包含主要角色、主要衝突、故事推進與結局方向")
+
+
+class ScreenplayWorldBuilding(BaseModel):
+    """劇本世界觀設定"""
+    world_view_thinking: str = Field(description="劇本世界觀設計思考過程")
+    world_view: WorldviewTemplate = Field(description="劇本世界觀設定")
+
+
+class ScreenplayBlueprint(BaseModel):
+    """劇本核心藍圖"""
+    episode_count: int = Field(description="預期劇本集數；對應小說流程的分卷數")
+    character_thinking: str = Field(description="劇本核心角色設計思考過程")
+    character_cards: List[CharacterCard] = Field(description="核心角色卡片列表，僅在此生成跨集長期影響的核心角色")
+    scene_thinking: str = Field(description="劇本核心場景設計思考過程")
+    scene_cards: List[SceneCard] = Field(description="核心場景卡片列表，僅在此生成跨集長期影響的核心場景")
+
+
+class ScreenplayEpisodeOutline(BaseModel):
+    """劇本分集大綱"""
+    episode_number: Optional[int] = Field(description="第幾集")
+    thinking: Optional[str] = Field(
+        title="本集規劃思考",
+        description="思考本集如何承接整體故事、推進主要衝突、安排階段節奏",
+    )
+    main_target: StoryLine = Field(description="本集主線目標")
+    branch_line: Optional[List[StoryLine]] = Field(description="本集輔線或支線，包含1~3條核心輔線")
+    character_thinking: Optional[str] = Field(description="本集角色行動與關係變化設計思考")
+    new_character_cards: Optional[List[CharacterCard]] = Field(default=None, description="如有新增關鍵角色，在此補充其信息；非必要儘量不引入新角色")
+    new_scene_cards: Optional[List[SceneCard]] = Field(default=None, description="如有新增關鍵場景，在此補充其信息；非必要儘量不引入新場景")
+    stage_count: int = Field(description="預期本集階段數，通常爲4~6個")
+    character_action_list: Optional[List[CharacterAction]] = Field(description="本集關鍵角色的行動與變化")
+    entity_snapshot: Optional[List[str]] = Field(description="本集結尾時關鍵實體快照狀態")
+
+
+class ScreenplaySegmentOutline(BaseModel):
+    """劇本片段大綱"""
+    episode_number: int = Field(description="集數")
+    stage_number: int = Field(description="該片段屬於第幾個階段，從1開始")
+    title: str = Field(description="片段標題")
+    segment_number: int = Field(description="片段序號")
+    overview: str = Field(description="片段細綱，需足以支撐生成劇本片段正文", min_length=80)
+    entity_list: List[str] = Field(description="片段中出場的重要實體列表，只能從上下文提供的實體中選擇")
+
+
+class ScreenplayStageLine(BaseModel):
+    """劇本按階段劃分的信息"""
+    episode_number: int = Field(description="該劇本階段屬於第幾集")
+    stage_number: int = Field(description="該劇本階段是第幾個階段，從1開始")
+    stage_name: str = Field(description="用一個名稱或一句話簡單概述這個階段")
+    reference_segment: Tuple[int, int] = Field(description="該階段的起始和結束片段號")
+    analysis: Optional[str] = Field(description="本階段如何服務本集主線、角色變化、衝突升級與片段安排")
+    overview: Optional[str] = Field(description="本階段劇情內容具體概述")
+    segment_outline_list: Optional[List[ScreenplaySegmentOutline]] = Field(description="根據reference_segment、overview生成所需的劇本片段大綱")
+    entity_snapshot: Optional[List[str]] = Field(description="階段末時關鍵實體快照狀態")
+
+    @model_validator(mode="after")
+    def validate_segment_outline_coverage(self):
+        if not self.segment_outline_list:
+            return self
+
+        start, end = self.reference_segment
+        if start > end:
+            raise ValueError("reference_segment start must be <= end")
+
+        actual_numbers = [item.segment_number for item in self.segment_outline_list]
+        expected_numbers = list(range(start, end + 1))
+        if actual_numbers != expected_numbers:
+            raise ValueError(
+                "segment_outline_list.segment_number must be contiguous and fully cover reference_segment"
+            )
+        return self
+
+
+ScreenplayBlockType = Literal[
+    'scene_heading',
+    'action',
+    'character',
+    'parenthetical',
+    'dialogue',
+    'transition',
+    'shot',
+    'note',
+    'blank',
+]
+
+
+class ScreenplayBlock(BaseModel):
+    """劇本片段正文的結構化段落。這是劇本正文的主資料，用於保護格式並支持 WYSIWYG 編輯。"""
+    type: ScreenplayBlockType = Field(description="段落類型")
+    text: str = Field(default="", description="段落乾淨文字。不要預先加入好萊塢格式縮排、對白 block 的外層格式引號或括註 block 的外層格式括號，排版由編輯器/匯出器負責；內容內必要標點可正常使用")
+    character: Optional[str] = Field(default=None, description="對白或括註所屬角色；非對白段落可留空")
+    scene_id: Optional[str] = Field(default=None, description="可選場景標識，用於同一片段中多場景追蹤")
+
+
+class ScreenplayLine(BaseModel):
+    """舊版相容行索引。新資料請優先使用 blocks。"""
+    line_number: int = Field(description="對應 screenplay_text 按換行切分後的 1-based 行號")
+    line_type: ScreenplayBlockType = Field(description="劇本行類型")
+    character: Optional[str] = Field(default=None, description="對白或括註所屬角色；非對白行可留空")
+    scene_id: Optional[str] = Field(default=None, description="可選場景標識，用於同一片段中多場景追蹤")
+
+
+class ScreenplaySegmentContent(BaseModel):
+    """劇本片段正文。以結構化 blocks 作爲主資料，screenplay_text 僅作純文字匯出/舊版相容。"""
+    episode_number: int = Field(description="集數")
+    stage_number: int = Field(description="階段序號")
+    segment_number: int = Field(description="片段序號")
+    title: str = Field(description="片段標題")
+    entity_list: List[str] = Field(description="片段中參與的重要實體列表")
+    format_version: str = Field(default="screenplay-doc-v1", description="劇本正文結構格式版本")
+    blocks: List[ScreenplayBlock] = Field(description="好萊塢劇本格式段落列表，按閱讀順序排列", min_length=1)
+    screenplay_text: Optional[str] = Field(default="", description="由 blocks 序列化得到的純文字劇本，便於複製到 Word 或文字編輯器")
+    lines: Optional[List[ScreenplayLine]] = Field(default=None, description="舊版 screenplay-text-v1 行類型索引，相容保留")
+

@@ -1,0 +1,73 @@
+# 工作流：劇本階段大綱
+# 功能：劇本階段大綱保存時，提取劇本片段大綱列表並批量創建劇本片段大綱卡和劇本片段正文卡
+# 觸發器：劇本階段大綱卡片保存時自動觸發
+
+#@node(description="觸發器：監聽劇本階段大綱卡片保存")
+trigger = Trigger.CardSaved(card_type="劇本階段大綱")
+#</node>
+
+
+#@node(description="讀取劇本階段大綱")
+stage = Card.Read(card_id=trigger.card_id)
+#</node>
+
+
+#@node(description="提取並增強劇本片段大綱列表")
+enriched_outlines = Logic.Expression(
+    expression="[{**outline, 'title': (str(outline.get('title') or '') if str(outline.get('title') or '').startswith('片段' + str(outline.get('segment_number')) + ' ') else ('片段' + str(outline.get('segment_number')) + ' ' + str(outline.get('title') or ''))), 'entity_list': (outline.get('entity_list') or []), 'episode_number': stage.content.episode_number, 'stage_number': stage.content.stage_number} for outline in stage.content.segment_outline_list or []]"
+  )
+#</node>
+
+
+#@node(description="校驗片段號是否完整連續覆蓋範圍")
+validated_outlines = Logic.Expression(
+    expression="enriched_outlines.result if (stage.content.reference_segment and len(stage.content.reference_segment) == 2 and [int(item.get('segment_number', -1)) for item in enriched_outlines.result] == list(range(int(stage.content.reference_segment[0]), int(stage.content.reference_segment[1]) + 1))) else []"
+  )
+#</node>
+
+
+#@node(async=true, description="批量創建劇本片段大綱卡")
+outline_cards = Card.BatchUpsert(
+    project_id=trigger.project_id,
+    parent_id=trigger.card_id,
+    card_type="劇本片段大綱",
+    title_template="{item.title}",
+    items=validated_outlines.result
+  )
+#</node>
+
+
+#@node(async=true, description="批量創建劇本片段正文卡")
+content_cards = Card.BatchUpsert(
+    project_id=trigger.project_id,
+    parent_id=trigger.card_id,
+    card_type="劇本片段正文",
+    title_template="{item.title}",
+    content_template={
+      "episode_number": "{item.episode_number}",
+      "stage_number": "{item.stage_number}",
+      "segment_number": "{item.segment_number}",
+      "title": "{item.title}",
+      "entity_list": "{item.entity_list}",
+      "format_version": "screenplay-doc-v1",
+      "blocks": [],
+      "screenplay_text": ""
+    },
+    items=validated_outlines.result
+  )
+#</node>
+
+
+#@node(description="等待異步任務完成")
+wait_result = Logic.Wait(tasks=[outline_cards, content_cards])
+#</node>
+
+
+#@node(description="清空片段大綱列表")
+update_result = Card.Update(
+    card_id=trigger.card_id,
+    content_merge={
+      "segment_outline_list": []
+    }
+  )
+#</node>

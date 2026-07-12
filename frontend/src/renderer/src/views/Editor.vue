@@ -7,63 +7,25 @@
         
       </div>
 
-      <!-- 上半區（類型列表 + 自由卡片庫） -->
-      <div class="types-pane" :style="{ height: typesPaneHeight + 'px' }" @dragover.prevent @drop="onTypesPaneDrop">
-        <div class="pane-title">已有卡片類型</div>
-        <el-scrollbar class="types-scroll">
-          <ul class="types-list">
-            <li v-for="t in cardStore.cardTypes" :key="t.id" class="type-item" draggable="true"
-                @dragstart="onTypeDragStart(t)">
-              <span class="type-name">{{ t.name }}</span>
-            </li>
-          </ul>
-        </el-scrollbar>
-      </div>
-      <!-- 內部分割條（垂直） -->
-      <div class="inner-resizer" @mousedown="startResizingInner"></div>
-
-      <!-- 下半區：項目卡片樹 -->
-      <div class="cards-pane" :style="{ height: `calc(100% - ${typesPaneHeight + innerResizerThickness}px)` }" @dragover.prevent @drop="onCardsPaneDrop">
+      <!-- 項目卡片樹 -->
+      <div class="cards-pane" @dragover.prevent @drop="onCardsPaneDrop">
         <div class="cards-title">
           <div class="cards-title-head">
             <div class="cards-title-text">當前專案：{{ projectStore.currentProject?.name }}</div>
-            <div v-if="selectedCardIds.length > 0" class="cards-selection-chip">已選 {{ selectedCardIds.length }}</div>
           </div>
           <div class="cards-title-actions">
-            <el-button
-              class="toolbar-action"
-              :class="selectedCardIds.length > 0 ? 'toolbar-action-create-split' : 'toolbar-action-create-full'"
-              size="small"
-              type="primary"
-              :icon="Plus"
-              @click="openCreateRoot"
-            >
-              新建卡片
-            </el-button>
-            <el-button
-              v-if="selectedCardIds.length > 0"
-              class="toolbar-action toolbar-action-danger toolbar-action-danger-split"
-              size="small"
-              type="danger"
-              :icon="Delete"
-              @click="batchDeleteCards"
-            >
-              刪除選中 ({{ selectedCardIds.length }})
-            </el-button>
-            <el-button v-if="!isFreeProject" class="toolbar-action toolbar-action-secondary" size="small" :icon="Upload" @click="openImportFreeCards">匯入卡片</el-button>
-            <el-button class="toolbar-action toolbar-action-secondary" :class="{ 'toolbar-action-secondary--solo': isFreeProject }" size="small" :icon="Download" @click="openExportDialog">匯出卡片</el-button>
+            <el-button class="toolbar-action toolbar-action-secondary" size="small" :icon="Upload" @click="openImportFreeCards">匯入卡片</el-button>
+            <el-button class="toolbar-action toolbar-action-secondary" size="small" :icon="Download" @click="openExportDialog">匯出卡片</el-button>
           </div>
-        </div>
-        
-        <!-- 搜尋框 -->
-        <div class="search-box" style="padding: 0 8px 8px;">
-           <el-input 
-             v-model="searchQuery" 
-             placeholder="搜尋卡片..." 
-             :prefix-icon="Search"
-             clearable
-             @input="handleSearch"
-           />
+          <div class="search-box">
+            <el-input 
+              v-model="searchQuery" 
+              placeholder="搜尋卡片..." 
+              :prefix-icon="Search"
+              clearable
+              @input="handleSearch"
+            />
+          </div>
         </div>
 
         <!-- 搜尋結果 -->
@@ -146,6 +108,19 @@
           </el-dropdown-menu>
         </template>
       </el-dropdown>
+      <el-tooltip :content="isLeftSidebarVisible ? '收起左側導航' : '展開左側導航'" placement="bottom">
+        <button
+          type="button"
+          class="sidebar-edge-toggle"
+          :class="{ 'is-collapsed': !isLeftSidebarVisible }"
+          :aria-label="isLeftSidebarVisible ? '收起左側導航' : '展開左側導航'"
+          @click="toggleLeftSidebar"
+        >
+          <el-icon class="sidebar-edge-toggle__icon">
+            <component :is="isLeftSidebarVisible ? ArrowLeft : ArrowRight" />
+          </el-icon>
+        </button>
+      </el-tooltip>
     </el-aside>
     
     <!-- 拖拽條 -->
@@ -153,10 +128,7 @@
 
     <!-- 中欄主內容區 -->
     <el-main class="main-content">
-      <el-tabs v-model="activeTab" type="border-card" class="main-tabs">
-        <el-tab-pane label="卡片庫" name="market">
-          <CardMarket @edit-card="handleEditCard" />
-        </el-tab-pane>
+      <el-tabs v-model="activeTab" type="border-card" class="main-tabs" :class="{ 'is-left-collapsed': !isLeftSidebarVisible }">
         <el-tab-pane label="編輯器" name="editor">
           <template v-if="activeCard">
             <CardEditorHost :card="activeCard" :prefetched="prefetchedContext" />
@@ -166,15 +138,62 @@
         <el-tab-pane label="關係圖管理" name="relation-graph">
           <RelationGraphPanel :refresh-seq="relationGraphRefreshSeq" />
         </el-tab-pane>
+        <el-tab-pane label="卡片管理" name="market">
+          <CardMarket @edit-card="handleEditCard" />
+        </el-tab-pane>
+        <el-tab-pane label="卡片庫" name="card-library">
+          <div class="card-library-pane">
+            <section class="card-type-section">
+              <div class="card-type-section__title">
+                <span>正在使用</span>
+                <span class="card-type-section__count">{{ usedCardTypes.length }}</span>
+              </div>
+              <div v-if="usedCardTypes.length" class="card-type-list">
+                <div
+                  v-for="type in usedCardTypes"
+                  :key="type.id"
+                  class="card-type-block"
+                  draggable="true"
+                  @dragstart="onTypeDragStart($event, type)"
+                >
+                  <el-icon><component :is="getIconByCardType(type.name)" /></el-icon>
+                  <span>{{ type.name }}</span>
+                </div>
+              </div>
+              <el-empty v-else description="尚無使用中的卡片類型" :image-size="52" />
+            </section>
+
+            <div class="card-type-divider" role="separator"></div>
+
+            <section class="card-type-section">
+              <div class="card-type-section__title">
+                <span>尚未使用</span>
+                <span class="card-type-section__count">{{ unusedCardTypes.length }}</span>
+              </div>
+              <div v-if="unusedCardTypes.length" class="card-type-list">
+                <div
+                  v-for="type in unusedCardTypes"
+                  :key="type.id"
+                  class="card-type-block"
+                  draggable="true"
+                  @dragstart="onTypeDragStart($event, type)"
+                >
+                  <el-icon><component :is="getIconByCardType(type.name)" /></el-icon>
+                  <span>{{ type.name }}</span>
+                </div>
+              </div>
+              <el-empty v-else description="所有卡片類型都已使用" :image-size="52" />
+            </section>
+          </div>
+        </el-tab-pane>
       </el-tabs>
     </el-main>
 
     <!-- 右側助手面板分隔條與面板 -->
     <div class="resizer right-resizer" @mousedown="startResizing('right')"></div>
     <el-aside class="sidebar assistant-sidebar" :style="{ width: rightSidebarWidth + 'px' }">
-      <!-- 章節正文卡片：顯示4個Tab -->
-      <template v-if="showRightSidebarTabs">
-        <el-tabs v-model="activeRightTab" type="card" class="right-tabs">
+      <!-- 右側功能頁籤 -->
+      <el-tabs v-model="activeRightTab" type="border-card" class="right-tabs">
           <el-tab-pane label="助手" name="assistant">
             <AssistantPanel
               :resolved-context="assistantResolvedContext"
@@ -194,73 +213,42 @@
             />
           </el-tab-pane>
           
-          <template v-if="isChapterContent">
-          <el-tab-pane label="參與實體" name="context">
-            <ContextPanel 
-              :project-id="projectStore.currentProject?.id"
-              :prefetched="prefetchedContext"
-              :volume-number="chapterVolumeNumber"
-              :chapter-number="chapterChapterNumber"
-              :participants="chapterParticipants"
-              @update:participants="handleContextParticipantsUpdate"
-              @context-updated="handleContextAssembledUpdate"
-            />
-          </el-tab-pane>
-          
-          <el-tab-pane label="提取" name="extract">
-            <ChapterToolsPanel />
-          </el-tab-pane>
-          
-          <el-tab-pane label="大綱" name="outline">
-            <OutlinePanel 
-              :active-card="activeCard"
-              :volume-number="chapterVolumeNumber"
-              :chapter-number="chapterChapterNumber"
-            />
-          </el-tab-pane>
-          </template>
-          
-          <el-tab-pane label="審核結果" name="review-history">
+          <el-tab-pane label="審核" name="review-history">
             <ReviewHistoryPanel
               :target-card-id="reviewTargetCardIdForSidebar"
             />
           </el-tab-pane>
-        </el-tabs>
-      </template>
-      
-      <!-- 其他卡片：僅顯示助手 -->
-      <AssistantPanel
-        v-else
-        :resolved-context="assistantResolvedContext"
-        :llm-config-id="assistantParams.llm_config_id as any"
-        :prompt-name="'靈感對話'"
-        :temperature="assistantParams.temperature as any"
-        :max_tokens="assistantParams.max_tokens as any"
-        :timeout="assistantParams.timeout as any"
-        :effective-schema="assistantEffectiveSchema"
-        :generation-prompt-name="assistantParams.prompt_name as any"
-        :current-card-title="assistantSelectionCleared ? '' : (activeCard?.title as any)"
-        :current-card-content="assistantSelectionCleared ? null : (activeCard?.content as any)"
-        @refresh-context="refreshAssistantContext"
-        @reset-selection="resetAssistantSelection"
-        @finalize="assistantFinalize"
-        @jump-to-card="handleJumpToCard"
-      />
+
+          <template v-if="hasEntityListPanel">
+            <el-tab-pane label="實體" name="context">
+              <ContextPanel
+                :project-id="projectStore.currentProject?.id"
+                :prefetched="prefetchedContext"
+                :volume-number="chapterVolumeNumber"
+                :chapter-number="chapterChapterNumber"
+                :participants="chapterParticipants"
+                @update:participants="handleContextParticipantsUpdate"
+                @context-updated="handleContextAssembledUpdate"
+              />
+            </el-tab-pane>
+
+          </template>
+
+          <template v-if="isChapterContent">
+            <el-tab-pane label="提取" name="extract">
+              <ChapterToolsPanel />
+            </el-tab-pane>
+
+            <el-tab-pane label="大綱" name="outline">
+              <OutlinePanel
+                :active-card="activeCard"
+                :volume-number="chapterVolumeNumber"
+                :chapter-number="chapterChapterNumber"
+              />
+            </el-tab-pane>
+          </template>
+      </el-tabs>
     </el-aside>
-    <el-tooltip :content="isLeftSidebarVisible ? '收起左側導航' : '展開左側導航'" placement="right">
-      <button
-        type="button"
-        class="sidebar-edge-toggle"
-        :class="{ 'is-collapsed': !isLeftSidebarVisible }"
-        :style="{ left: `${leftSidebarToggleOffset}px` }"
-        :aria-label="isLeftSidebarVisible ? '收起左側導航' : '展開左側導航'"
-        @click="toggleLeftSidebar"
-      >
-        <el-icon class="sidebar-edge-toggle__icon">
-          <component :is="isLeftSidebarVisible ? ArrowLeft : ArrowRight" />
-        </el-icon>
-      </button>
-    </el-tooltip>
   </div>
 
   <!-- 新建卡片對話框 -->
@@ -352,7 +340,7 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive, defineAsyncComponent, onBeforeUnmount, computed, watch, nextTick } from 'vue'
 import { storeToRefs } from 'pinia'
-import { Plus, Search, Upload, Download, Delete, ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
+import { Search, Upload, Download, ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { debounce } from 'lodash-es'
 import { 
@@ -382,7 +370,7 @@ import { useEditorStore } from '@renderer/stores/useEditorStore'
 import { useProjectStore } from '@renderer/stores/useProjectStore'
 import { useAssistantStore } from '@renderer/stores/useAssistantStore'
 import SchemaStudio from '@renderer/components/shared/SchemaStudio.vue'
-import { getCardSchema, createCardType } from '@renderer/api/setting'
+import { getCardSchema } from '@renderer/api/setting'
 import { getProjects } from '@renderer/api/projects'
 import { getCardsForProject, copyCard, getCardAIParams, searchCards } from '@renderer/api/cards'
 import { generateAIContent } from '@renderer/api/ai'
@@ -479,7 +467,6 @@ function openExportDialog() {
  const { expandedKeys } = storeToRefs(editorStore)
  const projectStore = useProjectStore()
  const assistantStore = useAssistantStore()
- const isFreeProject = computed(() => (projectStore.currentProject?.name || '') === '__free__')
 
   // --- 前端自動分組器 ---
  // 當某節點的直接子卡片中，任一“類型的數量 > 2”時，爲該類型創建一個虛擬分組節點；
@@ -540,6 +527,13 @@ function openExportDialog() {
 
 // 基於原始 cardTree 計算帶分組的樹
 const groupedTree = computed(() => buildGroupedNodes(cardTree.value as unknown as any[]))
+const usedCardTypeIds = computed(() => new Set(
+  (cards.value || [])
+    .map(card => Number((card as any)?.card_type?.id ?? (card as any)?.card_type_id))
+    .filter(id => Number.isFinite(id) && id > 0),
+))
+const usedCardTypes = computed(() => cardStore.cardTypes.filter(type => usedCardTypeIds.value.has(Number(type.id))))
+const unusedCardTypes = computed(() => cardStore.cardTypes.filter(type => !usedCardTypeIds.value.has(Number(type.id))))
 
 // Local State
 const activeTab = ref('market')
@@ -592,8 +586,6 @@ const handleSearch = debounce(async (query: string) => {
 const { leftSidebarWidth, rightSidebarWidth, startResizing } = useSidebarResizer()
 const isLeftSidebarVisible = ref(true)
 const leftSidebarDisplayWidth = computed(() => (isLeftSidebarVisible.value ? leftSidebarWidth.value : 0))
-const leftSidebarToggleOffset = computed(() => (isLeftSidebarVisible.value ? Math.max(leftSidebarDisplayWidth.value - 18, 8) : 10))
-
 function toggleLeftSidebar() {
   isLeftSidebarVisible.value = !isLeftSidebarVisible.value
 }
@@ -605,30 +597,12 @@ function toggleLeftSidebar() {
    children: 'children'
  } as const
  
- // 內部垂直分割：類型/卡片高度
- const typesPaneHeight = ref(180)
- const innerResizerThickness = 6
- // 左側寬度拖拽沿用 useSidebarResizer.startResizing('left')
-
- function startResizingInner() {
-   const startY = (event as MouseEvent).clientY
-   const startH = typesPaneHeight.value
-   const onMove = (e: MouseEvent) => {
-     const dy = e.clientY - startY
-     const next = Math.max(120, Math.min(startH + dy, 400))
-     typesPaneHeight.value = next
-   }
-   const onUp = () => {
-     window.removeEventListener('mousemove', onMove)
-     window.removeEventListener('mouseup', onUp)
-   }
-   window.addEventListener('mousemove', onMove)
-   window.addEventListener('mouseup', onUp)
- }
-
 // 拖拽：從類型到卡片區域創建新實例
-function onTypeDragStart(t: any) {
-  try { (event as DragEvent).dataTransfer?.setData('application/x-card-type-id', String(t.id)) } catch {}
+function onTypeDragStart(event: DragEvent, type: any) {
+  try {
+    event.dataTransfer?.setData('application/x-card-type-id', String(type.id))
+    if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy'
+  } catch {}
 }
 async function onCardsPaneDrop(e: DragEvent) {
  try {
@@ -651,34 +625,6 @@ async function onCardsPaneDrop(e: DragEvent) {
    }
    // 注意：同項目內的卡片拖拽現在由 el-tree 的原生拖拽處理（handleNodeDrop）
  } catch {}
-}
-
-// 從卡片實例提升爲類型：在上半區鬆手
-async function onTypesPaneDrop(e: DragEvent) {
- try {
-   const cardIdStr = e.dataTransfer?.getData('application/x-card-id')
-   const cardId = cardIdStr ? Number(cardIdStr) : NaN
-   if (!cardId || Number.isNaN(cardId)) return
-   // 讀取該卡片的有效 schema
-   const resp = await getCardSchema(cardId)
-   const effective = resp?.effective_schema || resp?.json_schema
-   if (!effective) { ElMessage.warning('該卡片暫無可用結構，無法生成類型'); return }
-   // 預設名稱：卡片標題或“新類型”
-   const old = cards.value.find(c => (c as any).id === cardId)
-   const defaultName = (old?.title || '新類型') as string
-   const { value } = await ElMessageBox.prompt('從該實例創建卡片類型，請輸入類型名稱：', '創建卡片類型', {
-     inputValue: defaultName,
-     confirmButtonText: '創建',
-     cancelButtonText: '取消',
-     inputValidator: (v:string) => v.trim().length > 0 || '名稱不能爲空'
-   })
-   const finalName = String(value).trim()
-   await createCardType({ name: finalName, description: `${finalName}的預設卡片類型`, json_schema: effective } as any)
-   ElMessage.success('已從實例創建卡片類型')
-   await cardStore.fetchCardTypes()
- } catch (err) {
-   // 用戶取消或錯誤忽略
- }
 }
 
 // ===== el-tree 原生拖拽功能 =====
@@ -1458,13 +1404,17 @@ const assistantEffectiveSchema = ref<any>(null)
 const assistantSelectionCleared = ref<boolean>(false)
 const assistantParams = ref<{ llm_config_id: number | null; prompt_name: string | null; temperature: number | null; max_tokens: number | null; timeout: number | null }>({ llm_config_id: null, prompt_name: '靈感對話', temperature: null, max_tokens: null, timeout: null })
 
-// 判斷當前是否爲章節正文卡片
+// 判斷當前是否爲可使用正文側欄工具的卡片。
+// 劇本片段正文與章節正文共用參與實體、提取及大綱頁籤。
 const isChapterContent = computed(() => {
-  return activeCard.value?.card_type?.name === '章節正文'
+  const cardTypeName = activeCard.value?.card_type?.name
+  return cardTypeName === '章節正文' || cardTypeName === '劇本片段正文'
 })
 
-const showRightSidebarTabs = computed(() => {
-  return Boolean(activeCard.value)
+// 片段大綱也保存獨立的 entity_list，應讓使用者看見並直接維護。
+const hasEntityListPanel = computed(() => {
+  const cardTypeName = activeCard.value?.card_type?.name
+  return isChapterContent.value || cardTypeName === '劇本片段大綱'
 })
 
 const reviewTargetCardIdForSidebar = computed<number | null>(() => {
@@ -1478,56 +1428,56 @@ const reviewTargetCardIdForSidebar = computed<number | null>(() => {
 })
 
 const rightSidebarTabNames = computed(() => {
-  if (!showRightSidebarTabs.value) return [] as string[]
   if (isChapterContent.value) return ['assistant', 'context', 'extract', 'outline', 'review-history']
+  if (hasEntityListPanel.value) return ['assistant', 'context', 'review-history']
   return ['assistant', 'review-history']
 })
 
 // 章節資訊提取
 const chapterVolumeNumber = computed(() => {
-  if (!isChapterContent.value) return null
+  if (!hasEntityListPanel.value) return null
   const content: any = activeCard.value?.content || {}
-  return content.volume_number ?? null
+  return content.volume_number ?? content.episode_number ?? null
 })
 
 const chapterChapterNumber = computed(() => {
-  if (!isChapterContent.value) return null
+  if (!hasEntityListPanel.value) return null
   const content: any = activeCard.value?.content || {}
-  return content.chapter_number ?? null
+  return content.chapter_number ?? content.segment_number ?? null
 })
 
 const chapterParticipants = computed(() => {
-  if (!isChapterContent.value) return []
+  if (!hasEntityListPanel.value) return []
   const content: any = activeCard.value?.content || {}
   const list = content.entity_list || []
   if (Array.isArray(list)) {
-    return list.map((x: any) => typeof x === 'string' ? x : (x?.name || '')).filter(Boolean).slice(0, 6)
+    return list.map((x: any) => typeof x === 'string' ? x : (x?.name || '')).filter(Boolean)
   }
   return []
 })
 
 // 自動裝配章節上下文（首次進入章節正文時）
-watch(isChapterContent, async (val) => {
+watch(hasEntityListPanel, async (val) => {
   if (val && activeCard.value) {
     await assembleChapterContext()
   }
 }, { immediate: true })
 
-watch(rightSidebarTabNames, (tabNames) => {
-  if (!tabNames.includes(activeRightTab.value)) {
+watch([rightSidebarTabNames, activeRightTab], ([tabNames, activeTabName]) => {
+  if (!tabNames.includes(activeTabName)) {
     activeRightTab.value = 'assistant'
   }
 }, { immediate: true })
 
 // 當卡片倉庫內容發生變化時，若當前仍在章節正文卡片上，則重新裝配上下文
 watch(cards, async () => {
-  if (isChapterContent.value && activeCard.value) {
+  if (hasEntityListPanel.value && activeCard.value) {
     await assembleChapterContext()
   }
 })
 
 async function assembleChapterContext() {
-  if (!isChapterContent.value || !projectStore.currentProject?.id) return
+  if (!hasEntityListPanel.value || !projectStore.currentProject?.id) return
   
   try {
     const { assembleContext } = await import('@renderer/api/ai')
@@ -1547,7 +1497,7 @@ async function assembleChapterContext() {
 // 當右側“參與實體”面板中手動增刪參與者時，將變更寫回當前章節卡片的內容
 async function handleContextParticipantsUpdate(names: string[]) {
   try {
-    if (!isChapterContent.value || !activeCard.value) return
+    if (!hasEntityListPanel.value || !activeCard.value) return
     const card = activeCard.value as any
     const content: any = { ...(card.content || {}) }
     // 僅以名稱列表作爲實體列表的來源（對象形態後續仍可由分析流程補全）
@@ -1771,7 +1721,7 @@ onMounted(async () => {
 
 function onSwitchMainTab(e: CustomEvent) {
   const tab = (e as any)?.detail?.tab
-  if (tab && ['market', 'editor', 'relation-graph'].includes(tab)) {
+  if (tab && ['market', 'card-library', 'editor', 'relation-graph'].includes(tab)) {
     activeTab.value = tab
   }
 }
@@ -1809,17 +1759,24 @@ function onSwitchRightTab(e: CustomEvent) {
 .blank-menu-ref { pointer-events: none; }
 
 .editor-layout {
+  --nf-surface-base: #141414;
+  --nf-surface-panel: #191919;
+  --nf-surface-section: #202020;
+  --nf-surface-control: #292929;
+  --nf-surface-raised: #333333;
+  --nf-divider-subtle: rgba(255, 255, 255, 0.07);
+  --nf-divider-strong: rgba(255, 255, 255, 0.12);
   display: flex;
   height: 100%;
   width: 100%;
   position: relative;
-  background-color: var(--el-fill-color-lighter); /* 適配暗黑模式 */
+  background-color: var(--nf-surface-base);
 }
 
 .sidebar {
   display: flex;
   flex-direction: column;
-  background-color: var(--el-fill-color-lighter); /* 適配暗黑模式 */
+  background-color: var(--nf-surface-panel);
   transition: width 0.2s;
   flex-shrink: 0;
   overflow: hidden;
@@ -1827,7 +1784,9 @@ function onSwitchRightTab(e: CustomEvent) {
 }
 
 .card-navigation-sidebar {
-  padding: 8px;
+  position: relative;
+  padding: 0;
+  overflow: visible;
 }
 
 /* 頂部標題區已移除按鈕，這裏直接隱藏以消除空隙 */
@@ -1842,6 +1801,8 @@ function onSwitchRightTab(e: CustomEvent) {
 .card-tree {
   background-color: transparent;
   flex-grow: 1;
+  box-sizing: border-box;
+  padding-right: 8px;
 }
 
 .custom-tree-node {
@@ -1863,8 +1824,8 @@ function onSwitchRightTab(e: CustomEvent) {
 }
 
 .resizer {
-  width: 5px;
-  background: transparent;
+  width: 1px;
+  background: var(--nf-divider-strong);
   cursor: col-resize;
   z-index: 10;
   user-select: none;
@@ -1876,7 +1837,8 @@ function onSwitchRightTab(e: CustomEvent) {
 }
 
 .main-content {
-  padding: 16px 8px; /* 留出邊距 */
+  padding: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   background-color: transparent; /* 透明背景 */
@@ -1886,16 +1848,93 @@ function onSwitchRightTab(e: CustomEvent) {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  background-color: var(--el-bg-color); /* 適配暗黑模式 */
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); /* 輕微陰影 */
-  border-radius: 8px; /* 圓角 */
+  background-color: var(--nf-surface-panel);
+  box-shadow: none;
+  border-radius: 0;
   overflow: hidden; /* 確保內容不溢出圓角 */
-  border: none; /* 移除預設邊框 */
+  border: none;
+}
+
+.main-tabs :deep(.el-tabs__header),
+.main-tabs :deep(.el-tabs__nav),
+.main-tabs :deep(.el-tabs__item),
+.right-tabs :deep(.el-tabs__header),
+.right-tabs :deep(.el-tabs__nav),
+.right-tabs :deep(.el-tabs__item) {
+  border-radius: 0 !important;
+}
+.main-tabs :deep(.el-tabs__header),
+.right-tabs :deep(.el-tabs__header) {
+  min-height: 52px;
+  margin: 0;
+  border-bottom: 1px solid var(--nf-divider-strong);
+}
+.main-tabs :deep(.el-tabs__nav-wrap),
+.main-tabs :deep(.el-tabs__nav-scroll),
+.main-tabs :deep(.el-tabs__nav),
+.right-tabs :deep(.el-tabs__nav-wrap),
+.right-tabs :deep(.el-tabs__nav-scroll),
+.right-tabs :deep(.el-tabs__nav) {
+  height: 52px;
+}
+.main-tabs :deep(.el-tabs__item),
+.right-tabs :deep(.el-tabs__item) {
+  height: 52px;
+  line-height: 52px;
+}
+.editor-layout :deep(.el-button:not(.is-circle)),
+.editor-layout :deep(.el-input__wrapper),
+.editor-layout :deep(.el-select__wrapper),
+.editor-layout :deep(.el-textarea__inner) {
+  border-radius: 6px;
+}
+.main-tabs :deep(.el-button:not(.is-circle)) {
+  height: 30px;
+  min-height: 30px;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-radius: 6px !important;
+  font-size: 13px;
+}
+.main-tabs :deep(.el-input__wrapper),
+.main-tabs :deep(.el-select__wrapper) {
+  height: 30px;
+  min-height: 30px;
+  border-radius: 6px !important;
+  background: var(--nf-surface-control, var(--el-fill-color));
+  box-shadow: none !important;
+  font-size: 13px;
+}
+.main-tabs :deep(.el-textarea__inner) {
+  min-height: 30px !important;
+  padding: 0 10px;
+  border-radius: 6px !important;
+  box-sizing: border-box;
+  line-height: 30px;
+}
+.main-tabs :deep(.el-input__inner),
+.main-tabs :deep(.el-textarea__inner),
+.main-tabs :deep(.el-select__selected-item),
+.main-tabs :deep(.el-select__placeholder),
+.main-tabs :deep(.el-form-item__content),
+.main-tabs :deep(.el-checkbox__label),
+.main-tabs :deep(.el-radio__label) {
+  font-size: 13px;
+}
+.main-tabs :deep(.el-input__wrapper:hover),
+.main-tabs :deep(.el-select__wrapper:hover) {
+  background: var(--nf-surface-raised, var(--el-fill-color-light));
+}
+.main-tabs :deep(.el-input__wrapper.is-focus),
+.main-tabs :deep(.el-select__wrapper.is-focused) {
+  background: var(--nf-surface-raised, var(--el-fill-color-light));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--el-color-primary) 64%, transparent) inset !important;
 }
 
 :deep(.el-tabs__content) {
   flex-grow: 1;
   overflow-y: auto;
+  background: var(--nf-surface-base);
 }
 :deep(.el-tab-pane) {
   height: 100%;
@@ -1913,8 +1952,8 @@ function onSwitchRightTab(e: CustomEvent) {
   flex: 1;
 }
 .custom-tree-node.full-row.selected {
-  background-color: var(--el-color-primary-light-9);
-  border: 1px solid var(--el-color-primary-light-7);
+  background-color: var(--nf-surface-raised);
+  border: 1px solid var(--nf-divider-strong);
 }
 .custom-tree-node.full-row.selected .label {
   color: var(--el-color-primary);
@@ -1922,22 +1961,12 @@ function onSwitchRightTab(e: CustomEvent) {
 }
 
 
-.types-pane { display: flex; flex-direction: column; border-bottom: 1px solid var(--el-border-color-light); background: var(--el-fill-color-lighter); padding: 6px; box-shadow: 0 2px 6px -2px var(--el-box-shadow-lighter); border-radius: 6px; }
-.pane-title { font-size: 12px; color: var(--el-text-color-regular); font-weight: 600; padding: 2px 4px 6px 4px; }
-.types-scroll { flex: 1; background: var(--el-fill-color-lighter); }
-.types-list { list-style: none; padding: 0; margin: 0; }
-.type-item { padding: 6px 8px; cursor: grab; display: flex; align-items: center; color: var(--el-text-color-primary); font-size: 13px; border-radius: 4px; }
-.type-item:hover { background: var(--el-fill-color-light); color: var(--el-color-primary); }
-.type-name { flex: 1; }
-
-.inner-resizer { height: 6px; cursor: row-resize; background: var(--el-fill-color-light); border-top: 1px solid var(--el-border-color-light); border-bottom: 1px solid var(--el-border-color-light); transition: height .12s ease, background-color .12s ease, border-color .12s ease; }
-.inner-resizer:hover { height: 8px; background: var(--el-fill-color); border-top: 1px solid var(--el-border-color); border-bottom: 1px solid var(--el-border-color); }
-/* 下半區：標題置頂並設定滾動容器 */
-.cards-pane { position: relative; padding-top: 8px; overflow: auto; overflow-x: hidden; }
+/* 卡片樹：標題置頂並保留滾動能力 */
+.cards-pane { position: relative; flex: 1; min-height: 0; padding-top: 0; overflow: auto; overflow-x: hidden; }
 .cards-title {
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: 10;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -1945,36 +1974,37 @@ function onSwitchRightTab(e: CustomEvent) {
   font-size: 13px;
   font-weight: 600;
   color: var(--el-text-color-regular);
-  padding: 8px;
-  background: color-mix(in srgb, var(--el-bg-color) 92%, transparent);
-  backdrop-filter: blur(14px);
-  border: 1px solid color-mix(in srgb, var(--el-border-color-light) 82%, transparent);
-  border-radius: 12px;
-  margin: 0 2px 8px;
-  box-shadow: 0 10px 24px -22px rgba(15, 23, 42, 0.45);
+  padding: 0 8px 8px;
+  background: var(--nf-surface-panel);
+  backdrop-filter: none;
+  border: none;
+  border-radius: 0;
+  margin: 0 0 4px;
+  box-shadow: none;
+}
+.custom-tree-node.full-row:hover {
+  background: var(--nf-surface-raised);
 }
 .cards-title-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  box-sizing: border-box;
+  min-height: 52px;
+  margin: 0 -8px;
+  padding: 2px 38px 0 14px;
   gap: 8px;
 }
 .cards-title-text {
   min-width: 0;
   flex: 1;
+  color: var(--el-text-color-primary);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-.cards-selection-chip {
-  flex-shrink: 0;
-  padding: 4px 9px;
-  border-radius: 999px;
-  font-size: 11px;
-  line-height: 1;
-  color: var(--el-color-danger);
-  background: color-mix(in srgb, var(--el-color-danger-light-9) 78%, var(--el-bg-color));
-  border: 1px solid color-mix(in srgb, var(--el-color-danger-light-7) 82%, transparent);
 }
 .cards-title-actions {
   display: grid;
@@ -1984,82 +2014,93 @@ function onSwitchRightTab(e: CustomEvent) {
 }
 .toolbar-action {
   width: 100%;
+  height: 30px;
   min-width: 0;
   margin: 0 !important;
   justify-content: center;
-}
-.toolbar-action-create-full {
-  grid-column: 1 / -1;
-}
-.toolbar-action-create-split {
-  grid-column: span 1;
+  border-radius: 6px !important;
+  font-size: 13px;
 }
 .toolbar-action-secondary {
   grid-column: span 1;
+  border: none;
+  background: var(--nf-surface-control);
 }
-.toolbar-action-secondary--solo {
-  grid-column: 1 / -1;
-}
-.toolbar-action-danger-split {
-  grid-column: span 1;
+.toolbar-action-secondary:hover,
+.toolbar-action-secondary:focus-visible {
+  border: none;
+  background: var(--nf-surface-raised);
 }
 .cards-title-actions :deep(.el-button > span) {
   min-width: 0;
 }
-.assistant-sidebar { 
-  border-left: none; 
-  background: transparent; 
-  flex-shrink: 0; 
-  padding: 16px 8px 16px 0; /* 右側留白 */
+.search-box :deep(.el-input__wrapper) {
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 6px !important;
+  background: var(--nf-surface-control);
+  box-shadow: none !important;
 }
-.right-resizer { cursor: col-resize; width: 5px; background: transparent; }
+.search-box :deep(.el-input__inner) {
+  font-size: 13px;
+}
+.search-box :deep(.el-input__wrapper:hover) {
+  background: var(--nf-surface-raised);
+}
+.search-box :deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--el-color-primary) 64%, transparent) inset !important;
+}
+.assistant-sidebar { 
+  border-left: none;
+  background: var(--nf-surface-base);
+  flex-shrink: 0; 
+  padding: 0;
+}
+.right-resizer { cursor: col-resize; width: 1px; background: var(--nf-divider-strong); }
 .right-resizer:hover { background: var(--el-color-primary-light-7); }
 .sidebar-edge-toggle {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 12px;
+  right: 0;
   z-index: 30;
   display: grid;
   place-items: center;
   align-items: center;
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   padding: 0;
-  border: 1px solid color-mix(in srgb, var(--el-border-color) 84%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--el-bg-color) 94%, rgba(255,255,255,0.65));
-  box-shadow:
-    0 10px 22px -18px rgba(15, 23, 42, 0.34),
-    0 3px 8px -6px rgba(15, 23, 42, 0.18);
-  color: var(--el-text-color-regular);
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--el-text-color-secondary);
   cursor: pointer;
   transition:
     left 0.2s ease,
-    box-shadow 0.18s ease,
-    border-color 0.18s ease,
     color 0.18s ease,
     background-color 0.18s ease,
     transform 0.18s ease,
     opacity 0.18s ease;
-  backdrop-filter: blur(14px);
-  opacity: 0.92;
+  opacity: 0.85;
 }
 .sidebar-edge-toggle:hover,
 .sidebar-edge-toggle:focus-visible {
-  transform: translateY(-50%) scale(1.04);
-  box-shadow:
-    0 14px 28px -20px rgba(37, 99, 235, 0.28),
-    0 4px 10px -8px rgba(15, 23, 42, 0.2);
-  border-color: color-mix(in srgb, var(--el-color-primary-light-6) 68%, transparent);
+  transform: scale(1.04);
+  background: var(--nf-surface-raised);
   color: var(--el-color-primary);
   outline: none;
   opacity: 1;
 }
 .sidebar-edge-toggle.is-collapsed {
-  background: color-mix(in srgb, var(--el-bg-color) 96%, rgba(255,255,255,0.72));
+  right: -28px;
+  border-radius: 0 6px 6px 0;
+  background: transparent;
+}
+.main-tabs.is-left-collapsed :deep(.el-tabs__nav-wrap) {
+  padding-left: 28px;
 }
 .sidebar-edge-toggle__icon {
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1;
 }
 .nf-import-dialog :deep(.el-input__wrapper) { font-size: 14px; }
@@ -2080,29 +2121,11 @@ function onSwitchRightTab(e: CustomEvent) {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--el-bg-color);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background: var(--nf-surface-panel);
+  border-radius: 0;
+  box-shadow: none;
   overflow: hidden;
-}
-.right-tabs :deep(.el-tabs__header) {
-  margin: 0;
-  border-bottom: 1px solid var(--el-border-color-light);
-  padding: 12px 12px 0 12px;
-  background: var(--el-fill-color-lighter);
-}
-.right-tabs :deep(.el-tabs__nav-wrap) {
-  padding: 0;
-}
-.right-tabs :deep(.el-tabs__item) {
-  font-size: 13px;
-  font-weight: 500;
-  padding: 0 16px;
-  height: 36px;
-  line-height: 36px;
-}
-.right-tabs :deep(.el-tabs__item.is-active) {
-  color: var(--el-color-primary);
+  border: none;
 }
 .right-tabs :deep(.el-tabs__content) {
   flex: 1;
@@ -2114,6 +2137,103 @@ function onSwitchRightTab(e: CustomEvent) {
   overflow-y: auto;
 }
 
+.card-library-pane {
+  height: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  padding: 14px 12px 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+.card-type-section__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  color: var(--el-text-color-primary);
+  font-size: 15px;
+  font-weight: 500;
+}
+.card-type-section__count {
+  min-width: 24px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  color: var(--el-text-color-secondary);
+  background: var(--el-fill-color-light);
+  text-align: center;
+  font-size: 11px;
+}
+.card-type-list {
+  display: grid;
+  gap: 7px;
+}
+.card-type-block {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  height: 30px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border: 1px solid var(--nf-divider-subtle);
+  border-radius: 6px;
+  color: var(--el-text-color-primary);
+  background: var(--nf-surface-control);
+  font-size: 13px;
+  cursor: grab;
+  user-select: none;
+  transition: border-color 0.16s ease, background-color 0.16s ease, transform 0.16s ease;
+}
+.card-type-block .el-icon {
+  font-size: 14px;
+}
+.card-type-block:hover {
+  border-color: var(--el-color-primary-light-5);
+  color: var(--el-color-primary);
+  background: var(--nf-surface-raised);
+  transform: translateY(-1px);
+}
+.card-type-block:active { cursor: grabbing; }
+.card-type-divider {
+  width: 1px;
+  height: 100%;
+  min-height: 100%;
+  margin: 0;
+  background: var(--nf-divider-subtle);
+}
+
+/* 隱藏滾動條，但所有區域仍可使用滾輪、觸控板與鍵盤滾動。 */
+.editor-layout,
+.cards-pane,
+.card-library-pane,
+.search-results-list,
+.main-tabs :deep(.el-tabs__content),
+.right-tabs :deep(.el-tabs__content),
+.right-tabs :deep(.el-tab-pane),
+.right-tabs :deep(.el-tabs__nav-scroll),
+.card-tree :deep(.el-scrollbar__wrap) {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.editor-layout::-webkit-scrollbar,
+.cards-pane::-webkit-scrollbar,
+.card-library-pane::-webkit-scrollbar,
+.search-results-list::-webkit-scrollbar,
+.main-tabs :deep(.el-tabs__content)::-webkit-scrollbar,
+.right-tabs :deep(.el-tabs__content)::-webkit-scrollbar,
+.right-tabs :deep(.el-tab-pane)::-webkit-scrollbar,
+.right-tabs :deep(.el-tabs__nav-scroll)::-webkit-scrollbar,
+.card-tree :deep(.el-scrollbar__wrap)::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+.editor-layout :deep(.el-scrollbar__bar) {
+  display: none !important;
+}
+
 .search-results-list {
   flex-grow: 1;
   overflow-y: auto;
@@ -2123,7 +2243,7 @@ function onSwitchRightTab(e: CustomEvent) {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px;
+  padding: 6px 8px 8px;
   cursor: pointer;
   border-radius: 4px;
   color: var(--el-text-color-primary);

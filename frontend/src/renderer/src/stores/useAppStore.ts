@@ -5,8 +5,8 @@ export const useAppStore = defineStore('app', () => {
   // 當前視圖
   const currentView = ref<'dashboard' | 'editor' | 'ideas' | 'workflows' | 'code-workflows' | 'triggers'>('dashboard')
 
-  // 主題狀態
-  const isDarkMode = ref(false)
+  // 應用程式固定使用深色主題
+  const isDarkMode = ref(true)
 
   // 設定對話框狀態
   const settingsDialogVisible = ref(false)
@@ -52,30 +52,15 @@ export const useAppStore = defineStore('app', () => {
     currentView.value = 'triggers'
   }
 
-  function toggleTheme() {
-    isDarkMode.value = !isDarkMode.value
-    localStorage.setItem('theme', isDarkMode.value ? 'dark' : 'light')
-    applyTheme()
-  }
-
-  function setTheme(dark: boolean) {
-    isDarkMode.value = dark
-    localStorage.setItem('theme', dark ? 'dark' : 'light')
-    applyTheme()
-  }
-
   function applyTheme() {
     const html = document.documentElement
-    if (isDarkMode.value) {
-      html.classList.add('dark')
-    } else {
-      html.classList.remove('dark')
-    }
+    isDarkMode.value = true
+    html.classList.add('dark')
   }
 
   function initTheme() {
-    const savedTheme = localStorage.getItem('theme')
-    isDarkMode.value = savedTheme === 'dark'
+    isDarkMode.value = true
+    localStorage.setItem('theme', 'dark')
     applyTheme()
   }
 
@@ -129,8 +114,6 @@ export const useAppStore = defineStore('app', () => {
     goToWorkflows,
     goToCodeWorkflows,
     goToTriggers,
-    toggleTheme,
-    setTheme,
     applyTheme,
     initTheme,
     openSettings,

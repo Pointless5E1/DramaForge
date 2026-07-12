@@ -2198,7 +2198,8 @@ async function loadPrompts() {
 
 		// 獲取所有提示詞名稱
 		const allPromptNames = allPrompts.map(p => p.name)
-		reviewPrompts.value = allPromptNames.length > 0 ? allPromptNames : ['章節審核']
+		const reviewPromptNames = allPrompts.filter(p => p.is_review_prompt).map(p => p.name)
+		reviewPrompts.value = reviewPromptNames.length > 0 ? reviewPromptNames : ['章節審核']
 
 		// 潤色和擴寫都使用所有可用提示詞
 		polishPrompts.value = allPromptNames.length > 0 ? allPromptNames : ['潤色']
@@ -2217,10 +2218,10 @@ async function loadPrompts() {
 			currentExpandPrompt.value = allPromptNames[0]
 		}
 
-		if (allPromptNames.includes('章節審核')) {
+		if (reviewPromptNames.includes('章節審核')) {
 			currentReviewPrompt.value = '章節審核'
-		} else if (allPromptNames.length > 0) {
-			currentReviewPrompt.value = allPromptNames[0]
+		} else if (reviewPromptNames.length > 0) {
+			currentReviewPrompt.value = reviewPromptNames[0]
 		}
 	} catch (e) {
 		console.error('Failed to load prompts:', e)

@@ -11,6 +11,8 @@ from app.db.models import Prompt
 from app.core.config import settings
 from .registry import initializer
 
+REVIEW_PROMPT_NAMES = {"通用審核", "章節審核", "階段審核"}
+
 
 def _parse_prompt_file(file_path: str) -> dict:
     """解析單個提示詞文件
@@ -31,7 +33,8 @@ def _parse_prompt_file(file_path: str) -> dict:
     return {
         "name": name,
         "description": description,
-        "template": content.strip()
+        "template": content.strip(),
+        "is_review_prompt": name in REVIEW_PROMPT_NAMES,
     }
 
 
@@ -79,11 +82,17 @@ def init_prompts(session: Session) -> None:
     
     for name, prompt_data in all_prompts_data.items():
         if name in existing_names:
+            existing_prompt = next(p for p in existing_prompts if p.name == name)
+            marker_changed = existing_prompt.is_review_prompt != prompt_data.get('is_review_prompt', False)
             if overwrite:
-                existing_prompt = next(p for p in existing_prompts if p.name == name)
                 existing_prompt.template = prompt_data['template']
                 existing_prompt.description = prompt_data.get('description')
                 existing_prompt.built_in = True
+                existing_prompt.is_review_prompt = prompt_data.get('is_review_prompt', False)
+                updated_count += 1
+            elif existing_prompt.built_in and marker_changed:
+                # 用途標記屬於內建提示詞元資料，即使不覆蓋模板也需要安全回填。
+                existing_prompt.is_review_prompt = prompt_data.get('is_review_prompt', False)
                 updated_count += 1
             else:
                 skipped_count += 1

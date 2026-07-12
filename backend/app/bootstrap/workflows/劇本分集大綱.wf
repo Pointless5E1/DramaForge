@@ -1,0 +1,86 @@
+# 工作流：劇本分集大綱
+# 功能：劇本分集大綱保存時，創建角色、場景、劇本階段大綱
+# 觸發器：劇本分集大綱卡片保存時自動觸發
+
+#@node(description="觸發器：監聽劇本分集大綱卡片保存")
+trigger = Trigger.CardSaved(card_type="劇本分集大綱")
+#</node>
+
+
+#@node(description="讀取劇本分集大綱")
+episode = Card.Read(card_id=trigger.card_id)
+#</node>
+
+
+#@node(description="提取新角色列表")
+new_characters = Logic.Expression(
+    expression="episode.content.new_character_cards or []"
+  )
+#</node>
+
+
+#@node(async=true, description="批量創建角色卡")
+char_cards = Card.BatchUpsert(
+    project_id=trigger.project_id,
+    parent_id=trigger.card_id,
+    card_type="角色卡",
+    title_template="{item.name}",
+    items=new_characters.result
+  )
+#</node>
+
+
+#@node(description="提取新場景列表")
+new_scenes = Logic.Expression(
+    expression="episode.content.new_scene_cards or []"
+  )
+#</node>
+
+
+#@node(async=true, description="批量創建場景卡")
+scene_cards = Card.BatchUpsert(
+    project_id=trigger.project_id,
+    parent_id=trigger.card_id,
+    card_type="場景卡",
+    title_template="{item.name}",
+    items=new_scenes.result
+  )
+#</node>
+
+
+#@node(description="生成劇本階段列表")
+stages = Logic.Expression(
+    expression="[{'index': i, 'episode_number': episode.content.episode_number} for i in range(1, (episode.content.stage_count or 0) + 1)]"
+  )
+#</node>
+
+
+#@node(async=true, description="批量創建劇本階段大綱")
+stage_cards = Card.BatchUpsert(
+    project_id=trigger.project_id,
+    parent_id=trigger.card_id,
+    card_type="劇本階段大綱",
+    title_template="階段{item.index}",
+    content_template={
+      "stage_number": "{item.index}",
+      "episode_number": "{item.episode_number}"
+    },
+    items=stages.result
+  )
+#</node>
+
+
+#@node(description="等待所有異步任務完成")
+wait_result = Logic.Wait(tasks=[char_cards, scene_cards, stage_cards])
+#</node>
+
+
+#@node(description="清空臨時列表")
+update_result = Card.Update(
+    card_id=trigger.card_id,
+    content_merge={
+      "new_character_cards": [],
+      "new_scene_cards": []
+    }
+  )
+#</node>

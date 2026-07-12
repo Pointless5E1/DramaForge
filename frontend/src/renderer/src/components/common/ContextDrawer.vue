@@ -1,43 +1,33 @@
 ﻿<template>
-  <el-drawer v-model="visible" :with-header="false" size="36%" append-to-body>
-    <div class="drawer-wrapper">
-      <div class="drawer-header">
-        <h3>上下文注入</h3>
-        <el-button text @click="visible=false">關閉</el-button>
-      </div>
-
+  <el-dialog
+    v-model="visible"
+    :title="dialogTitle"
+    width="720px"
+    append-to-body
+    align-center
+  >
+    <div class="dialog-wrapper">
       <div class="section">
-        <div class="slot-toolbar">
-          <h4>上下文模板</h4>
-          <div class="slot-buttons">
-            <el-button
-              v-for="kind in contextTemplateKinds"
-              :key="kind"
-              size="small"
-              :type="activeContextTemplateKind === kind ? 'primary' : 'default'"
-              plain
-              @click="activeContextTemplateKind = kind"
-            >
-              {{ contextTemplateLabels[kind] }}
-            </el-button>
-          </div>
-        </div>
+        <p class="context-help">設定此卡片在{{ activeContextTemplateKind === 'generation' ? '生成內容' : '審核內容' }}時注入的背景資料與引用。</p>
         <el-input v-model="aiContext" type="textarea" :rows="8" placeholder="在此編輯上下文模板，支持 @ 引用" class="context-area" :spellcheck="false" />
         <div class="chips">
           <el-tag v-for="(t, i) in tokens" :key="i" closable @close="removeToken(t)">@{{ t }}</el-tag>
         </div>
-        <div class="actions">
-          <el-button size="small" @click="$emit('open-selector', { kind: activeContextTemplateKind, text: aiContext })">插入引用 @</el-button>
-          <el-button size="small" type="primary" @click="apply">應用到卡片</el-button>
-        </div>
       </div>
     </div>
-  </el-drawer>
+    <template #footer>
+      <div class="actions">
+        <el-button @click="visible = false">取消</el-button>
+        <el-button @click="$emit('open-selector', { kind: activeContextTemplateKind, text: aiContext })">插入引用 @</el-button>
+        <el-button type="primary" @click="apply">應用到卡片</el-button>
+      </div>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import { CONTEXT_TEMPLATE_LABELS, type ContextTemplateKind, type ContextTemplates } from '@renderer/services/contextSlots'
+import type { ContextTemplateKind, ContextTemplates } from '@renderer/services/contextSlots'
 
 const props = defineProps<{
   modelValue: boolean
@@ -51,8 +41,9 @@ const visible = ref(props.modelValue)
 watch(() => props.modelValue, v => visible.value = v)
 watch(visible, v => emit('update:modelValue', v))
 
-const contextTemplateKinds: ContextTemplateKind[] = ['generation', 'review']
-const contextTemplateLabels = CONTEXT_TEMPLATE_LABELS
+const dialogTitle = computed(() => props.activeContextTemplateKind === 'generation'
+  ? '生成上下文設定'
+  : '審核上下文設定')
 const activeContextTemplateKind = ref<ContextTemplateKind>(props.activeContextTemplateKind)
 watch(() => props.activeContextTemplateKind, v => activeContextTemplateKind.value = v)
 watch(activeContextTemplateKind, v => emit('update:activeContextTemplateKind', v))
@@ -85,12 +76,12 @@ const tokens = computed(() => {
   return out
 })
 
-function removeToken(token: string) {
+function removeToken(token: string): void {
   const full = '@' + token
   aiContext.value = (aiContext.value || '').split(full).join('')
 }
 
-function apply() { emit('apply-context', { kind: activeContextTemplateKind.value, text: aiContext.value }) }
+function apply(): void { emit('apply-context', { kind: activeContextTemplateKind.value, text: aiContext.value }) }
 
 // 在抽屜中輸入 @ 時彈出選擇器
 let drawerTextarea: HTMLTextAreaElement | null = null
@@ -106,7 +97,7 @@ watch(() => visible.value, (v) => {
   }
 })
 
-function handleDrawerInput(ev: Event) {
+function handleDrawerInput(ev: Event): void {
   const textarea = ev.target as HTMLTextAreaElement
   const cursorPos = textarea.selectionStart
   const lastChar = textarea.value.substring(cursorPos - 1, cursorPos)
@@ -117,12 +108,10 @@ function handleDrawerInput(ev: Event) {
 </script>
 
 <style scoped>
-.drawer-wrapper { display: flex; flex-direction: column; gap: 16px; height: 100%; }
-.drawer-header { display: flex; justify-content: space-between; align-items: center; }
+.dialog-wrapper { display: flex; flex-direction: column; gap: 16px; }
 .section { display: flex; flex-direction: column; gap: 8px; }
-.slot-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.slot-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+.context-help { margin: 0 0 4px; color: var(--el-text-color-secondary); }
 .context-area { width: 100%; }
-.actions { display: flex; gap: 8px; }
+.actions { display: flex; justify-content: flex-end; gap: 8px; }
 .chips { display: flex; gap: 6px; flex-wrap: wrap; }
 </style> 

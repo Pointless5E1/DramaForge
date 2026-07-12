@@ -119,7 +119,9 @@ export function resolveSchemaRef(schema: any, localDefs?: any): any {
         return {
           ...resolved,
           title: schema.title || resolved.title,
-          description: schema.description || resolved.description
+          description: schema.description || resolved.description,
+          'x-item-title': schema['x-item-title'] || resolved['x-item-title'],
+          ...(Object.keys(localDefs || {}).length > 0 ? { $defs: localDefs } : {}),
         }
       }
     }
@@ -145,7 +147,9 @@ export function resolveSchemaRef(schema: any, localDefs?: any): any {
         return {
           ...finalResolved,
           title: schema.title || finalResolved.title,
-          description: schema.description || finalResolved.description
+          description: schema.description || finalResolved.description,
+          'x-item-title': schema['x-item-title'] || finalResolved['x-item-title'],
+          ...(Object.keys(localDefs || {}).length > 0 ? { $defs: localDefs } : {}),
         }
       }
     }

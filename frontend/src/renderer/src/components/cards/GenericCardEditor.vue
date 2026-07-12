@@ -9,13 +9,18 @@
       :can-save="isDirty && !isSaving"
       :last-saved-at="lastSavedAt"
       :is-chapter-content="!!activeContentEditor"
+      :reviewing="reviewLoading"
+      :review-prompts="reviewPrompts"
+      :current-review-prompt="currentReviewPrompt"
       :needs-confirmation="props.card.needs_confirmation"
-      :active-context-template-kind="activeContextTemplateKind"
       @save="handleSave"
       @generate="handleGenerateClick"
-      @open-context="openDrawer = true"
-      @update:active-context-template-kind="handleActiveContextTemplateKindChange"
-      @delete="handleDelete"
+      @review="executeReview"
+      @select-review-prompt="handleReviewPromptChange"
+      @open-generation-context="openContextSettings('generation')"
+      @open-review-context="openContextSettings('review')"
+      @open-ai-settings="aiParamsRef?.open()"
+      @open-schema="schemaStudioVisible = true"
       @open-versions="showVersions = true"
     />
 
@@ -38,43 +43,6 @@
 
     <!-- 預設表單編輯器 -->
     <template v-else>
-      <!-- 參數設定：顯示當前模型ID，點擊彈出就地設定面板 -->
-      <div class="toolbar-row param-toolbar">
-        <div class="param-inline">
-          <el-dropdown
-            split-button
-            size="small"
-            popper-class="review-prompt-dropdown"
-            :disabled="reviewLoading"
-            :loading="reviewLoading"
-            @click="executeReview"
-            @command="handleReviewPromptChange"
-          >
-            <span class="review-button-label">
-              <el-icon v-if="reviewLoading" class="review-loading-icon"><Loading /></el-icon>
-              <el-icon v-else><List /></el-icon>
-              {{ reviewLoading ? '審核中...' : '審核' }}
-            </span>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item
-                  v-for="prompt in reviewPrompts"
-                  :key="prompt"
-                  :command="prompt"
-                >
-                  <div class="prompt-item">
-                    <span>{{ prompt }}</span>
-                    <el-icon v-if="prompt === currentReviewPrompt" class="check-icon"><Select /></el-icon>
-                  </div>
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-          <AIPerCardParams :card-id="props.card.id" :card-type-name="props.card.card_type?.name" />
-          <el-button size="small" type="primary" plain @click="schemaStudioVisible = true">結構</el-button>
-        </div>
-      </div>
-
       <div class="editor-body">
         <div class="main-pane">
           <div v-if="schema" class="form-container">
@@ -103,10 +71,14 @@
       @apply-context="applyContextTemplateAndSave"
       @open-selector="openSelectorFromDrawer"
     >
-      <template #params>
-        <div class="param-placeholder">參數設定入口（已改爲每卡片本地參數）</div>
-      </template>
     </ContextDrawer>
+
+    <AIPerCardParams
+      ref="aiParamsRef"
+      :card-id="props.card.id"
+      :card-type-name="props.card.card_type?.name"
+      :show-trigger="false"
+    />
 
     <CardReferenceSelectorDialog v-model="isSelectorVisible" :cards="cards" :currentCardId="props.card.id" @confirm="handleReferenceConfirm" />
     <CardVersionsDialog
@@ -202,10 +174,9 @@ import ContextDrawer from '../common/ContextDrawer.vue'
 import CardVersionsDialog from '../common/CardVersionsDialog.vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 import type { CardRead, CardUpdate } from '@renderer/api/cards'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import SimpleMarkdown from '../common/SimpleMarkdown.vue'
 import { addVersion } from '@renderer/services/versionService'
-import { List, Select, Loading } from '@element-plus/icons-vue'
 import { useAppStore } from '@renderer/stores/useAppStore'
 import { useAIStore as useAIStoreForOptions } from '@renderer/stores/useAIStore'
 import SchemaStudio from '../shared/SchemaStudio.vue'
@@ -254,6 +225,7 @@ const openDrawer = ref(false)
 const isSelectorVisible = ref(false)
 const showVersions = ref(false)
 const schemaStudioVisible = ref(false)
+const aiParamsRef = ref<InstanceType<typeof AIPerCardParams>>()
 const assistantVisible = ref(false)
 const reviewLoading = ref(false)
 const stageReviewDialogVisible = ref(false)
@@ -278,6 +250,7 @@ const conversationHistory = ref<ConversationMessage[]>([])
 const contentEditorMap: Record<string, any> = {
   CodeMirrorEditor: defineAsyncComponent(() => import('../editors/CodeMirrorEditor.vue')),
   MarkdownTextEditor: defineAsyncComponent(() => import('../editors/MarkdownTextEditor.vue')),
+  ScreenplayTextEditor: defineAsyncComponent(() => import('../editors/ScreenplayTextEditor.vue')),
   // 未來可以添加更多內容編輯器，例如：
   // RichTextEditor: defineAsyncComponent(() => import('../editors/RichTextEditor.vue')),
   // MarkdownEditor: defineAsyncComponent(() => import('../editors/MarkdownEditor.vue')),
@@ -322,8 +295,9 @@ function handleReviewContextKindChange(kind: ContextTemplateKind | string) {
   reviewContextKind.value = normalizeContextTemplateKind(kind, 'review')
 }
 
-function handleActiveContextTemplateKindChange(kind: ContextTemplateKind | string) {
-  activeContextTemplateKind.value = normalizeContextTemplateKind(kind, 'generation')
+function openContextSettings(kind: ContextTemplateKind): void {
+  activeContextTemplateKind.value = kind
+  openDrawer.value = true
 }
 
 function openAssistant() {
@@ -457,26 +431,11 @@ watch(
 const perCardParams = computed(() => perCardStore.getByCardId(props.card.id))
 const editingParams = ref<PerCardAIParams>({})
 
-const selectedModelName = computed(() => {
-  try {
-    const id = (perCardParams.value || editingParams.value)?.llm_config_id
-    const list = aiOptions.value?.llm_configs || []
-    const found = list.find(m => m.id === id)
-    return found?.display_name || (id != null ? String(id) : '')
-  } catch { return '' }
-})
-
-const paramSummary = computed(() => {
-  const p = perCardParams.value || editingParams.value
-  const model = selectedModelName.value ? `模型:${selectedModelName.value}` : '模型:未設'
-  const prompt = p?.prompt_name ? `提示詞:${p.prompt_name}` : '提示詞:未設'
-  const t = p?.temperature != null ? `溫度:${p.temperature}` : ''
-  const m = p?.max_tokens != null ? `max_tokens:${p.max_tokens}` : ''
-  return [model, prompt, t, m].filter(Boolean).join(' · ')
-})
-
 const reviewPrompts = computed(() => {
-  const names = (aiOptions.value?.prompts || []).map(item => item.name).filter(Boolean)
+  const names = (aiOptions.value?.prompts || [])
+    .filter(item => item.is_review_prompt)
+    .map(item => item.name)
+    .filter(Boolean)
   return names.length > 0 ? names : ['通用審核']
 })
 
@@ -494,11 +453,6 @@ function syncReviewPrompt(force = false) {
   if (force || !prompts.includes(currentReviewPrompt.value)) {
     currentReviewPrompt.value = prompts.includes(defaultPrompt) ? defaultPrompt : prompts[0]
   }
-}
-
-function handleReviewPromptChange(promptName: string) {
-  currentReviewPrompt.value = promptName
-  ElMessage.success(`已切換審核提示詞爲: ${promptName}`)
 }
 
 function formatReviewVerdict(verdict?: QualityGate | null | string): string {
@@ -1017,25 +971,23 @@ async function handleCreateOrUpdateReviewCard() {
   }
 }
 
-async function handleDelete() {
-  try {
-    await ElMessageBox.confirm(`確認刪除卡片「${props.card.title}」？此操作不可恢復`, '刪除確認', { type: 'warning' })
-    await cardStore.removeCard(props.card.id)
-    ElMessage.success('卡片已刪除')
-    const evt = new CustomEvent('nf:navigate', { detail: { to: 'market' } })
-    window.dispatchEvent(evt)
-  } catch (e) {
-  }
-}
-
 // ==================== 指令流生成相關方法 ====================
 
 /**
  * 點擊生成按鈕時觸發
  */
 function handleGenerateClick() {
+  if (activeContentEditor.value && contentEditorRef.value && typeof contentEditorRef.value.startGeneration === 'function') {
+    contentEditorRef.value.startGeneration()
+    return
+  }
   // 顯示初始提示對話框
   showInitialPromptDialog.value = true
+}
+
+function handleReviewPromptChange(promptName: string): void {
+  if (!reviewPrompts.value.includes(promptName)) return
+  currentReviewPrompt.value = promptName
 }
 
 /**
@@ -1059,7 +1011,9 @@ async function handleStartGeneration(userPrompt: string, useExistingContent: boo
     }
 
     // 2. 解析上下文
-    const editingContent = wrapperName.value ? innerData.value : localData.value
+    const editingContent = activeContentEditor.value && contentEditorRef.value && typeof contentEditorRef.value.getContent === 'function'
+      ? contentEditorRef.value.getContent()
+      : (wrapperName.value ? innerData.value : localData.value)
     const resolvedContext = getResolvedContextByKind(generationContextKind.value)
 
     // 3. 初始化指令執行器（根據選項決定是否使用現有內容）
@@ -1120,7 +1074,6 @@ async function performGeneration(
         llm_config_id: params.llm_config_id!,
         user_prompt: userPrompt,
         response_model_schema: schema,
-        // 根據選項決定是否傳遞現有內容
         current_data: useExistingContent ? (instructionExecutor.value?.getData() || {}) : {},
         conversation_context: conversationHistory.value,
         context_info: contextInfo,
@@ -1142,7 +1095,9 @@ async function performGeneration(
           if (data) {
             import('lodash-es').then(({ cloneDeep }) => {
               const clonedData = cloneDeep(data)
-              if (wrapperName.value) {
+              if (activeContentEditor.value && contentEditorRef.value && typeof contentEditorRef.value.applyGeneratedContent === 'function') {
+                contentEditorRef.value.applyGeneratedContent(clonedData)
+              } else if (wrapperName.value) {
                 innerData.value = clonedData
               } else {
                 localData.value = clonedData
@@ -1174,7 +1129,13 @@ async function performGeneration(
                 }
                 return undefined
               }
-              if (wrapperName.value) {
+              if (activeContentEditor.value && contentEditorRef.value && typeof contentEditorRef.value.applyGeneratedContent === 'function') {
+                const currentContent = typeof contentEditorRef.value.getContent === 'function'
+                  ? contentEditorRef.value.getContent()
+                  : {}
+                const merged = mergeWith({}, currentContent || {}, finalData, arrayOverwrite)
+                contentEditorRef.value.applyGeneratedContent(merged)
+              } else if (wrapperName.value) {
                 const mergedInner = mergeWith({}, innerData.value || {}, finalData, arrayOverwrite)
                 innerData.value = mergedInner
               } else {
@@ -1426,6 +1387,42 @@ async function handleAssistantFinalize(summary: string) {
   flex-direction: column;
   height: 100%;
   overflow: hidden; /* 防止整體滾動 */
+  background: var(--nf-surface-base, var(--el-bg-color));
+}
+
+/* Keep card-editor headings visually lighter than library section headings. */
+.generic-card-editor :deep(.sec-title),
+.generic-card-editor :deep(.el-form-item__label),
+.generic-card-editor :deep(.object-field-title),
+.generic-card-editor :deep(.card-header) {
+  font-weight: 500 !important;
+}
+
+/* 卡片編輯器輸入元件：以背景層級區分區域，弱化常態白色描邊。 */
+.generic-card-editor :deep(.el-input__wrapper),
+.generic-card-editor :deep(.el-select__wrapper),
+.generic-card-editor :deep(.el-textarea__inner) {
+  border-radius: 6px;
+  background: var(--nf-surface-control, var(--el-fill-color));
+  box-shadow: none !important;
+  transition: background-color 0.16s ease, box-shadow 0.16s ease;
+}
+.generic-card-editor :deep(.el-input__wrapper:hover),
+.generic-card-editor :deep(.el-select__wrapper:hover),
+.generic-card-editor :deep(.el-textarea__inner:hover) {
+  background: var(--nf-surface-raised, var(--el-fill-color-light));
+  box-shadow: none !important;
+}
+.generic-card-editor :deep(.el-input__wrapper.is-focus),
+.generic-card-editor :deep(.el-select__wrapper.is-focused),
+.generic-card-editor :deep(.el-textarea__inner:focus) {
+  background: var(--nf-surface-raised, var(--el-fill-color-light));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--el-color-primary) 68%, transparent) inset !important;
+}
+.generic-card-editor :deep(.el-input-number__decrease),
+.generic-card-editor :deep(.el-input-number__increase) {
+  border-color: var(--nf-divider-subtle, var(--el-border-color));
+  background: var(--nf-surface-raised, var(--el-fill-color-dark));
 }
 
 /* 確保自定義內容編輯器（如 CodeMirrorEditor）佔據剩餘空間 */
@@ -1466,7 +1463,7 @@ async function handleAssistantFinalize(summary: string) {
 
 .stage-review-overview {
   padding: 16px;
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--el-fill-color-light);
   border: 1px solid var(--el-border-color-lighter);
 }
@@ -1492,7 +1489,7 @@ async function handleAssistantFinalize(summary: string) {
 
 .stage-review-text-block {
   padding: 16px;
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid var(--el-border-color-lighter);
   background: var(--el-bg-color);
 }

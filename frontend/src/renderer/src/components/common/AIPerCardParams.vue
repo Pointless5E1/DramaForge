@@ -1,17 +1,15 @@
 <template>
 	<div class="ai-param-inline">
-		<el-popover placement="bottom" trigger="manual" v-model:visible="visible" width="360">
-			<template #reference>
-				<el-button type="primary" size="small" class="model-trigger" @click="visible = !visible">
+		<el-button v-if="showTrigger" type="primary" size="small" class="model-trigger" @click="open">
 					<template #icon>
 						<el-icon><Setting /></el-icon>
 					</template>
 					<span class="model-label">模型：</span>
 					<span class="model-name">{{ selectedModelName || '未設定' }}</span>
-				</el-button>
-			</template>
+		</el-button>
+		<el-dialog v-model="visible" title="模型與生成參數" width="520px" append-to-body align-center>
 			<div class="ai-config-form">
-				<el-form label-width="92px" size="small">
+				<el-form label-width="110px">
 					<el-form-item label="模型ID">
 						<el-select v-model="editing.llm_config_id" placeholder="選擇模型" style="width: 240px;" :teleported="false">
 							<el-option v-for="m in (aiOptions?.llm_configs || [])" :key="m.id" :label="m.display_name || String(m.id)" :value="Number(m.id)" />
@@ -31,21 +29,22 @@
 					<el-form-item label="超時(秒)">
 						<el-input-number v-model="editing.timeout" :min="1" :step="5" />
 					</el-form-item>
-					<el-form-item>
-						<div class="ai-actions">
-							<div class="left">
-								<el-button type="primary" size="small" @click="saveLocal">儲存</el-button>
-								<el-button size="small" @click="resetToPreset">重置爲預設</el-button>
-							</div>
-							<div class="right">
-								<el-button size="small" type="warning" plain @click="restoreFollowType">恢復跟隨類型</el-button>
-								<el-button size="small" type="primary" plain @click="applyToType">應用到類型</el-button>
-							</div>
-						</div>
-					</el-form-item>
 				</el-form>
 			</div>
-		</el-popover>
+			<template #footer>
+				<div class="ai-actions">
+					<div class="left">
+						<el-button @click="visible = false">取消</el-button>
+						<el-button @click="resetToPreset">重置為預設</el-button>
+					</div>
+					<div class="right">
+						<el-button type="warning" plain @click="restoreFollowType">恢復跟隨類型</el-button>
+						<el-button type="primary" plain @click="applyToType">應用到類型</el-button>
+						<el-button type="primary" @click="saveLocal">儲存</el-button>
+					</div>
+				</div>
+			</template>
+		</el-dialog>
 	</div>
 </template>
 
@@ -57,7 +56,9 @@ import { getAIConfigOptions, type AIConfigOptions } from '@renderer/api/ai'
 import { getCardAIParams, updateCardAIParams, applyCardAIParamsToType } from '@renderer/api/setting'
 import { ElMessage } from 'element-plus'
 
-const props = defineProps<{ cardId: number; cardTypeName?: string }>()
+const props = withDefaults(defineProps<{ cardId: number; cardTypeName?: string; showTrigger?: boolean }>(), {
+	showTrigger: true,
+})
 
 const store = usePerCardAISettingsStore()
 const visible = ref(false)
@@ -65,6 +66,12 @@ const aiOptions = ref<AIConfigOptions | null>(null)
 const editing = ref<PerCardAIParams>({})
 
 async function loadOptions() { try { aiOptions.value = await getAIConfigOptions() } catch {} }
+
+function open(): void {
+	visible.value = true
+}
+
+defineExpose({ open })
 
 const saved = computed(() => store.getByCardId(props.cardId))
 const selectedModelName = computed(() => {
@@ -119,7 +126,7 @@ function getPresetForType(typeName?: string): PerCardAIParams {
 	return map[typeName || ''] || {}
 }
 
-function saveLocal() {
+function saveLocal(): void {
 	try {
 		const payload = { ...editing.value, llm_config_id: editing.value.llm_config_id == null ? editing.value.llm_config_id : Number(editing.value.llm_config_id) }
 		// 先寫入後端資料庫
@@ -132,7 +139,7 @@ function saveLocal() {
 			.catch(() => { ElMessage.error('儲存到後端失敗') })
 	} catch { ElMessage.error('儲存失敗') }
 }
-function resetToPreset() {
+function resetToPreset(): void {
 	const preset = getPresetForType(props.cardTypeName)
 	editing.value = { ...preset, llm_config_id: preset.llm_config_id == null ? preset.llm_config_id : Number(preset.llm_config_id) }
 	store.setForCard(props.cardId, editing.value)
@@ -160,6 +167,18 @@ async function applyToType() {
   display: inline-flex; 
   align-items: center; 
 }
+
+.ai-config-form { padding-top: 4px; }
+
+.ai-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.ai-actions .left,
+.ai-actions .right { display: flex; gap: 8px; }
 
 .model-trigger { 
   min-width: 200px;
@@ -194,4 +213,4 @@ async function applyToType() {
   white-space: nowrap;
   text-align: left;
 }
-</style> 
+</style>

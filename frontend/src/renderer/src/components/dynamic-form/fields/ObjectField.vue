@@ -1,16 +1,12 @@
 <template>
-  <el-card shadow="never" class="object-field-card">
-    <template #header>
-      <div class="card-header">
-        <span>{{ label }}</span>
-      </div>
-    </template>
+  <section class="object-field">
+    <div v-if="label" class="object-field-title">{{ label }}</div>
     <ModelDrivenForm
       :schema="effectiveSchema"
       :modelValue="modelValue || {}"
       @update:modelValue="emit('update:modelValue', $event)"
     />
-  </el-card>
+  </section>
 </template>
 
 <script setup lang="ts">
@@ -53,9 +49,13 @@ const effectiveSchema = computed<JSONSchema>(() => {
 </script>
 
 <style scoped>
-.object-field-card {
-  margin-top: 10px;
-  margin-bottom: 20px;
-  background-color: var(--el-fill-color-lighter);
+.object-field {
+  margin: 0;
 }
-</style> 
+.object-field-title {
+  margin-bottom: 14px;
+  color: var(--el-text-color-primary);
+  font-size: 15px;
+  font-weight: 600;
+}
+</style>

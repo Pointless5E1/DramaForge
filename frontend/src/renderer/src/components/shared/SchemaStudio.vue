@@ -6,32 +6,33 @@
     width="92%"
     top="4vh"
   >
-    <div class="studio">
-      <div class="left">
-        <template v-if="mode==='type'">
-          <el-form label-position="top" class="modelname-form">
-            <el-form-item label="模型名稱">
-              <el-input v-model="modelName" placeholder="不填則預設等於卡片類型名" />
-            </el-form-item>
-          </el-form>
-        </template>
-        <div class="pane-header">結構構建器</div>
-        <OutputModelBuilder v-model="builderFields" :models="relationTargets" :current-model-name="contextTitle" />
-      </div>
-      <div class="right">
-        <div class="subpane">
-          <div class="pane-header">表單預覽</div>
+    <el-tabs v-model="activeTab" class="studio-tabs">
+      <el-tab-pane label="結構編輯" name="editor">
+        <div class="tab-content editor-pane">
+          <template v-if="mode==='type'">
+            <el-form label-position="top" class="modelname-form">
+              <el-form-item label="模型名稱">
+                <el-input v-model="modelName" placeholder="不填則預設等於卡片類型名" />
+              </el-form-item>
+            </el-form>
+          </template>
+          <OutputModelBuilder v-model="builderFields" :models="relationTargets" :current-model-name="contextTitle" />
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="表單預覽" name="preview">
+        <div class="tab-content preview-pane">
           <div class="preview">
             <ModelDrivenForm v-if="schemaObject" :schema="schemaObject" v-model="previewModel" />
             <div v-else class="placeholder">暫無 Schema</div>
           </div>
         </div>
-        <div class="subpane">
-          <div class="pane-header">Schema JSON</div>
-          <el-input type="textarea" :rows="12" :model-value="schemaText" readonly />
+      </el-tab-pane>
+      <el-tab-pane label="Schema JSON" name="json">
+        <div class="tab-content json-pane">
+          <el-input class="schema-json" type="textarea" :model-value="schemaText" readonly />
         </div>
-      </div>
-    </div>
+      </el-tab-pane>
+    </el-tabs>
     <template #footer>
       <div class="footer-actions">
         <el-button @click="emit('update:visible', false)">關閉</el-button>
@@ -60,6 +61,21 @@ const props = defineProps<{ visible: boolean; mode: 'type' | 'card'; targetId: n
 const emit = defineEmits<{ 'update:visible': [boolean]; 'saved': []; 'close': [] }>()
 
 const headerTitle = computed(() => props.mode === 'type' ? `類型結構編輯：${props.contextTitle || props.targetId}` : `實例結構編輯：${props.contextTitle || props.targetId}`)
+
+type StudioTab = 'editor' | 'preview' | 'json'
+const ACTIVE_TAB_STORAGE_KEY = 'schema-studio-active-tab'
+
+function getInitialTab(): StudioTab {
+  try {
+    const stored = window.localStorage.getItem(ACTIVE_TAB_STORAGE_KEY)
+    if (stored === 'editor' || stored === 'preview' || stored === 'json') return stored
+  } catch {
+    // localStorage 在受限渲染環境中可能不可用，直接回退到預設分頁。
+  }
+  return 'editor'
+}
+
+const activeTab = ref<StudioTab>(getInitialTab())
 
 const builderFields = ref<BuilderField[]>([])
 const relationTargets = ref<Array<{ name: string; json_schema?: any }>>([])
@@ -180,6 +196,13 @@ function handleKey(e: KeyboardEvent) {
 
 watch(() => props.visible, (v) => { if (v) loadSchema() }, { immediate: false })
 watch(() => props.targetId, () => { if (props.visible) loadSchema() })
+watch(activeTab, (tab) => {
+  try {
+    window.localStorage.setItem(ACTIVE_TAB_STORAGE_KEY, tab)
+  } catch {
+    // 記憶分頁失敗不應影響結構編輯功能。
+  }
+})
 
 onBeforeUnmount(() => { window.removeEventListener('keydown', handleKey) })
 
@@ -187,15 +210,21 @@ const contextTitle = computed(() => props.contextTitle || '')
 </script>
 
 <style scoped>
-.studio { display: grid; grid-template-columns: 1.2fr 1fr; gap: 12px; height: 72vh; }
-.left { display: flex; flex-direction: column; gap: 8px; overflow: auto; }
-.right { display: grid; grid-template-rows: 1fr 1fr; gap: 8px; overflow: auto; }
-.subpane { display: flex; flex-direction: column; overflow: auto; }
-.pane-header { font-weight: 600; margin-bottom: 6px; }
+.studio-tabs { height: 72vh; display: flex; flex-direction: column; }
+:deep(.studio-tabs > .el-tabs__header) { flex: 0 0 auto; margin-bottom: 12px; }
+:deep(.studio-tabs > .el-tabs__content) { flex: 1; min-height: 0; }
+:deep(.studio-tabs > .el-tabs__content > .el-tab-pane) { height: 100%; }
+.tab-content { height: 100%; min-height: 0; }
+.editor-pane { overflow: auto; }
+.preview-pane { overflow: hidden; }
+.json-pane { overflow: hidden; }
 .preview { flex: 1; overflow: auto; border: 1px solid var(--el-border-color-light); padding: 8px; border-radius: 6px; }
+.preview-pane .preview { height: 100%; }
+.schema-json { height: 100%; }
+:deep(.schema-json .el-textarea__inner) { height: 100%; resize: none; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
 .footer-actions { display: flex; gap: 8px; justify-content: flex-end; width: 100%; }
 .placeholder { color: var(--el-text-color-secondary); padding: 12px; }
 .modelname-form { padding: 6px 0; }
 /* 與窗口按鈕保持距離 */
 :deep(.el-dialog__headerbtn) { margin-right: 6px; }
-</style> 
+</style>

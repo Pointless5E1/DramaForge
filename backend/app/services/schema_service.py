@@ -44,6 +44,43 @@ FIELD_TITLE_ZH_MAP: Dict[str, str] = {
     "relationship": "關係",
     "dynamic_info": "動態信息",
     "last_appearance": "最後出場時間",
+    "social_system": "社會體系",
+    "civilization_level": "科技／文明發展水平",
+    "power_systems": "核心體系列表",
+    "system_type": "體系類型",
+    "levels": "等級／階層劃分",
+    "source": "能量／權力來源",
+}
+
+MODEL_TITLE_ZH_MAP: Dict[str, str] = {
+    "WorldBuilding": "世界觀設定",
+    "WorldviewTemplate": "世界觀",
+    "SocialSystem": "社會體系",
+    "CoreSystem": "核心體系",
+    "SpecialAbility": "金手指",
+    "CharacterCard": "角色",
+    "SceneCard": "場景",
+    "OrganizationCard": "組織／勢力",
+    "SettingItem": "世界觀設定項目",
+    "CharacterAction": "角色行動",
+    "StoryLine": "故事線",
+    "ChapterOutline": "章節大綱",
+}
+
+ARRAY_ITEM_TITLE_ZH_MAP: Dict[str, str] = {
+    "special_abilities": "金手指",
+    "currency_system": "貨幣",
+    "major_power_camps": "組織／勢力",
+    "power_systems": "核心體系",
+    "character_cards": "角色",
+    "scene_cards": "場景",
+    "new_character_cards": "角色",
+    "new_scene_cards": "場景",
+    "branch_line": "輔線",
+    "character_action_list": "角色行動",
+    "entity_snapshot": "實體狀態",
+    "chapter_outline_list": "章節大綱",
+    "entity_list": "實體",
 }
 
 _CJK_RE = re.compile(r"[\u4e00-\u9fff]")
@@ -75,6 +112,10 @@ def localize_schema_titles(schema: Any) -> Any:
 
     def visit(node: Any) -> None:
         if isinstance(node, dict):
+            current_node_title = str(node.get("title") or "")
+            if current_node_title in MODEL_TITLE_ZH_MAP:
+                node["title"] = MODEL_TITLE_ZH_MAP[current_node_title]
+
             properties = node.get("properties")
             if isinstance(properties, dict):
                 for field_name, field_schema in properties.items():
@@ -86,11 +127,16 @@ def localize_schema_titles(schema: Any) -> Any:
                             )
                             if localized:
                                 field_schema["title"] = localized
+                        item_title = ARRAY_ITEM_TITLE_ZH_MAP.get(field_name)
+                        if item_title and "x-item-title" not in field_schema:
+                            field_schema["x-item-title"] = item_title
 
             for defs_key in ("$defs", "definitions"):
                 defs = node.get(defs_key)
                 if isinstance(defs, dict):
-                    for def_schema in defs.values():
+                    for def_name, def_schema in defs.items():
+                        if isinstance(def_schema, dict) and def_name in MODEL_TITLE_ZH_MAP:
+                            def_schema["title"] = MODEL_TITLE_ZH_MAP[def_name]
                         visit(def_schema)
 
             items = node.get("items")

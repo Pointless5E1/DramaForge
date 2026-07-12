@@ -46,9 +46,9 @@
           <el-switch v-model="row.aiExclude" />
         </template>
       </el-table-column>
-      <el-table-column label="註解" min-width="240">
+      <el-table-column label="生成規則" min-width="240">
         <template #default="{ row }">
-          <el-input v-model="row.description" placeholder="用於 Field 描述，提升 AI 結構化準確率" />
+          <el-input v-model="row.description" placeholder="描述欄位語意與生成要求，此內容會提供給 AI" />
         </template>
       </el-table-column>
       <el-table-column label="示例" min-width="220">
@@ -144,4 +144,4 @@ function removeTupleItem(row: BuilderField, idx: number) {
 .ops-col { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; width: 100%; }
 .ops-col .el-button + .el-button { margin-left: 0 !important; }
 .ops-btn { width: 100%; box-sizing: border-box; padding-left: 0; padding-right: 0; display: block; }
-</style> 
+</style>

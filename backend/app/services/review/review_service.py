@@ -52,6 +52,8 @@ def _build_system_prompt(session: Session, prompt_name: str) -> str:
     prompt = prompt_service.get_prompt_by_name(session, prompt_name)
     if not prompt or not prompt.template:
         raise HTTPException(status_code=400, detail=f"未找到提示詞名稱: {prompt_name}")
+    if not getattr(prompt, "is_review_prompt", False):
+        raise HTTPException(status_code=400, detail=f"提示詞不是審核用途: {prompt_name}")
     return prompt_service.inject_knowledge(session, str(prompt.template))
 
 

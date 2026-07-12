@@ -10,6 +10,9 @@ from app.schemas.wizard import (
 	SpecialAbilityResponse, OneSentence, ParagraphOverview,
 	CharacterCard, SceneCard, StoryLine, StageLine, 
 	Tags, WorldviewTemplate, Chapter,
+	ScreenplayTags, ScreenplayOneSentence, ScreenplayOverview,
+	ScreenplayWorldBuilding, ScreenplayBlueprint, ScreenplayEpisodeOutline,
+	ScreenplayStageLine, ScreenplaySegmentOutline, ScreenplaySegmentContent,
  WritingGuide, ReviewResultCardContent
 )
 from app.schemas.entity import ConceptCard, ItemCard, OrganizationCard
@@ -31,6 +34,15 @@ RESPONSE_MODEL_MAP: Dict[str, Any] = {
     'ReviewResultCardContent': ReviewResultCardContent,
 	'ChapterOutline': ChapterOutline,
 	'Chapter': Chapter,
+	'ScreenplayTags': ScreenplayTags,
+	'ScreenplayOneSentence': ScreenplayOneSentence,
+	'ScreenplayOverview': ScreenplayOverview,
+	'ScreenplayWorldBuilding': ScreenplayWorldBuilding,
+	'ScreenplayBlueprint': ScreenplayBlueprint,
+	'ScreenplayEpisodeOutline': ScreenplayEpisodeOutline,
+	'ScreenplayStageLine': ScreenplayStageLine,
+	'ScreenplaySegmentOutline': ScreenplaySegmentOutline,
+	'ScreenplaySegmentContent': ScreenplaySegmentContent,
 	# 基礎schema，自動包含在OpenAPI中
 	'CharacterCard': CharacterCard,
 	'SceneCard': SceneCard,

@@ -6,6 +6,7 @@ class PromptBase(SQLModel):
     name: str = Field(index=True)
     description: Optional[str] = None
     template: str
+    is_review_prompt: bool = False
 
 class PromptRead(PromptBase):
     id: int
@@ -18,6 +19,7 @@ class PromptUpdate(SQLModel):
     name: Optional[str] = None
     description: Optional[str] = None
     template: Optional[str] = None
+    is_review_prompt: Optional[bool] = None
 
 # 知識庫Schema
 class KnowledgeBase(SQLModel):
@@ -37,4 +39,4 @@ class KnowledgeCreate(SQLModel):
 class KnowledgeUpdate(SQLModel):
     name: Optional[str] = None
     description: Optional[str] = None
-    content: Optional[str] = None 
+    content: Optional[str] = None
