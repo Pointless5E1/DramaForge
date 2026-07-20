@@ -1,6 +1,12 @@
 <template>
   <div class="card-editor-host">
-    <component :is="activeEditorComponent" :key="card.id" :card="card" :prefetched="prefetched" />
+    <component
+      :is="activeEditorComponent"
+      :key="editorInstanceKey"
+      :card="card"
+      :prefetched="prefetched"
+      @activate-card="emit('activate-card', $event)"
+    />
   </div>
 </template>
 
@@ -11,6 +17,10 @@ import type { CardRead } from '@renderer/api/cards';
 const props = defineProps<{
   card: CardRead;
   prefetched?: any;
+}>();
+
+const emit = defineEmits<{
+  (e: 'activate-card', cardId: number): void;
 }>();
 
 // --- Editor Component Map ---
@@ -35,6 +45,12 @@ const activeEditorComponent = computed(() => {
   }
   return GenericCardEditor;
 });
+
+// 劇本片段共用同一個編輯器實例，捲動切段時只更新資料與全域選取狀態。
+// 其他卡片仍沿用逐卡重建，避免改變既有編輯器的生命週期語意。
+const editorInstanceKey = computed(() =>
+  props.card.card_type?.name === '劇本片段大綱' ? 'screenplay-segment-waterfall' : props.card.id
+);
 </script>
 
 <style scoped>

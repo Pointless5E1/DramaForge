@@ -31,7 +31,7 @@ const agentTemperature = ref<number | null>(0.6)
 // -1 表示不限制（不向後端發送 max_tokens）
 const agentMaxTokens = ref<number | null>(-1)
 const agentTimeout = ref<number | null>(90)
-const agentAssistantFontSize = ref<number>(16)
+const agentAssistantFontSize = ref<number>(13)
 const taskDoneSoundEnabled = ref(false)
 const taskDoneDesktopNotificationEnabled = ref(false)
 
@@ -127,7 +127,7 @@ function ensureInitialized() {
   agentAssistantFontSize.value = readClampedNumber(
     STORAGE_KEYS.assistantFontSize,
     LEGACY_KEYS.assistantFontSize,
-    16,
+    13,
     13,
     24,
   )
@@ -227,7 +227,7 @@ export function useAgentPreferences() {
   function setAgentAssistantFontSize(val: number | null) {
     agentAssistantFontSize.value = val != null && !Number.isNaN(val)
       ? Math.min(24, Math.max(13, Math.round(val)))
-      : 16
+      : 13
   }
 
   function setTaskDoneSoundEnabled(val: boolean): void {
@@ -245,7 +245,7 @@ export function useAgentPreferences() {
     setAgentTemperature(0.6)
     setAgentMaxTokens(-1)
     setAgentTimeout(90)
-    setAgentAssistantFontSize(16)
+    setAgentAssistantFontSize(13)
     setTaskDoneSoundEnabled(false)
     setTaskDoneDesktopNotificationEnabled(false)
   }

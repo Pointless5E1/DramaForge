@@ -165,12 +165,16 @@ def _localize_schema_titles(schema: Any) -> Any:
                     if not isinstance(field_schema, dict):
                         continue
                     current_title = str(field_schema.get("title") or "")
-                    if not _contains_cjk(current_title):
-                        localized = FIELD_TITLE_ZH_MAP.get(field_name) or _derive_title_from_description(
-                            field_schema.get("description")
-                        )
-                        if localized:
-                            field_schema["title"] = localized
+                    # Keep built-in field labels consistent across creation methods.
+                    # Legacy schemas can already have a Chinese, description-derived
+                    # fallback title, so known names must take precedence over it.
+                    localized = FIELD_TITLE_ZH_MAP.get(field_name)
+                    if localized:
+                        field_schema["title"] = localized
+                    elif not _contains_cjk(current_title):
+                        derived = _derive_title_from_description(field_schema.get("description"))
+                        if derived:
+                            field_schema["title"] = derived
                     item_title = ARRAY_ITEM_TITLE_ZH_MAP.get(field_name)
                     if item_title and "x-item-title" not in field_schema:
                         field_schema["x-item-title"] = item_title
@@ -234,6 +238,68 @@ def create_default_card_types(session: Session) -> None:
         "參與者實體列表:@self.content.entity_list\n"
         "當前章節大綱:@type:章節大綱[index=filter:content.volume_number = $self.content.volume_number&&content.stage_number= $self.content.stage_number&&content.chapter_number= $self.content.chapter_number].{content.title,content.overview,content.entity_list}\n"
         "下一章節大綱:@type:章節大綱[index=filter:content.volume_number = $self.content.volume_number && content.chapter_number = $self.content.chapter_number+1].{content.title,content.overview,content.entity_list}\n"
+    )
+
+    legacy_screenplay_segment_context_template = (
+        "劇本世界觀設定: @劇本世界觀設定.content\n"
+        "組織/勢力設定:@type:組織卡[index=filter:content.name in $parent.content.entity_list].{content.name,content.description,content.influence,content.relationship,content.dynamic_state}\n"
+        "場景卡:@type:場景卡[index=filter:content.name in $parent.content.entity_list].{content.name,content.description,content.dynamic_state}\n"
+        "當前劇本階段大綱: @type:劇本階段大綱[index=filter:content.episode_number = $parent.content.episode_number && content.stage_number = $parent.content.stage_number].content.overview\n"
+        "角色卡:@type:角色卡[index=filter:content.name in $parent.content.entity_list].{content.name,content.role_type,content.born_scene,content.description,content.personality,content.core_drive,content.character_arc,content.dynamic_info}\n"
+        "參與者實體列表:@parent.content.entity_list\n"
+        "當前劇本片段大綱:@parent.content\n"
+        "下一劇本片段大綱:@type:劇本片段大綱[index=filter:content.episode_number = $parent.content.episode_number && content.segment_number = $parent.content.segment_number+1].{content.title,content.overview,content.entity_list}\n"
+    )
+
+    legacy_flat_screenplay_segment_context_template = (
+        "劇本世界觀設定: @劇本世界觀設定.content\n"
+        "組織/勢力設定:@type:組織卡[index=filter:content.name in $self.content.entity_list].{content.name,content.description,content.influence,content.relationship,content.dynamic_state}\n"
+        "場景卡:@type:場景卡[index=filter:content.name in $self.content.entity_list].{content.name,content.description,content.dynamic_state}\n"
+        "當前劇本階段大綱: @parent.content.overview\n"
+        "角色卡:@type:角色卡[index=filter:content.name in $self.content.entity_list].{content.name,content.role_type,content.born_scene,content.description,content.personality,content.core_drive,content.character_arc,content.dynamic_info}\n"
+        "參與者實體列表:@self.content.entity_list\n"
+        "當前劇本片段大綱:@type:劇本片段大綱[index=filter:content.episode_number = $self.content.episode_number&&content.stage_number= $self.content.stage_number&&content.segment_number= $self.content.segment_number].{content.title,content.overview,content.entity_list}\n"
+        "下一劇本片段大綱:@type:劇本片段大綱[index=filter:content.episode_number = $self.content.episode_number && content.segment_number = $self.content.segment_number+1].{content.title,content.overview,content.entity_list}\n"
+    )
+
+    screenplay_segment_context_template = (
+        "劇本世界觀設定: @劇本世界觀設定.content\n"
+        "組織/勢力設定:@type:組織卡[index=filter:content.name in $parent.content.entity_list].{content.name,content.description,content.influence,content.relationship,content.dynamic_state}\n"
+        "場景卡:@type:場景卡[index=filter:content.name in $parent.content.entity_list].{content.name,content.description,content.dynamic_state}\n"
+        "當前劇本階段大綱: @type:劇本階段大綱[index=filter:content.episode_number = $parent.content.episode_number && content.stage_number = $parent.content.stage_number].content.overview\n"
+        "角色卡:@type:角色卡[index=filter:content.name in $parent.content.entity_list].{content.name,content.role_type,content.born_scene,content.description,content.personality,content.core_drive,content.character_arc,content.dynamic_info}\n"
+        "物品卡:@type:物品卡[index=filter:content.name in $parent.content.entity_list].{content.name,content.category,content.description,content.current_state,content.power_or_effect}\n"
+        "概念卡:@type:概念卡[index=filter:content.name in $parent.content.entity_list].{content.name,content.category,content.description,content.rule_definition,content.mastery_hint}\n"
+        "上一劇本片段正文:@type:劇本片段正文[previous:global:1].{content.screenplay_text}\n"
+        "參與者實體列表:@parent.content.entity_list\n"
+        "當前劇本片段大綱:@parent.content\n"
+        "下一劇本片段大綱:@type:劇本片段大綱[index=filter:content.episode_number = $parent.content.episode_number && content.segment_number = $parent.content.segment_number+1].{content.title,content.overview,content.entity_list}\n"
+    )
+
+    screenplay_segment_review_context_template = (
+        "劇本世界觀設定: @劇本世界觀設定.content\n"
+        "本集主線:@type:劇本分集大綱[index=$parent.content.episode_number].{content.main_target,content.branch_line}\n"
+        "當前劇本階段大綱:@type:劇本階段大綱[index=filter:content.episode_number = $parent.content.episode_number && content.stage_number = $parent.content.stage_number].{content.stage_name,content.overview,content.entity_snapshot}\n"
+        "當前劇本片段大綱:@parent.content\n"
+        "組織/勢力設定:@type:組織卡[index=filter:content.name in $parent.content.entity_list].{content.name,content.description,content.influence,content.relationship,content.dynamic_state}\n"
+        "場景卡:@type:場景卡[index=filter:content.name in $parent.content.entity_list].{content.name,content.description,content.dynamic_state}\n"
+        "角色卡:@type:角色卡[index=filter:content.name in $parent.content.entity_list].{content.name,content.role_type,content.born_scene,content.description,content.personality,content.core_drive,content.character_arc,content.dynamic_info}\n"
+        "物品卡:@type:物品卡[index=filter:content.name in $parent.content.entity_list].{content.name,content.category,content.description,content.current_state,content.power_or_effect}\n"
+        "概念卡:@type:概念卡[index=filter:content.name in $parent.content.entity_list].{content.name,content.category,content.description,content.rule_definition,content.mastery_hint}\n"
+        "上一劇本片段正文:@type:劇本片段正文[previous:global:1].{content.screenplay_text}\n"
+        "參與者實體列表:@parent.content.entity_list\n"
+        "下一劇本片段大綱:@type:劇本片段大綱[index=filter:content.episode_number = $parent.content.episode_number && content.segment_number = $parent.content.segment_number+1].{content.title,content.overview,content.entity_list}\n"
+    )
+
+    screenplay_segment_outline_review_context_template = (
+        "劇本世界觀設定: @劇本世界觀設定.content\n"
+        "本集主線:@type:劇本分集大綱[index=$self.content.episode_number].{content.main_target,content.branch_line}\n"
+        "當前劇本階段大綱:@parent.{content.stage_name,content.overview,content.entity_snapshot}\n"
+        "當前劇本片段大綱:@self.content\n"
+        "角色卡:@type:角色卡[index=filter:content.name in $self.content.entity_list].{content.name,content.role_type,content.description,content.personality,content.core_drive,content.character_arc,content.dynamic_info}\n"
+        "場景卡:@type:場景卡[index=filter:content.name in $self.content.entity_list].{content.name,content.description,content.dynamic_state}\n"
+        "上一劇本片段正文:@type:劇本片段正文[previous:global:1].{content.screenplay_text}\n"
+        "下一劇本片段大綱:@type:劇本片段大綱[index=filter:content.episode_number = $self.content.episode_number && content.segment_number = $self.content.segment_number+1].{content.title,content.overview,content.entity_list}\n"
     )
 
     default_types = {
@@ -355,7 +421,7 @@ def create_default_card_types(session: Session) -> None:
             "注意，請務必在@parent.content.stage_count 個階段內將故事按本集主線收束，並達到集末實體快照狀態:@parent.content.entity_snapshot\n"
             "接下來請你創作第 @self.content.stage_number 階段的劇本階段大綱。"
         )},
-        "劇本片段大綱": {"default_ai_context_template": (
+        "劇本片段大綱": {"editor_component": "ScreenplaySegmentEditor", "default_ai_context_template": (
             "劇本世界觀設定: @劇本世界觀設定.content\n"
             "episode_number: @self.content.episode_number\n"
             "episode_main_target: @type:劇本分集大綱[index=$current.episodeNumber].content.main_target\n"
@@ -364,17 +430,12 @@ def create_default_card_types(session: Session) -> None:
             "當前階段覆蓋片段範圍: @parent.content.reference_segment\n"
             "之前的劇本片段大綱: @type:劇本片段大綱[sibling].{content.segment_number,content.overview}\n"
             "請開始創作第 @self.content.segment_number 個劇本片段的大綱，保證連貫性"
-        )},
-        "劇本片段正文": {"editor_component": "ScreenplayTextEditor", "default_ai_context_template": (
-            "劇本世界觀設定: @劇本世界觀設定.content\n"
-            "組織/勢力設定:@type:組織卡[index=filter:content.name in $self.content.entity_list].{content.name,content.description,content.influence,content.relationship,content.dynamic_state}\n"
-            "場景卡:@type:場景卡[index=filter:content.name in $self.content.entity_list].{content.name,content.description,content.dynamic_state}\n"
-            "當前劇本階段大綱: @parent.content.overview\n"
-            "角色卡:@type:角色卡[index=filter:content.name in $self.content.entity_list].{content.name,content.role_type,content.born_scene,content.description,content.personality,content.core_drive,content.character_arc,content.dynamic_info}\n"
-            "參與者實體列表:@self.content.entity_list\n"
-            "當前劇本片段大綱:@type:劇本片段大綱[index=filter:content.episode_number = $self.content.episode_number&&content.stage_number= $self.content.stage_number&&content.segment_number= $self.content.segment_number].{content.title,content.overview,content.entity_list}\n"
-            "下一劇本片段大綱:@type:劇本片段大綱[index=filter:content.episode_number = $self.content.episode_number && content.segment_number = $self.content.segment_number+1].{content.title,content.overview,content.entity_list}\n"
-        )},
+        ), "default_ai_context_template_review": screenplay_segment_outline_review_context_template},
+        "劇本片段正文": {
+            "editor_component": "ScreenplayTextEditor",
+            "default_ai_context_template": screenplay_segment_context_template,
+            "default_ai_context_template_review": screenplay_segment_review_context_template,
+        },
     }
 
     # 類型默認 AI 參數預設（不包含 llm_config_id）
@@ -485,7 +546,7 @@ def create_default_card_types(session: Session) -> None:
                 if model_class:
                     schema = model_class.model_json_schema(ref_template="#/$defs/{model}")
                     schema = _localize_schema_titles(schema)
-                    if ct.json_schema is None or overwrite_card_schemas:
+                    if ct.json_schema is None or overwrite_card_schemas or name in {"劇本片段大綱", "劇本片段正文"}:
                         ct.json_schema = schema
                     elif name == "劇本分集大綱" and isinstance(ct.json_schema, dict):
                         # 僅遷移這個曾由描述自動截斷的標題，保留使用者對其餘 Schema 的修改。
@@ -521,7 +582,16 @@ def create_default_card_types(session: Session) -> None:
             card_type = session.get(CardType, card.card_type_id)
         if not card_type:
             continue
-        if getattr(card, "ai_context_template", None) is None:
+        if (
+            getattr(card_type, "name", "") == "劇本片段正文"
+            and getattr(card, "ai_context_template", None)
+            in {
+                legacy_screenplay_segment_context_template,
+                legacy_flat_screenplay_segment_context_template,
+            }
+        ):
+            card.ai_context_template = screenplay_segment_context_template
+        elif getattr(card, "ai_context_template", None) is None:
             card.ai_context_template = getattr(card_type, "default_ai_context_template", None)
         if getattr(card, "ai_context_template_review", None) is None:
             card.ai_context_template_review = getattr(card_type, "default_ai_context_template_review", None)

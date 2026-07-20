@@ -38,6 +38,7 @@
         @update:review-context-kind="handleReviewContextKindChange"
         @switch-tab="handleSwitchTab"
         @update:dirty="handleContentEditorDirtyChange"
+        @activate-card="emit('activate-card', $event)"
       />
     </template>
 
@@ -211,6 +212,10 @@ const props = defineProps<{
   prefetched?: any
 }>()
 
+const emit = defineEmits<{
+  (e: 'activate-card', cardId: number): void
+}>()
+
 const cardStore = useCardStore()
 const aiStore = useAIStore()
 const perCardStore = usePerCardAISettingsStore()
@@ -251,6 +256,7 @@ const contentEditorMap: Record<string, any> = {
   CodeMirrorEditor: defineAsyncComponent(() => import('../editors/CodeMirrorEditor.vue')),
   MarkdownTextEditor: defineAsyncComponent(() => import('../editors/MarkdownTextEditor.vue')),
   ScreenplayTextEditor: defineAsyncComponent(() => import('../editors/ScreenplayTextEditor.vue')),
+  ScreenplaySegmentEditor: defineAsyncComponent(() => import('../editors/ScreenplaySegmentEditor.vue')),
   // 未來可以添加更多內容編輯器，例如：
   // RichTextEditor: defineAsyncComponent(() => import('../editors/RichTextEditor.vue')),
   // MarkdownEditor: defineAsyncComponent(() => import('../editors/MarkdownEditor.vue')),
@@ -391,10 +397,20 @@ const isDirty = computed(() => {
   return !isEqual(localData.value, originalData.value) || ctxDirty || titleDirty
 })
 
+let previouslyLoadedCardId: number | null = null
+let previouslyLoadedCardType: string | null = null
+
 watch(
   () => props.card,
   async (newCard) => {
     if (newCard) {
+      const nextCardType = newCard.card_type?.name || null
+      const isScreenplayWaterfallSwitch = previouslyLoadedCardId !== null
+        && previouslyLoadedCardId !== newCard.id
+        && previouslyLoadedCardType === '劇本片段大綱'
+        && nextCardType === '劇本片段大綱'
+      previouslyLoadedCardId = newCard.id
+      previouslyLoadedCardType = nextCardType
       localData.value = cloneDeep(newCard.content) || {}
       localAiContextTemplates.value = getCardContextTemplates(newCard)
       originalData.value = cloneDeep(newCard.content) || {}
@@ -403,9 +419,9 @@ watch(
       generationContextKind.value = 'generation'
       reviewContextKind.value = 'review'
       titleProxy.value = newCard.title
-      await loadSchemaForCard(newCard)
+      if (!isScreenplayWaterfallSwitch) await loadSchemaForCard(newCard)
       // 載入每卡片參數
-      await loadAIOptions()
+      if (!isScreenplayWaterfallSwitch) await loadAIOptions()
       // 優先從後端讀取有效參數
       try {
         const resp = await getCardAIParams(newCard.id)
@@ -425,7 +441,7 @@ watch(
       perCardStore.setForCard(newCard.id, editingParams.value)
     }
   },
-  { immediate: true, deep: true }
+  { immediate: true }
 )
 
 const perCardParams = computed(() => perCardStore.getByCardId(props.card.id))
@@ -443,6 +459,7 @@ const currentReviewPrompt = ref('')
 
 function getDefaultReviewPromptForCardType(cardTypeName?: string | null): string {
   if (cardTypeName === '階段大綱') return '階段審核'
+  if (cardTypeName === '劇本片段正文' || cardTypeName === '劇本片段大綱') return '劇本片段審核'
   return '通用審核'
 }
 
@@ -537,6 +554,9 @@ function resolveReviewTarget(content: any): { targetField: string; targetText: s
 }
 
 function getCurrentEditingContent() {
+  if (activeContentEditor.value && contentEditorRef.value && typeof contentEditorRef.value.getContent === 'function') {
+    return cloneDeep(contentEditorRef.value.getContent()) || {}
+  }
   return cloneDeep(wrapperName.value ? innerData.value : localData.value) || {}
 }
 
@@ -894,7 +914,12 @@ async function executeReview() {
 
   try {
     const resolvedContext = getResolvedContextByKind(reviewContextKind.value, currentContent)
-    const target = resolveReviewTarget(currentContent)
+    const customReviewTarget = activeContentEditor.value
+      && contentEditorRef.value
+      && typeof contentEditorRef.value.getReviewTarget === 'function'
+      ? contentEditorRef.value.getReviewTarget()
+      : null
+    const target = customReviewTarget || resolveReviewTarget(currentContent)
     const payload: ReviewRunRequest = {
       card_id: props.card.id,
       project_id: projectStore.currentProject?.id || props.card.project_id,
@@ -906,7 +931,7 @@ async function executeReview() {
       target_text: target.targetText,
       context_info: resolvedContext.trim() || undefined,
       facts_info: formatFactsFromContext(props.prefetched).trim() || undefined,
-      content_snapshot: stringifyReviewTarget(currentContent),
+      content_snapshot: stringifyReviewTarget(customReviewTarget?.snapshot || currentContent),
       llm_config_id: p.llm_config_id,
       prompt_name: currentReviewPrompt.value || getDefaultReviewPromptForCardType(props.card.card_type?.name),
       meta: {

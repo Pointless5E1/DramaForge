@@ -22,7 +22,10 @@ from app.schemas import entity as entity_schemas
 from app.core import emit_event
 from app.services.ai.core import llm_service
 from app.services.ai.core.model_builder import build_model_from_json_schema
-from app.services.ai.generation.continuation_context_service import enrich_continuation_context_info
+from app.services.ai.generation.continuation_context_service import (
+    enrich_continuation_context_info,
+    enrich_relation_graph_context_info,
+)
 from app.services.ai.generation.continuation_budget_runtime import estimate_required_call_count
 from app.services.ai.generation.instruction_validator import validate_instruction, apply_instruction
 from app.services.ai.generation.instruction_generator import generate_instruction_stream
@@ -329,6 +332,68 @@ async def generate_with_instruction_stream(
                 schema=full_schema,
                 card_prompt=card_prompt_content
             )
+
+            pipeline = None
+            if request.generation_config and request.generation_config.custom:
+                pipeline = request.generation_config.custom.get("pipeline")
+
+            if pipeline == "screenplay_text_then_normalize":
+                if not card_prompt_content:
+                    raise ValueError("劇本正文文字生成缺少有效提示詞")
+                normalizer = prompt_service.get_prompt_by_name(session, "劇本片段正文規範化")
+                if not normalizer or not normalizer.template:
+                    raise ValueError("未找到提示詞名稱: 劇本片段正文規範化")
+
+                request.context_info = enrich_relation_graph_context_info(
+                    session,
+                    context_info=request.context_info,
+                    project_id=request.project_id,
+                    volume_number=request.volume_number,
+                    chapter_number=request.chapter_number,
+                    participants=request.participants,
+                    log_label="劇本正文上下文",
+                )
+
+                task_parts = []
+                if request.context_info:
+                    task_parts.append(f"## 相關上下文\n\n{request.context_info}")
+                task_parts.append(f"## 用戶要求\n\n{request.user_prompt or '請生成完整的劇本片段正文'}")
+                existing_text = request.current_data.get("screenplay_text") if request.current_data else None
+                if existing_text:
+                    task_parts.append(
+                        "## 目前劇本文字\n\n"
+                        f"{existing_text}\n\n"
+                        "請依照用戶要求產生完整修訂版；輸出必須包含未修改與已修改的全部正文。"
+                    )
+
+                yield f"data: {json.dumps({'type': 'thinking', 'text': '正在生成完整劇本文字'}, ensure_ascii=False)}\n\n"
+                screenplay_text = await llm_service.generate_review(
+                    session=session,
+                    llm_config_id=request.llm_config_id,
+                    user_prompt="\n\n".join(task_parts),
+                    system_prompt=card_prompt_content,
+                    max_tokens=request.max_tokens,
+                    temperature=request.temperature,
+                    timeout=request.timeout,
+                )
+
+                yield f"data: {json.dumps({'type': 'thinking', 'text': '正文完成，正在依劇本規範整理段落'}, ensure_ascii=False)}\n\n"
+                response_model = build_model_from_json_schema("ScreenplayNormalizedResponse", full_schema)
+                normalized = await llm_service.generate_structured(
+                    session=session,
+                    llm_config_id=request.llm_config_id,
+                    user_prompt=f"請規範化以下完整劇本文字：\n\n{screenplay_text}",
+                    system_prompt=prompt_service.inject_knowledge(session, str(normalizer.template)),
+                    output_type=response_model,
+                    max_tokens=request.max_tokens,
+                    temperature=0.1,
+                    timeout=request.timeout,
+                )
+                final_data = normalized.model_dump(mode="json")
+                if screenplay_text.strip() and not final_data.get("blocks"):
+                    raise ValueError("劇本正文規範化未產生任何 blocks")
+                yield f"data: {json.dumps({'type': 'done', 'success': True, 'message': '劇本文字已生成並完成規範化', 'final_data': final_data}, ensure_ascii=False)}\n\n"
+                return
             
             # 4. 調用指令流生成服務
             async for event in generate_instruction_stream(
@@ -342,7 +407,7 @@ async def generate_with_instruction_stream(
                 context_info=request.context_info,
                 temperature=request.temperature or 0.7,
                 max_tokens=request.max_tokens,
-                timeout=request.timeout or 150
+                timeout=request.timeout or 150,
             ):
                 # 5. 發送 SSE 事件（格式：data: {json}\n\n）
                 yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"

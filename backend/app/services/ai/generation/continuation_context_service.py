@@ -122,44 +122,67 @@ def _format_facts_structured(facts_structured: Any) -> str:
     return "\n".join(lines).strip()
 
 
-def enrich_continuation_context_info(session: Session, request: ContinuationRequest) -> str:
-    """服務端自動組裝事實子圖，併合併到續寫上下文。"""
-    participants = _normalize_participants(request.participants)
+def enrich_relation_graph_context_info(
+    session: Session,
+    *,
+    context_info: str | None,
+    project_id: int | None,
+    participants: List[str] | None,
+    volume_number: int | None = None,
+    chapter_number: int | None = None,
+    log_label: str = "生成上下文",
+) -> str:
+    """按參與實體裝配關係圖事實，並合併到任意生成上下文。"""
+    normalized_participants = _normalize_participants(participants)
 
-    if not request.project_id:
-        logger.debug("[續寫上下文] project_id 爲空，跳過事實子圖自動組裝")
-        return (request.context_info or "").strip()
+    if not project_id:
+        logger.debug("[{}] project_id 爲空，跳過事實子圖自動組裝", log_label)
+        return (context_info or "").strip()
 
-    if not participants:
-        logger.debug("[續寫上下文] participants 爲空，跳過事實子圖自動組裝")
-        return (request.context_info or "").strip()
+    if not normalized_participants:
+        logger.debug("[{}] participants 爲空，跳過事實子圖自動組裝", log_label)
+        return (context_info or "").strip()
 
     try:
         assembled = assemble_context(
             session,
             ContextAssembleParams(
-                project_id=request.project_id,
-                volume_number=request.volume_number,
-                chapter_number=request.chapter_number,
+                project_id=project_id,
+                volume_number=volume_number,
+                chapter_number=chapter_number,
                 chapter_id=None,
-                participants=participants,
+                participants=normalized_participants,
                 current_draft_tail=None,
             ),
         )
     except Exception as exc:
-        logger.warning("[續寫上下文] 自動組裝事實子圖失敗: {}", exc)
-        return (request.context_info or "").strip()
+        logger.warning("[{}] 自動組裝事實子圖失敗: {}", log_label, exc)
+        return (context_info or "").strip()
 
     structured_facts = _format_facts_structured(assembled.facts_structured)
     merged_context = _merge_facts_into_context(
-        request.context_info,
+        context_info,
         structured_facts or assembled.facts_subgraph,
     )
     logger.debug(
-        "[續寫上下文] 自動組裝事實子圖完成 project_id={} participants={} facts_len={} structured={}",
-        request.project_id,
-        len(participants),
+        "[{}] 自動組裝事實子圖完成 project_id={} participants={} facts_len={} structured={}",
+        log_label,
+        project_id,
+        len(normalized_participants),
         len(structured_facts or assembled.facts_subgraph or ""),
         bool(structured_facts),
     )
     return merged_context
+
+
+def enrich_continuation_context_info(session: Session, request: ContinuationRequest) -> str:
+    """服務端自動組裝事實子圖，併合併到續寫上下文。"""
+    return enrich_relation_graph_context_info(
+        session,
+        context_info=request.context_info,
+        project_id=request.project_id,
+        volume_number=request.volume_number,
+        chapter_number=request.chapter_number,
+        participants=request.participants,
+        log_label="續寫上下文",
+    )

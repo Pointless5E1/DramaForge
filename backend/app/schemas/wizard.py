@@ -319,7 +319,7 @@ ScreenplayBlockType = Literal[
 class ScreenplayBlock(BaseModel):
     """劇本片段正文的結構化段落。這是劇本正文的主資料，用於保護格式並支持 WYSIWYG 編輯。"""
     type: ScreenplayBlockType = Field(description="段落類型")
-    text: str = Field(default="", description="段落乾淨文字。不要預先加入好萊塢格式縮排、對白 block 的外層格式引號或括註 block 的外層格式括號，排版由編輯器/匯出器負責；內容內必要標點可正常使用")
+    text: str = Field(default="", description="完整語義段落的乾淨文字，不是單一視覺行；同一動作段落或同一次完整發言即使跨行也應保存在同一 block。不要預先加入好萊塢格式縮排、對白 block 的外層格式引號或括註 block 的外層格式括號，排版由編輯器/匯出器負責；內容內必要標點可正常使用")
     character: Optional[str] = Field(default=None, description="對白或括註所屬角色；非對白段落可留空")
     scene_id: Optional[str] = Field(default=None, description="可選場景標識，用於同一片段中多場景追蹤")
 
@@ -333,14 +333,9 @@ class ScreenplayLine(BaseModel):
 
 
 class ScreenplaySegmentContent(BaseModel):
-    """劇本片段正文。以結構化 blocks 作爲主資料，screenplay_text 僅作純文字匯出/舊版相容。"""
-    episode_number: int = Field(description="集數")
-    stage_number: int = Field(description="階段序號")
-    segment_number: int = Field(description="片段序號")
-    title: str = Field(description="片段標題")
-    entity_list: List[str] = Field(description="片段中參與的重要實體列表")
+    """劇本片段正文 facet。片段身份、大綱與參與實體由父級劇本片段大綱卡持有。"""
     format_version: str = Field(default="screenplay-doc-v1", description="劇本正文結構格式版本")
-    blocks: List[ScreenplayBlock] = Field(description="好萊塢劇本格式段落列表，按閱讀順序排列", min_length=1)
+    blocks: List[ScreenplayBlock] = Field(default_factory=list, description="好萊塢劇本格式的語義段落列表，按閱讀順序排列；不得將每個視覺行各自拆成 block")
     screenplay_text: Optional[str] = Field(default="", description="由 blocks 序列化得到的純文字劇本，便於複製到 Word 或文字編輯器")
     lines: Optional[List[ScreenplayLine]] = Field(default=None, description="舊版 screenplay-text-v1 行類型索引，相容保留")
 

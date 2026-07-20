@@ -116,9 +116,13 @@ const canSaveComputed = computed(() => {
 
 const showGenerateButton = computed(() => {
   if (!props.isChapterContent) return true
-  return props.cardType === '劇本片段正文'
+  return props.cardType === '劇本片段大綱'
 })
-const showReviewButton = computed(() => !props.isChapterContent || props.cardType === '劇本片段正文')
+const showReviewButton = computed(() => (
+  !props.isChapterContent
+  || props.cardType === '劇本片段正文'
+  || props.cardType === '劇本片段大綱'
+))
 
 const emit = defineEmits([
   'update:title',

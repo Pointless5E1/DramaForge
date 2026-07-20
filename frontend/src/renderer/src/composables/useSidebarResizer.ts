@@ -5,7 +5,7 @@ export function useSidebarResizer() {
   const maxLeftWidth = 400
   const minRightWidth = 280
   const maxRightWidth = 500
-  const leftSidebarWidth = ref(285)
+  const leftSidebarWidth = ref(320)
   // 讓五個正文工具頁籤（助手、審核、實體、提取、大綱）預設完整可見。
   const rightSidebarWidth = ref(359)
   let resizing = ref<'left' | 'right' | null>(null)

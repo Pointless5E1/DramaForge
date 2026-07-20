@@ -137,15 +137,92 @@ export async function updateCardType(id: number, body: Partial<CardTypeUpdate>):
 export async function deleteCardType(id: number): Promise<void> { await request.delete(`/card-types/${id}`) }
 
 // --- 類型/卡片 Schema API ---
+type CardMetadataCacheEntry = { value: any; expiresAt: number }
+type CardMetadataReadOptions = { forceRefresh?: boolean }
+
+const CARD_METADATA_CACHE_TTL_MS = 5 * 60 * 1000
+const cardSchemaCache = new Map<number, CardMetadataCacheEntry>()
+const cardSchemaRequests = new Map<number, Promise<any>>()
+const cardAIParamsCache = new Map<number, CardMetadataCacheEntry>()
+const cardAIParamsRequests = new Map<number, Promise<any>>()
+
+async function getCachedCardMetadata(
+  id: number,
+  cache: Map<number, CardMetadataCacheEntry>,
+  pendingRequests: Map<number, Promise<any>>,
+  path: string,
+  options?: CardMetadataReadOptions,
+): Promise<any> {
+  const cached = cache.get(id)
+  if (!options?.forceRefresh && cached && cached.expiresAt > Date.now()) return cached.value
+
+  if (!options?.forceRefresh) {
+    const pending = pendingRequests.get(id)
+    if (pending) return pending
+  }
+
+  // 切卡時的背景資料讀取不應以全畫面 loading 鎖住操作。
+  const requestPromise = request
+    .get(path, undefined, '/api', { showLoading: false })
+    .then(value => {
+      cache.set(id, { value, expiresAt: Date.now() + CARD_METADATA_CACHE_TTL_MS })
+      return value
+    })
+    .finally(() => {
+      if (pendingRequests.get(id) === requestPromise) pendingRequests.delete(id)
+    })
+
+  pendingRequests.set(id, requestPromise)
+  return requestPromise
+}
+
+function clearCardSchemaCache(id?: number): void {
+  if (typeof id === 'number') cardSchemaCache.delete(id)
+  else cardSchemaCache.clear()
+}
+
+function clearCardAIParamsCache(id?: number): void {
+  if (typeof id === 'number') cardAIParamsCache.delete(id)
+  else cardAIParamsCache.clear()
+}
+
 export async function getCardTypeSchema(id: number): Promise<any> { return await request.get(`/card-types/${id}/schema`) }
-export async function updateCardTypeSchema(id: number, json_schema: any): Promise<any> { return await request.put(`/card-types/${id}/schema`, { json_schema }) }
-export async function getCardSchema(id: number): Promise<any> { return await request.get(`/cards/${id}/schema`) }
-export async function updateCardSchema(id: number, json_schema: any | null): Promise<any> { return await request.put(`/cards/${id}/schema`, { json_schema }) }
-export async function applyCardSchemaToType(id: number): Promise<any> { return await request.post(`/cards/${id}/schema/apply-to-type`, {}) }
+export async function updateCardTypeSchema(id: number, json_schema: any): Promise<any> {
+  const result = await request.put(`/card-types/${id}/schema`, { json_schema })
+  clearCardSchemaCache()
+  return result
+}
+export async function getCardSchema(id: number, options?: CardMetadataReadOptions): Promise<any> {
+  return await getCachedCardMetadata(id, cardSchemaCache, cardSchemaRequests, `/cards/${id}/schema`, options)
+}
+export async function updateCardSchema(id: number, json_schema: any | null): Promise<any> {
+  const result = await request.put(`/cards/${id}/schema`, { json_schema })
+  clearCardSchemaCache(id)
+  return result
+}
+export async function applyCardSchemaToType(id: number): Promise<any> {
+  const result = await request.post(`/cards/${id}/schema/apply-to-type`, {})
+  clearCardSchemaCache()
+  return result
+}
 
 // --- 類型/卡片 AI 參數 API ---
 export async function getCardTypeAIParams(id: number): Promise<any> { return await request.get(`/card-types/${id}/ai-params`) }
-export async function updateCardTypeAIParams(id: number, ai_params: any | null): Promise<any> { return await request.put(`/card-types/${id}/ai-params`, { ai_params }) }
-export async function getCardAIParams(id: number): Promise<any> { return await request.get(`/cards/${id}/ai-params`) }
-export async function updateCardAIParams(id: number, ai_params: any | null): Promise<any> { return await request.put(`/cards/${id}/ai-params`, { ai_params }) }
-export async function applyCardAIParamsToType(id: number): Promise<any> { return await request.post(`/cards/${id}/ai-params/apply-to-type`, {}) }
+export async function updateCardTypeAIParams(id: number, ai_params: any | null): Promise<any> {
+  const result = await request.put(`/card-types/${id}/ai-params`, { ai_params })
+  clearCardAIParamsCache()
+  return result
+}
+export async function getCardAIParams(id: number, options?: CardMetadataReadOptions): Promise<any> {
+  return await getCachedCardMetadata(id, cardAIParamsCache, cardAIParamsRequests, `/cards/${id}/ai-params`, options)
+}
+export async function updateCardAIParams(id: number, ai_params: any | null): Promise<any> {
+  const result = await request.put(`/cards/${id}/ai-params`, { ai_params })
+  clearCardAIParamsCache(id)
+  return result
+}
+export async function applyCardAIParamsToType(id: number): Promise<any> {
+  const result = await request.post(`/cards/${id}/ai-params/apply-to-type`, {})
+  clearCardAIParamsCache()
+  return result
+}

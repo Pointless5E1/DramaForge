@@ -11,7 +11,7 @@ from app.db.models import Prompt
 from app.core.config import settings
 from .registry import initializer
 
-REVIEW_PROMPT_NAMES = {"通用審核", "章節審核", "階段審核"}
+REVIEW_PROMPT_NAMES = {"通用審核", "章節審核", "階段審核", "劇本片段審核"}
 
 
 def _parse_prompt_file(file_path: str) -> dict:

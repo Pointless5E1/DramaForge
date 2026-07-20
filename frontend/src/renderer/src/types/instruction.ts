@@ -83,6 +83,10 @@ export interface InstructionGenerateRequest {
   generation_config?: GenerationConfig
   prompt_template?: string
   context_info?: string
+  project_id?: number
+  volume_number?: number
+  chapter_number?: number
+  participants?: string[]
   temperature?: number
   max_tokens?: number
   timeout?: number

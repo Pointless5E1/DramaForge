@@ -353,6 +353,31 @@ export const useAssistantStore = defineStore('assistant', () => {
       console.warn('儲存項目結構緩存失敗', e)
     }
   }
+
+  let projectStructureSourceKey = ''
+
+  function getProjectStructureSourceKey(projectId: number, cards: CardRead[], cardTypes: any[]): string {
+    const cardKey = cards.map(card => [
+      card.id,
+      card.parent_id ?? '',
+      card.display_order ?? '',
+      card.title || '',
+      card.card_type?.name || '',
+      (card as any).updated_at || '',
+    ].join(':')).join('|')
+    const typeKey = cardTypes.map(type => `${type.id ?? ''}:${type.name ?? ''}`).join('|')
+    return `${projectId}::${cardKey}::${typeKey}`
+  }
+
+  function markCurrentCardInTreeText(treeText: string, currentCardId?: number): string {
+    const withoutMarker = String(treeText || '').replace(/ ⭐當前/g, '')
+    if (!currentCardId) return withoutMarker
+    const cardToken = `{id:${currentCardId} |`
+    return withoutMarker
+      .split('\n')
+      .map(line => line.includes(cardToken) ? line.replace(/}$/, ' ⭐當前}') : line)
+      .join('\n')
+  }
   
   /**
    * 構建卡片樹形文本（遞歸）
@@ -441,13 +466,25 @@ export const useAssistantStore = defineStore('assistant', () => {
     currentCardId?: number,
     forceRebuild: boolean = false
   ) {
+    const sourceKey = getProjectStructureSourceKey(projectId, cards, cardTypes)
+    if (!forceRebuild && projectStructure.value && projectStructureSourceKey === sourceKey) {
+      // 單純切換目前卡片時，結構本身沒有改變，只更新標記即可。
+      projectStructure.value = {
+        ...projectStructure.value,
+        tree_text: markCurrentCardInTreeText(projectStructure.value.tree_text, currentCardId),
+        last_updated: Date.now(),
+      }
+      return
+    }
+
     // 檢查緩存是否有效
     if (!forceRebuild) {
       const cached = loadProjectStructureFromCache(projectId)
       if (cached && cached.version === cards.length) {
-        // 緩存有效，直接使用（但更新當前卡片標記）
+        // 來源內容可能已更新，因此首次仍重建；後續切卡會走上方快速路徑。
         const updated = buildProjectStructure(projectId, projectName, cards, cardTypes, currentCardId)
         projectStructure.value = updated
+        projectStructureSourceKey = sourceKey
         saveProjectStructureToCache(updated)
         console.log('📋 [AssistantStore] 使用緩存的項目結構（已更新當前卡片）')
         return
@@ -457,6 +494,7 @@ export const useAssistantStore = defineStore('assistant', () => {
     // 重新構建
     const structure = buildProjectStructure(projectId, projectName, cards, cardTypes, currentCardId)
     projectStructure.value = structure
+    projectStructureSourceKey = sourceKey
     saveProjectStructureToCache(structure)
     console.log('📋 [AssistantStore] 已構建項目結構:', structure)
   }

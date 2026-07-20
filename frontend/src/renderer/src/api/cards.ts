@@ -49,7 +49,8 @@ export const moveCard = (id: number, params: { target_project_id: number; parent
 export const getContentModels = (): Promise<string[]> => request.get('/ai/content-models')
 
 // --- Card AI Params API ---
-export const getCardAIParams = (cardId: number): Promise<{ ai_params: any; effective_params: any; follow_type: boolean }> => request.get(`/cards/${cardId}/ai-params`) 
+// 保留舊匯入路徑，實際共用 setting.ts 的快取與併發去重。
+export { getCardAIParams } from './setting'
 
 // --- Card Export API ---
 export type CardExportScope = 'all' | 'single' | 'type'

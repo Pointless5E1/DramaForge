@@ -1015,7 +1015,7 @@ onBeforeUnmount(() => {
   flex-direction: column; 
   height: 100%; 
   font-size: 13px;
-  --nf-assistant-font-size: 16px;
+  --nf-assistant-font-size: 13px;
   --nf-assistant-line-height: 1.65;
   font-family:"Segoe UI", "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
 }
@@ -1052,6 +1052,46 @@ onBeforeUnmount(() => {
 .header-controls-row .el-button { flex-shrink: 0; padding: 3px 6px; font-size: 12px; }
 .ctx-preview { max-height: 40vh; overflow: auto; white-space: pre-wrap; background: var(--el-bg-color); color: var(--el-text-color-primary); padding: 8px; border: 1px solid var(--el-border-color-lighter); border-radius: 6px; }
 .chat-area { flex: 1; display: flex; flex-direction: column; gap: 6px; overflow: hidden; padding: 6px 8px; }
+
+/* Codex-like conversation treatment: assistant replies sit directly on the
+   canvas, while user messages use a quiet, opaque rounded bubble. */
+.chat-area :deep(.agent-message-list) {
+  padding: 10px 4px 16px;
+}
+.chat-area :deep(.msg-row) {
+  margin-bottom: 10px;
+}
+.chat-area :deep(.msg-row.assistant .msg-stack) {
+  width: 100%;
+  max-width: 100%;
+}
+.chat-area :deep(.msg-row.assistant .msg-bubble) {
+  padding: 0 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.chat-area :deep(.msg-row.user .msg-stack) {
+  max-width: min(82%, 680px);
+}
+.chat-area :deep(.msg-row.user .msg-bubble) {
+  padding: 2px 10px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--nf-surface-control, var(--el-fill-color-darker));
+  box-shadow: none;
+  color: var(--el-text-color-primary);
+}
+.chat-area :deep(.msg-bubble .bubble-markdown) {
+  line-height: 1.45;
+}
+.chat-area :deep(.msg-bubble .bubble-markdown > :first-child) {
+  margin-top: 0;
+}
+.chat-area :deep(.msg-bubble .bubble-markdown > :last-child) {
+  margin-bottom: 0;
+}
 .streaming-tip { color: var(--el-text-color-secondary); padding-left: 4px; font-size: var(--nf-assistant-font-size); line-height: var(--nf-assistant-line-height); }
 .composer { 
   display: flex; 
@@ -1308,19 +1348,19 @@ onBeforeUnmount(() => {
   padding: 0 !important;
   flex: 0 0 32px;
   border: 0 !important;
-  border-radius: 6px !important;
-  background: #f2f2f2 !important;
-  color: #171717 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #ffffff !important;
   box-shadow: none !important;
 }
 .composer-send-button:hover,
 .composer-send-button:focus-visible {
-  background: #f2f2f2 !important;
-  color: #171717 !important;
+  background: transparent !important;
+  color: #ffffff !important;
 }
 .composer-send-button.is-disabled {
-  background: color-mix(in srgb, #f2f2f2 42%, transparent) !important;
-  color: var(--el-text-color-disabled) !important;
+  background: transparent !important;
+  color: #ffffff !important;
 }
 .composer-send-button :deep(.el-icon) {
   font-size: 14px;

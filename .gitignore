@@ -21,6 +21,7 @@ backend/alembic/versions/*.py
 *.md
 !README.md
 !README.MD
+!AGENTS.md
 !CLA.md
 !貢獻指南.md
 !後續規劃.md

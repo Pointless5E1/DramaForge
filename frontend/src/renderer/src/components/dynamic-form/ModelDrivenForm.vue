@@ -32,6 +32,7 @@ import { defineAsyncComponent, computed } from 'vue'
 import type { JSONSchema } from '@renderer/api/schema'
 import { schemaService } from '@renderer/api/schema'
 import { resolveActualSchema as resolveSchemaUnified } from '@renderer/services/schemaFieldParser'
+import { resolveBuiltinFieldTitle } from '@renderer/services/uiLayoutService'
 
 // --- 組件導入 ---
 const StringField = defineAsyncComponent(() => import('./fields/StringField.vue'))
@@ -122,6 +123,7 @@ function getFieldLabel(propName: string, propSchema: JSONSchema): string {
     && (actualSchema.type === 'object' || actualSchema.type === 'array')
   ) return ''
   return (props.displayNameMap && props.displayNameMap[propName])
+    || resolveBuiltinFieldTitle(propName)
     || (propSchema as any).title
     || (actualSchema as any).title
     || propName

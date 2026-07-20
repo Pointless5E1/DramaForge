@@ -119,7 +119,7 @@ async function setTaskDoneDesktopNotificationEnabled(val: boolean): Promise<void
             助手字體大小
             <el-tooltip placement="top" effect="dark">
               <template #content>
-                控制靈感助手消息、工具結果和輸入框的主要文字大小。預設 16px，不影響正文編輯器字號。
+                控制靈感助手消息、工具結果和輸入框的主要文字大小。預設 13px，不影響正文編輯器字號。
               </template>
               <el-icon class="field-help-icon"><QuestionFilled /></el-icon>
             </el-tooltip>

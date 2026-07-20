@@ -135,7 +135,7 @@ const props = defineProps<{
 
 const { cards } = storeToRefs(useCardStore())
 
-const isScreenplay = computed(() => props.activeCard?.card_type?.name === '劇本片段正文')
+const isScreenplay = computed(() => props.activeCard?.card_type?.name === '劇本片段大綱')
 
 function cardContent(card: CardRead | undefined | null): any {
   return (card?.content as any) || {}
@@ -151,6 +151,10 @@ const screenplayNumbers = computed(() => {
 })
 
 const screenplaySegmentOutline = computed(() => {
+  if (isScreenplay.value) {
+    const content = cardContent(props.activeCard)
+    return { ...content, title: content.title || props.activeCard?.title }
+  }
   const { episode, stage, segment } = screenplayNumbers.value
   if (![episode, stage, segment].every(Number.isFinite)) return null
   const card = (cards.value || []).find(candidate => {

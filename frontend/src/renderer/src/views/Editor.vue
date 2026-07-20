@@ -131,7 +131,11 @@
       <el-tabs v-model="activeTab" type="border-card" class="main-tabs" :class="{ 'is-left-collapsed': !isLeftSidebarVisible }">
         <el-tab-pane label="編輯器" name="editor">
           <template v-if="activeCard">
-            <CardEditorHost :card="activeCard" :prefetched="prefetchedContext" />
+            <CardEditorHost
+              :card="activeCard"
+              :prefetched="prefetchedContext"
+              @activate-card="handleWaterfallActivateCard"
+            />
           </template>
           <el-empty v-else description="請從左側選擇一個卡片進行編輯" />
         </el-tab-pane>
@@ -157,7 +161,7 @@
                   @dragstart="onTypeDragStart($event, type)"
                 >
                   <el-icon><component :is="getIconByCardType(type.name)" /></el-icon>
-                  <span>{{ type.name }}</span>
+                  <span>{{ visibleCardTypeLabel(type.name) }}</span>
                 </div>
               </div>
               <el-empty v-else description="尚無使用中的卡片類型" :image-size="52" />
@@ -179,7 +183,7 @@
                   @dragstart="onTypeDragStart($event, type)"
                 >
                   <el-icon><component :is="getIconByCardType(type.name)" /></el-icon>
-                  <span>{{ type.name }}</span>
+                  <span>{{ visibleCardTypeLabel(type.name) }}</span>
                 </div>
               </div>
               <el-empty v-else description="所有卡片類型都已使用" :image-size="52" />
@@ -260,9 +264,9 @@
       <el-form-item label="卡片類型">
         <el-select v-model="newCardForm.card_type_id" placeholder="請選擇卡片類型" style="width: 100%">
           <el-option
-            v-for="type in cardStore.cardTypes"
+            v-for="type in visibleCardTypes"
             :key="type.id"
-            :label="type.name"
+            :label="visibleCardTypeLabel(type.name)"
             :value="type.id"
           ></el-option>
         </el-select>
@@ -294,7 +298,7 @@
       </el-select>
       <el-input v-model="importDialog.search" placeholder="搜尋來源卡片標題..." clearable style="flex:1; min-width: 200px" />
       <el-select v-model="importFilter.types" multiple collapse-tags placeholder="類型篩選" style="min-width:220px;" :max-collapse-tags="2">
-        <el-option v-for="t in cardStore.cardTypes" :key="t.id" :label="t.name" :value="t.id!" />
+        <el-option v-for="t in visibleCardTypes" :key="t.id" :label="visibleCardTypeLabel(t.name)" :value="t.id!" />
       </el-select>
       <el-tree-select
         v-model="importDialog.parentId"
@@ -363,6 +367,7 @@ import AssistantPanel from '@renderer/components/assistants/AssistantPanel.vue'
 import ContextPanel from '@renderer/components/panels/ContextPanel.vue'
 import ChapterToolsPanel from '@renderer/components/panels/ChapterToolsPanel.vue'
 import OutlinePanel from '@renderer/components/panels/OutlinePanel.vue'
+import { isInternalCardFacet, isVisibleCardType, visibleCardTypeLabel } from '@renderer/services/cardVisibility'
 import ReviewHistoryPanel from '@renderer/components/panels/ReviewHistoryPanel.vue'
 import RelationGraphPanel from '@renderer/components/panels/RelationGraphPanel.vue'
 import { useCardStore } from '@renderer/stores/useCardStore'
@@ -370,9 +375,9 @@ import { useEditorStore } from '@renderer/stores/useEditorStore'
 import { useProjectStore } from '@renderer/stores/useProjectStore'
 import { useAssistantStore } from '@renderer/stores/useAssistantStore'
 import SchemaStudio from '@renderer/components/shared/SchemaStudio.vue'
-import { getCardSchema } from '@renderer/api/setting'
+import { getCardAIParams, getCardSchema } from '@renderer/api/setting'
 import { getProjects } from '@renderer/api/projects'
-import { getCardsForProject, copyCard, getCardAIParams, searchCards } from '@renderer/api/cards'
+import { getCardsForProject, copyCard, searchCards } from '@renderer/api/cards'
 import { generateAIContent } from '@renderer/api/ai'
 import type { AssistantRef, ChapterExcerptRef, ReviewResultRef } from '@renderer/api/ai'
  
@@ -476,7 +481,9 @@ function openExportDialog() {
 
 
  function buildGroupedNodes(nodes: any[]): any[] {
-  return nodes.map(n => {
+  return nodes
+    .filter(n => n.card_type?.name !== '劇本片段正文')
+    .map(n => {
     const node: TreeNode = { ...n }
     // 分組節點自身不再參與分組邏輯，直接遞歸其子節點
     if ((n as any).__isGroup) {
@@ -485,10 +492,15 @@ function openExportDialog() {
       }
       return node
     }
-    if (Array.isArray(n.children) && n.children.length > 0) {
+    const visibleChildren = Array.isArray(n.children)
+      ? n.children.filter((child: any) => child.card_type?.name !== '劇本片段正文')
+      : []
+    // node 是從原始樹展開複製而來；先清空 children，避免隱藏 facet 從原始引用漏回畫面。
+    node.children = []
+    if (visibleChildren.length > 0) {
       // 統計子節點類型數量
       const byType: Record<string, any[]> = {}
-      n.children.forEach((c: any) => {
+      visibleChildren.forEach((c: any) => {
         const typeName = c.card_type?.name || '未知類型'
         if (!byType[typeName]) byType[typeName] = []
         byType[typeName].push(c)
@@ -501,7 +513,7 @@ function openExportDialog() {
             // 創建虛擬分組節點（id 使用字符串避免衝突）
             grouped.push({
               id: `group:${n.id}:${t}`,
-              title: `${t}`,
+              title: t === '劇本片段大綱' ? '劇本片段' : `${t}`,
               __isGroup: true,
               __groupType: t,
               __parentCardId: n.id,  // 儲存實際父卡片ID
@@ -529,11 +541,17 @@ function openExportDialog() {
 const groupedTree = computed(() => buildGroupedNodes(cardTree.value as unknown as any[]))
 const usedCardTypeIds = computed(() => new Set(
   (cards.value || [])
+    .filter(card => !isInternalCardFacet(card))
     .map(card => Number((card as any)?.card_type?.id ?? (card as any)?.card_type_id))
     .filter(id => Number.isFinite(id) && id > 0),
 ))
-const usedCardTypes = computed(() => cardStore.cardTypes.filter(type => usedCardTypeIds.value.has(Number(type.id))))
-const unusedCardTypes = computed(() => cardStore.cardTypes.filter(type => !usedCardTypeIds.value.has(Number(type.id))))
+const visibleCardTypes = computed(() => cardStore.cardTypes.filter(type => isVisibleCardType(type)))
+const usedCardTypes = computed(() => cardStore.cardTypes.filter(type =>
+  isVisibleCardType(type) && usedCardTypeIds.value.has(Number(type.id))
+))
+const unusedCardTypes = computed(() => cardStore.cardTypes.filter(type =>
+  isVisibleCardType(type) && !usedCardTypeIds.value.has(Number(type.id))
+))
 
 // Local State
 const activeTab = ref('market')
@@ -573,7 +591,7 @@ const handleSearch = debounce(async (query: string) => {
   try {
     const pid = projectStore.currentProject?.id
     if (pid) {
-      searchResults.value = await searchCards(pid, query)
+      searchResults.value = (await searchCards(pid, query)).filter(card => !isInternalCardFacet(card))
     }
   } catch (e) {
     console.error(e)
@@ -889,6 +907,12 @@ function handleNodeClick(data: any) {
 }
 
 // 卡片點擊處理（支持多選）
+function handleWaterfallActivateCard(cardId: number) {
+  const card = cards.value.find((item: any) => item.id === cardId)
+  if (!card) return
+  handleNodeClick(card)
+}
+
 function handleCardClick(event: MouseEvent, data: any) {
   // 分組節點不支持多選
   if (data.__isGroup) {
@@ -1047,6 +1071,22 @@ async function batchDeleteCards() {
 }
 
 // 兜底：當 activeCard 改變時也自動注入一次
+let projectStructureRefreshFrame: number | null = null
+let projectStructureRefreshTimer: number | null = null
+
+function scheduleProjectStructureContextUpdate(cardId?: number) {
+  if (projectStructureRefreshFrame !== null) cancelAnimationFrame(projectStructureRefreshFrame)
+  if (projectStructureRefreshTimer !== null) window.clearTimeout(projectStructureRefreshTimer)
+  // 先讓卡片編輯器完成畫面更新，再處理僅供助手使用的專案結構。
+  projectStructureRefreshFrame = requestAnimationFrame(() => {
+    projectStructureRefreshFrame = null
+    projectStructureRefreshTimer = window.setTimeout(() => {
+      projectStructureRefreshTimer = null
+      updateProjectStructureContext(cardId)
+    }, 0)
+  })
+}
+
 watch(activeCard, (c) => {
  try {
    if (!c) return
@@ -1064,8 +1104,8 @@ watch(activeCard, (c) => {
    //  更新卡片上下文（用於靈感助手工具調用）
    assistantStore.updateActiveCard(c as any, pid)
    
-   //  更新項目結構（當前卡片變化時）
-   updateProjectStructureContext((c as any)?.id)
+   // 更新項目結構不應阻擋卡片本身先顯示。
+   scheduleProjectStructureContextUpdate((c as any)?.id)
  } catch (err) {
    console.error('🔄 [Editor] 更新卡片上下文失敗:', err)
  }
@@ -1403,18 +1443,32 @@ const assistantResolvedContext = ref<string>('')
 const assistantEffectiveSchema = ref<any>(null)
 const assistantSelectionCleared = ref<boolean>(false)
 const assistantParams = ref<{ llm_config_id: number | null; prompt_name: string | null; temperature: number | null; max_tokens: number | null; timeout: number | null }>({ llm_config_id: null, prompt_name: '靈感對話', temperature: null, max_tokens: null, timeout: null })
+type AssistantContextCacheEntry = {
+  sourceKey: string
+  resolvedContext: string
+  effectiveSchema: any
+  params: typeof assistantParams.value
+}
+const assistantContextCache = new Map<number, AssistantContextCacheEntry>()
+const assistantContextCardsKey = computed(() => (cards.value || []).map((card: any) =>
+  `${card.id}:${card.updated_at || ''}:${card.title || ''}:${card.parent_id || ''}`
+).join('|'))
+let prefetchedContextRevision = 0
+let assistantRefreshSequence = 0
+let assistantRefreshFrame: number | null = null
+let assistantRefreshTimer: number | null = null
 
 // 判斷當前是否爲可使用正文側欄工具的卡片。
 // 劇本片段正文與章節正文共用參與實體、提取及大綱頁籤。
 const isChapterContent = computed(() => {
   const cardTypeName = activeCard.value?.card_type?.name
-  return cardTypeName === '章節正文' || cardTypeName === '劇本片段正文'
+  return cardTypeName === '章節正文' || cardTypeName === '劇本片段大綱'
 })
 
-// 片段大綱也保存獨立的 entity_list，應讓使用者看見並直接維護。
+// 劇本片段大綱是聚合入口，持有片段唯一的 entity_list。
 const hasEntityListPanel = computed(() => {
   const cardTypeName = activeCard.value?.card_type?.name
-  return isChapterContent.value || cardTypeName === '劇本片段大綱'
+  return isChapterContent.value
 })
 
 const reviewTargetCardIdForSidebar = computed<number | null>(() => {
@@ -1518,9 +1572,18 @@ function handleContextAssembledUpdate(ctx: any) {
 
 
 async function refreshAssistantContext() {
+  const refreshSequence = assistantRefreshSequence
   try {
     const card = assistantSelectionCleared.value ? null : (activeCard.value as any)
     if (!card) { assistantResolvedContext.value = ''; assistantEffectiveSchema.value = null; return }
+    const sourceKey = `${assistantContextCardsKey.value}::${card.id}::${card.ai_context_template || ''}::${prefetchedContextRevision}`
+    const cached = assistantContextCache.get(card.id)
+    if (cached?.sourceKey === sourceKey) {
+      assistantResolvedContext.value = cached.resolvedContext
+      assistantEffectiveSchema.value = cached.effectiveSchema
+      assistantParams.value = { ...cached.params }
+      return
+    }
     // 計算上下文（沿用 contextResolver）
     const { resolveTemplate } = await import('@renderer/services/contextResolver')
     // 使用卡片當前儲存的 ai_context_template 和 content
@@ -1530,25 +1593,26 @@ async function refreshAssistantContext() {
       currentCard: card,
       assembledContext: prefetchedContext.value,
     })
-    assistantResolvedContext.value = resolved
-    // 讀取有效 Schema
-    const resp = await getCardSchema(card.id)
-    assistantEffectiveSchema.value = resp?.effective_schema || resp?.json_schema || null
-    // 讀取有效 AI 參數（保障 llm_config_id 存在）
-    try {
-      const ai = await getCardAIParams(card.id)
+    // Schema 與 AI 參數彼此獨立，並行讀取且共用 API 層快取。
+    const [schemaResp, ai] = await Promise.all([
+      getCardSchema(card.id).catch(() => null),
+      getCardAIParams(card.id).catch(() => null),
+    ])
+    const effectiveSchema = schemaResp?.effective_schema || schemaResp?.json_schema || null
+    let nextParams: typeof assistantParams.value
+    if (ai) {
       const eff = (ai?.effective_params || {}) as any
-      assistantParams.value = {
+      nextParams = {
         llm_config_id: eff.llm_config_id ?? null,
         prompt_name: (eff.prompt_name ?? '靈感對話') as any,
         temperature: eff.temperature ?? null,
         max_tokens: eff.max_tokens ?? null,
         timeout: eff.timeout ?? null,
       }
-    } catch {
+    } else {
       // 回退：直接使用卡片上的 ai_params
       const p = (card?.ai_params || {}) as any
-      assistantParams.value = {
+      nextParams = {
         llm_config_id: p.llm_config_id ?? null,
         prompt_name: (p.prompt_name ?? '靈感對話') as any,
         temperature: p.temperature ?? null,
@@ -1556,11 +1620,39 @@ async function refreshAssistantContext() {
         timeout: p.timeout ?? null,
       }
     }
+    assistantContextCache.set(card.id, {
+      sourceKey,
+      resolvedContext: resolved,
+      effectiveSchema,
+      params: { ...nextParams },
+    })
+    if (refreshSequence !== assistantRefreshSequence || activeCard.value?.id !== card.id) return
+    assistantResolvedContext.value = resolved
+    assistantEffectiveSchema.value = effectiveSchema
+    assistantParams.value = nextParams
   } catch { assistantResolvedContext.value = '' }
 }
 
-watch(activeCard, () => { if (!assistantSelectionCleared.value) refreshAssistantContext() })
-watch(prefetchedContext, () => { if (!assistantSelectionCleared.value) refreshAssistantContext() })
+function scheduleAssistantContextRefresh() {
+  if (assistantSelectionCleared.value) return
+  assistantRefreshSequence += 1
+  if (assistantRefreshFrame !== null) cancelAnimationFrame(assistantRefreshFrame)
+  if (assistantRefreshTimer !== null) window.clearTimeout(assistantRefreshTimer)
+  // 上下文解析可能很重，必須讓主要編輯器先完成切換與繪製。
+  assistantRefreshFrame = requestAnimationFrame(() => {
+    assistantRefreshFrame = null
+    assistantRefreshTimer = window.setTimeout(() => {
+      assistantRefreshTimer = null
+      void refreshAssistantContext()
+    }, 0)
+  })
+}
+
+watch(activeCard, scheduleAssistantContextRefresh)
+watch(prefetchedContext, () => {
+  prefetchedContextRevision += 1
+  scheduleAssistantContextRefresh()
+})
 
 watch(activeTab, (tab) => {
   if (tab === 'relation-graph') {
@@ -1702,6 +1794,10 @@ onMounted(async () => {
 })
 
  onBeforeUnmount(() => {
+   if (projectStructureRefreshFrame !== null) cancelAnimationFrame(projectStructureRefreshFrame)
+   if (projectStructureRefreshTimer !== null) window.clearTimeout(projectStructureRefreshTimer)
+   if (assistantRefreshFrame !== null) cancelAnimationFrame(assistantRefreshFrame)
+   if (assistantRefreshTimer !== null) window.clearTimeout(assistantRefreshTimer)
    window.removeEventListener('nf:navigate', onNavigate as any)
    window.removeEventListener('nf:assistant-finalize', onAssistantFinalize as any)
    window.removeEventListener('nf:switch-main-tab', onSwitchMainTab as any)

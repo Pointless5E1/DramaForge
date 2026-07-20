@@ -53,7 +53,7 @@
           :sort-orders="sortOrders"
         >
           <template #default="{ row }">
-            <el-tag size="small" effect="plain">{{ row.card_type.name }}</el-tag>
+            <el-tag size="small" effect="plain">{{ visibleCardTypeLabel(row.card_type.name) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column
@@ -89,6 +89,7 @@ import { storeToRefs } from 'pinia'
 import { Search } from '@element-plus/icons-vue'
 import { useCardStore } from '@renderer/stores/useCardStore'
 import type { components } from '@renderer/types/generated'
+import { isInternalCardFacet, visibleCardTypeLabel } from '@renderer/services/cardVisibility'
 
 type CardRead = components['schemas']['CardRead']
 
@@ -104,17 +105,18 @@ const sortOrders = ['ascending', 'descending', null] as const
 const usedCardTypes = computed(() => {
   const types = new Map<number, { id: number; name: string; count: number }>()
   for (const card of cards.value) {
+    if (isInternalCardFacet(card)) continue
     const id = Number(card.card_type_id ?? card.card_type?.id)
     if (!Number.isFinite(id)) continue
     const current = types.get(id)
     if (current) current.count += 1
-    else types.set(id, { id, name: card.card_type?.name || '未知類型', count: 1 })
+    else types.set(id, { id, name: visibleCardTypeLabel(card.card_type?.name), count: 1 })
   }
   return [...types.values()].sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant'))
 })
 
 const filteredCards = computed(() => {
-  let list = [...cards.value]
+  let list = cards.value.filter((card) => !isInternalCardFacet(card))
   if (keyword.value.trim()) {
     const keywords = keyword.value.trim().toLowerCase().split(/\s+/)
     list = list.filter((card) => {
@@ -188,7 +190,7 @@ function formatDate(dt: string): string {
   gap: 12px;
 }
 .search-input {
-  width: min(576px, 100%);
+  width: min(704px, 100%);
 }
 .search-input :deep(.el-input__wrapper) {
   background: var(--nf-surface-control, var(--el-fill-color));

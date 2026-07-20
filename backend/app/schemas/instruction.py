@@ -112,6 +112,13 @@ class InstructionGenerateRequest(BaseModel):
         default=None,
         description="上下文注入信息（如相關實體、已有卡片等）"
     )
+
+    # 可選的關係圖裝配範圍。劇本正文管線使用這些字段，按參與實體
+    # 查詢事實子圖並合併到 context_info；其他卡片生成請求可不提供。
+    project_id: Optional[int] = Field(default=None, description="專案 ID，用於查詢關係圖")
+    volume_number: Optional[int] = Field(default=None, description="卷號或劇本集數")
+    chapter_number: Optional[int] = Field(default=None, description="章節號或劇本片段號")
+    participants: List[str] = Field(default_factory=list, description="參與實體名稱列表")
     
     # 採樣參數
     temperature: Optional[float] = Field(default=0.7, description="採樣溫度")

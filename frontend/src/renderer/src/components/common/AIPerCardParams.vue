@@ -67,8 +67,26 @@ const editing = ref<PerCardAIParams>({})
 
 async function loadOptions() { try { aiOptions.value = await getAIConfigOptions() } catch {} }
 
+async function refreshForCard(id: number): Promise<void> {
+	if (!id) return
+	await loadOptions()
+	try {
+		const resp = await getCardAIParams(id)
+		const eff = (resp as any)?.effective_params
+		if (eff && Object.keys(eff).length) {
+			const fixed = { ...eff, llm_config_id: eff.llm_config_id == null ? eff.llm_config_id : Number(eff.llm_config_id) }
+			editing.value = fixed
+			store.setForCard(id, { ...fixed })
+			return
+		}
+	} catch {}
+	const fallback = store.getByCardId(id)
+	if (fallback) editing.value = { ...fallback }
+}
+
 function open(): void {
 	visible.value = true
+	void refreshForCard(props.cardId)
 }
 
 defineExpose({ open })
@@ -84,30 +102,16 @@ const selectedModelName = computed(() => {
 	} catch { return '' }
 })
 
-watch(() => props.cardId, async (id) => {
+watch(() => props.cardId, (id) => {
 	if (!id) return
-	await loadOptions()
-	try {
-		const resp = await getCardAIParams(id)
-		const eff = (resp as any)?.effective_params
-		if (eff && Object.keys(eff).length) {
-			const fixed = { ...eff, llm_config_id: eff.llm_config_id == null ? eff.llm_config_id : Number(eff.llm_config_id) }
-			editing.value = fixed
-			store.setForCard(id, { ...fixed })
-			return
-		}
-	} catch {}
-	// fallback to saved or preset
-	if (saved.value) {
-		const sv = saved.value as any
+	// 隱藏的設定面板不在切卡時讀取後端；先使用父編輯器已載入的快取。
+	const cached = store.getByCardId(id)
+	if (cached) {
+		const sv = cached as any
 		editing.value = { ...sv, llm_config_id: sv?.llm_config_id == null ? sv?.llm_config_id : Number(sv.llm_config_id) }
 	} else {
 		const preset = getPresetForType(props.cardTypeName)
-		if (!preset.llm_config_id) {
-			const first = aiOptions.value?.llm_configs?.[0]; if (first) preset.llm_config_id = Number(first.id)
-		}
 		editing.value = { ...preset, llm_config_id: preset.llm_config_id == null ? preset.llm_config_id : Number(preset.llm_config_id) }
-		store.setForCard(id, editing.value)
 	}
 }, { immediate: true })
 

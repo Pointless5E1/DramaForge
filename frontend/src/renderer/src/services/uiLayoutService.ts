@@ -12,6 +12,24 @@ interface LayoutSources {
   frontendDefault?: SectionConfig[] | undefined
 }
 
+// Built-in schema fields have stable product-facing labels.  This also repairs
+// legacy schemas whose title was generated from the first words of description.
+const BUILTIN_FIELD_TITLES: Record<string, string> = {
+  story_type: '故事線類型',
+  name: '名稱',
+  overview: '概述',
+  main_target: '主線目標',
+  branch_line: '輔線',
+  new_character_cards: '新增角色卡',
+  new_scene_cards: '新增場景卡',
+  character_action_list: '角色行動列表',
+  entity_snapshot: '實體狀態快照',
+}
+
+export function resolveBuiltinFieldTitle(key: string): string | undefined {
+  return BUILTIN_FIELD_TITLES[key]
+}
+
 // 簡單合併策略：schemaMeta>backend>frontend
 export function mergeSections(sources: LayoutSources): SectionConfig[] | undefined {
   if (sources.schemaMeta && Array.isArray(sources.schemaMeta.sections)) {
@@ -62,6 +80,9 @@ export function autoGroup(schema: any): SectionConfig[] {
 }
 
 function resolveSectionTitle(schema: any, key: string): string {
+  const builtinTitle = resolveBuiltinFieldTitle(key)
+  if (builtinTitle) return builtinTitle
+
   const fieldSchema = schema?.properties?.[key]
   const directTitle = typeof fieldSchema?.title === 'string' ? fieldSchema.title.trim() : ''
   if (directTitle) return directTitle

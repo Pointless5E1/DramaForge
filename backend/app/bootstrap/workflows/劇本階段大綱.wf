@@ -1,5 +1,5 @@
 # 工作流：劇本階段大綱
-# 功能：劇本階段大綱保存時，提取劇本片段大綱列表並批量創建劇本片段大綱卡和劇本片段正文卡
+# 功能：劇本階段大綱保存時，建立可見的片段大綱卡，並在其下建立正文 facet 卡
 # 觸發器：劇本階段大綱卡片保存時自動觸發
 
 #@node(description="觸發器：監聽劇本階段大綱卡片保存")
@@ -40,20 +40,15 @@ outline_cards = Card.BatchUpsert(
 #@node(async=true, description="批量創建劇本片段正文卡")
 content_cards = Card.BatchUpsert(
     project_id=trigger.project_id,
-    parent_id=trigger.card_id,
+    parent_id="{item.id}",
     card_type="劇本片段正文",
     title_template="{item.title}",
     content_template={
-      "episode_number": "{item.episode_number}",
-      "stage_number": "{item.stage_number}",
-      "segment_number": "{item.segment_number}",
-      "title": "{item.title}",
-      "entity_list": "{item.entity_list}",
       "format_version": "screenplay-doc-v1",
       "blocks": [],
       "screenplay_text": ""
     },
-    items=validated_outlines.result
+    items=outline_cards.cards
   )
 #</node>
 

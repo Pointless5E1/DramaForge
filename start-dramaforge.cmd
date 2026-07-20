@@ -10,6 +10,16 @@ if not exist "%ROOT%\.venv\Scripts\python.exe" (
   exit /b 1
 )
 
+"%ROOT%\.venv\Scripts\python.exe" -c "import sys" >nul 2>&1
+if errorlevel 1 (
+  echo [DramaForge] The existing Python virtual environment could not be started:
+  echo   "%ROOT%\.venv"
+  echo Check whether its base Python is accessible before repairing the environment.
+  echo Do not create a new venv on every launch.
+  pause
+  exit /b 1
+)
+
 if not exist "%ROOT%\frontend\node_modules" (
   echo [DramaForge] Missing frontend dependencies: "%ROOT%\frontend\node_modules"
   echo Please run npm install in "%ROOT%\frontend" first.

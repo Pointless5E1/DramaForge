@@ -121,12 +121,17 @@ def localize_schema_titles(schema: Any) -> Any:
                 for field_name, field_schema in properties.items():
                     if isinstance(field_schema, dict):
                         current_title = str(field_schema.get("title") or "")
-                        if not _contains_cjk(current_title):
-                            localized = FIELD_TITLE_ZH_MAP.get(field_name) or _derive_title_from_description(
-                                field_schema.get("description")
-                            )
-                            if localized:
-                                field_schema["title"] = localized
+                        # Known built-in fields use one authoritative display name.
+                        # Older stored schemas may already contain a Chinese title
+                        # derived from the beginning of the description; checking
+                        # only for CJK would preserve those fallback labels forever.
+                        localized = FIELD_TITLE_ZH_MAP.get(field_name)
+                        if localized:
+                            field_schema["title"] = localized
+                        elif not _contains_cjk(current_title):
+                            derived = _derive_title_from_description(field_schema.get("description"))
+                            if derived:
+                                field_schema["title"] = derived
                         item_title = ARRAY_ITEM_TITLE_ZH_MAP.get(field_name)
                         if item_title and "x-item-title" not in field_schema:
                             field_schema["x-item-title"] = item_title

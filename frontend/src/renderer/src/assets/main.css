@@ -92,3 +92,13 @@ body {
 .el-tag {
   border-radius: 4px;
 }
+
+/* XMarkdown renders inline code as tags; keep them legible in dark mode. */
+.agent-message-list .inline-code-tag {
+  background: var(--el-color-primary-light-9) !important;
+  border: 1px solid var(--el-color-primary-light-5) !important;
+  color: var(--el-color-primary) !important;
+  font-weight: 500;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}

@@ -1,50 +1,196 @@
 <template>
-  <div class="screenplay-editor">
+  <div
+    ref="screenplayEditorRef"
+    class="screenplay-editor"
+    tabindex="-1"
+    @click.capture="handleEditorClickCapture"
+    @keydown="handleEditorKeydown"
+  >
     <div class="screenplay-toolbar">
       <div class="toolbar-left">
-        <el-segmented v-model="mode" :options="modeOptions" size="small" />
+        <label class="waterfall-toggle">
+          <el-switch
+            v-model="waterfallEnabled"
+            size="small"
+            aria-label="跨片段捲動"
+          />
+          <span>跨片段捲動</span>
+        </label>
+        <div v-if="selectedBlockCount" class="selection-actions" aria-live="polite">
+          <span>已選 {{ selectedBlockCount }} 段</span>
+        </div>
       </div>
       <div class="toolbar-right">
         <el-button size="small" plain :icon="Download" @click="exportWordDocument">匯出 Word</el-button>
-        <el-button size="small" plain :icon="DocumentCopy" @click="copyPlainText">複製預覽文本</el-button>
-        <span class="line-count">{{ blocks.length }} 段</span>
+        <span class="line-count">{{ blocks.length }} 段 · {{ screenplayWordCount }} 字 · {{ screenplayPageCount }} 頁</span>
       </div>
     </div>
 
-    <div v-if="mode === 'edit'" class="block-editor-pane" @click="deactivateBlock">
+    <div
+      v-if="selectionDragging && selectedBlockCount"
+      class="drag-selection-badge"
+      :style="{ left: `${selectionPointer.x + 16}px`, top: `${selectionPointer.y + 16}px` }"
+      aria-hidden="true"
+    >
+      {{ selectionPointerMode === 'move' ? '移動' : '已選' }} {{ selectedBlockCount }} 段
+    </div>
+
+    <div v-if="scrollHintVisible" class="waterfall-scroll-hint" aria-hidden="true">
+      <span
+        v-for="tick in scrollHintTickCount"
+        :key="tick"
+        class="waterfall-scroll-hint__tick"
+        :class="{ 'is-current': tick - 1 === activeScrollHintTick }"
+      />
+    </div>
+
+    <div
+      ref="editorPaneRef"
+      class="block-editor-pane"
+      @click="deactivateBlock"
+      @scroll.passive="handleWaterfallScroll"
+    >
+      <section
+        v-for="segment in previousSegments"
+        :key="`previous-segment-${segment.id}`"
+        :ref="el => setWaterfallPreviewRef('previous', segment.id, el)"
+        class="segment-preview segment-preview-previous"
+        :aria-label="`${segment.title}（唯讀）`"
+      >
+        <header class="segment-divider">
+          <span class="segment-title">{{ segment.title }}</span>
+          <span class="readonly-label">唯讀</span>
+        </header>
+        <div class="screenplay-preview waterfall-preview">
+          <pre
+            v-for="(block, index) in segment.blocks"
+            :key="`previous-${segment.id}-${index}`"
+            class="preview-line"
+            :class="[`block-${block.type}`, { 'has-auto-gap-before': previewHasAutoBlankBefore(segment.blocks, index) }]"
+          >{{ renderBlockText(block) }}</pre>
+        </div>
+      </section>
+
+      <div ref="activeSegmentRef" class="active-segment-marker">
+      <header class="segment-divider segment-divider-active">
+        <span class="segment-title">{{ props.card.title }}</span>
+        <span class="segment-state segment-state-active">編輯中</span>
+      </header>
       <div v-if="!blocks.length" class="empty-state" @click.stop>
         <el-button type="primary" plain @click="addBlock('scene_heading')">新增第一個場景</el-button>
       </div>
 
-      <div v-else class="block-list" @click="deactivateBlock">
+      <div
+        v-else
+        class="block-list"
+        :class="{
+          'is-drag-selecting': selectionDragging && selectionPointerMode === 'select',
+          'is-moving-blocks': selectionDragging && selectionPointerMode === 'move',
+        }"
+        @click="deactivateBlock"
+      >
         <template v-for="(block, index) in blocks" :key="block.id">
-          <div class="insert-row" @click.stop>
-            <el-dropdown trigger="click" @command="type => insertBlockCommandAt(index, type)">
-              <el-button class="insert-button" circle size="small" :icon="Plus" title="在此新增段落" />
+          <div
+            class="insert-row"
+            :data-insert-index="index"
+            :class="{
+              'is-expanded': visibleInsertIndex === index,
+              'is-move-target': selectionPointerMode === 'move' && moveDropIndex === index,
+            }"
+            @click.stop
+          >
+            <div class="insert-control-zone">
+            <el-dropdown
+              v-if="activeInsertIndex === index"
+              :ref="element => setInsertDropdownRef(index, element)"
+              class="insert-dropdown insert-trigger"
+              trigger="click"
+              placement="bottom"
+              popper-class="screenplay-insert-dropdown-popper"
+              :teleported="true"
+              @command="command => handleInsertDropdownCommand(index, command)"
+              @visible-change="visible => handleInsertDropdownVisibility(index, visible)"
+            >
+              <el-button
+                class="insert-button"
+                circle
+                size="small"
+                :icon="Plus"
+                title="在此新增段落"
+              />
               <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item
-                    v-for="option in blockTypeOptions"
-                    :key="option.value"
-                    :command="option.value"
-                  >
-                    {{ option.label }}
-                  </el-dropdown-item>
+                <el-dropdown-menu class="insert-dropdown-menu">
+                  <template v-for="option in insertBlockMenuOptions" :key="option.value">
+                    <el-popover
+                      v-if="option.value === 'character' && option.children?.length"
+                      placement="right-start"
+                      trigger="hover"
+                      width="auto"
+                      :offset="8"
+                      :show-arrow="false"
+                      :show-after="60"
+                      :hide-after="100"
+                      :teleported="true"
+                      popper-class="screenplay-character-submenu-popper"
+                      @show="visibleCharacterSubmenuIndex = index"
+                      @hide="visibleCharacterSubmenuIndex = null"
+                    >
+                      <template #reference>
+                        <li
+                          class="el-dropdown-menu__item insert-character-menu-item"
+                          :class="{ 'is-submenu-open': visibleCharacterSubmenuIndex === index }"
+                          role="menuitem"
+                          tabindex="-1"
+                        >
+                          <span>{{ option.label }}</span>
+                          <el-icon class="insert-submenu-arrow"><ArrowRight /></el-icon>
+                        </li>
+                      </template>
+                      <div class="insert-character-popover-menu" role="menu">
+                        <button
+                          v-for="character in option.children"
+                          :key="character.value"
+                          type="button"
+                          class="insert-character-option"
+                          @click.stop="handleInsertDropdownCommand(index, character.value)"
+                        >
+                          {{ character.label }}
+                        </button>
+                      </div>
+                    </el-popover>
+                    <el-dropdown-item v-else :command="option.value">
+                      {{ option.label }}
+                    </el-dropdown-item>
+                  </template>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
+            <el-button
+              v-else
+              class="insert-button insert-trigger"
+              circle
+              size="small"
+              :icon="Plus"
+              title="在此新增段落"
+              @click="openInsertDropdown(index)"
+            />
+            </div>
           </div>
 
           <section
             class="screenplay-block"
+            :data-block-id="block.id"
             :class="[
               `block-${block.type}`,
               {
                 'is-active': activeBlockId === block.id,
+                'is-selected': selectedBlockIds.has(block.id),
                 'has-auto-gap-before': hasAutoBlankBefore(index),
               },
             ]"
-            @click.stop="activateBlock(block.id)"
+            :aria-selected="selectedBlockIds.has(block.id)"
+            @pointerdown="handleBlockPointerDown(block.id, $event)"
+            @click.stop="handleBlockClick(block.id, $event)"
           >
             <template v-if="activeBlockId === block.id">
               <div class="block-topline" @click.stop>
@@ -80,9 +226,9 @@
                     @click="moveBlock(index, 1)"
                   />
                   <el-button
+                    class="block-delete-button"
                     size="small"
                     text
-                    type="danger"
                     :icon="Delete"
                     title="刪除"
                     @click="removeBlock(index)"
@@ -105,44 +251,119 @@
               <div v-else class="blank-editor-hint">空行</div>
             </template>
 
-            <pre v-else class="block-preview">{{ renderBlockText(block) }}</pre>
+            <pre v-else class="block-preview"><span class="block-preview-text">{{ renderBlockText(block) }}</span></pre>
           </section>
         </template>
 
-        <div class="insert-row" @click.stop>
-          <el-dropdown trigger="click" @command="type => insertBlockCommandAt(blocks.length, type)">
-            <el-button class="insert-button" circle size="small" :icon="Plus" title="在結尾新增段落" />
+        <div
+          class="insert-row"
+          :data-insert-index="blocks.length"
+          :class="{
+            'is-expanded': visibleInsertIndex === blocks.length,
+            'is-move-target': selectionPointerMode === 'move' && moveDropIndex === blocks.length,
+          }"
+          @click.stop
+        >
+          <div class="insert-control-zone">
+          <el-dropdown
+            v-if="activeInsertIndex === blocks.length"
+            :ref="element => setInsertDropdownRef(blocks.length, element)"
+            class="insert-dropdown insert-trigger"
+            trigger="click"
+            placement="bottom"
+            popper-class="screenplay-insert-dropdown-popper"
+            :teleported="true"
+            @command="command => handleInsertDropdownCommand(blocks.length, command)"
+            @visible-change="visible => handleInsertDropdownVisibility(blocks.length, visible)"
+          >
+            <el-button
+              class="insert-button"
+              circle
+              size="small"
+              :icon="Plus"
+              title="在結尾新增段落"
+            />
             <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item
-                  v-for="option in blockTypeOptions"
-                  :key="option.value"
-                  :command="option.value"
-                >
-                  {{ option.label }}
-                </el-dropdown-item>
+              <el-dropdown-menu class="insert-dropdown-menu">
+                <template v-for="option in insertBlockMenuOptions" :key="option.value">
+                  <el-popover
+                    v-if="option.value === 'character' && option.children?.length"
+                    placement="right-start"
+                    trigger="hover"
+                    width="auto"
+                    :offset="8"
+                    :show-arrow="false"
+                    :show-after="60"
+                    :hide-after="100"
+                    :teleported="true"
+                    popper-class="screenplay-character-submenu-popper"
+                    @show="visibleCharacterSubmenuIndex = blocks.length"
+                    @hide="visibleCharacterSubmenuIndex = null"
+                  >
+                    <template #reference>
+                      <li
+                        class="el-dropdown-menu__item insert-character-menu-item"
+                        :class="{ 'is-submenu-open': visibleCharacterSubmenuIndex === blocks.length }"
+                        role="menuitem"
+                        tabindex="-1"
+                      >
+                        <span>{{ option.label }}</span>
+                        <el-icon class="insert-submenu-arrow"><ArrowRight /></el-icon>
+                      </li>
+                    </template>
+                    <div class="insert-character-popover-menu" role="menu">
+                      <button
+                        v-for="character in option.children"
+                        :key="character.value"
+                        type="button"
+                        class="insert-character-option"
+                        @click.stop="handleInsertDropdownCommand(blocks.length, character.value)"
+                      >
+                        {{ character.label }}
+                      </button>
+                    </div>
+                  </el-popover>
+                  <el-dropdown-item v-else :command="option.value">
+                    {{ option.label }}
+                  </el-dropdown-item>
+                </template>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
+          <el-button
+            v-else
+            class="insert-button insert-trigger"
+            circle
+            size="small"
+            :icon="Plus"
+            title="在結尾新增段落"
+            @click="openInsertDropdown(blocks.length)"
+          />
+          </div>
         </div>
       </div>
-    </div>
-
-    <div v-else class="preview-pane">
-      <div class="screenplay-preview">
-        <template v-if="blocks.length">
-          <pre
-            v-for="(block, index) in blocks"
-            :key="block.id"
-            class="preview-line"
-            :class="[
-              `block-${block.type}`,
-              { 'has-auto-gap-before': hasAutoBlankBefore(index) },
-            ]"
-          >{{ renderBlockText(block) }}</pre>
-        </template>
-        <pre v-else class="preview-line">（暫無劇本正文）</pre>
       </div>
+
+      <section
+        v-for="segment in nextSegments"
+        :key="`next-segment-${segment.id}`"
+        :ref="el => setWaterfallPreviewRef('next', segment.id, el)"
+        class="segment-preview segment-preview-next"
+        :aria-label="`${segment.title}（唯讀）`"
+      >
+        <header class="segment-divider">
+          <span class="segment-title">{{ segment.title }}</span>
+          <span class="readonly-label">唯讀</span>
+        </header>
+        <div class="screenplay-preview waterfall-preview">
+          <pre
+            v-for="(block, index) in segment.blocks"
+            :key="`next-${segment.id}-${index}`"
+            class="preview-line"
+            :class="[`block-${block.type}`, { 'has-auto-gap-before': previewHasAutoBlankBefore(segment.blocks, index) }]"
+          >{{ renderBlockText(block) }}</pre>
+        </div>
+      </section>
     </div>
 
     <InitialPromptDialog
@@ -166,9 +387,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { ArrowDown, ArrowUp, Delete, DocumentCopy, Download, Plus } from '@element-plus/icons-vue'
+import { ArrowDown, ArrowRight, ArrowUp, Delete, Download, Plus } from '@element-plus/icons-vue'
 import { storeToRefs } from 'pinia'
 import type { CardRead, CardUpdate } from '@renderer/api/cards'
 import { generateWithInstructionStream } from '@renderer/api/generation'
@@ -216,16 +437,39 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:dirty', value: boolean): void
+  (e: 'activate-card', cardId: number): void
 }>()
 
 const cardStore = useCardStore()
 const perCardStore = usePerCardAISettingsStore()
 const { cards } = storeToRefs(cardStore)
-const mode = ref<'edit' | 'preview'>('edit')
-const modeOptions = [
-  { label: '編輯', value: 'edit' },
-  { label: '預覽', value: 'preview' },
-]
+const WATERFALL_PREFERENCE_KEY = 'dramaforge:screenplay-waterfall-enabled'
+const waterfallEnabled = ref(localStorage.getItem(WATERFALL_PREFERENCE_KEY) !== 'false')
+const scrollHintTickCount = 16
+const scrollHintProgress = ref(0)
+const scrollHintVisible = ref(false)
+const activeScrollHintTick = computed(() => Math.min(
+  scrollHintTickCount - 1,
+  Math.round(scrollHintProgress.value * (scrollHintTickCount - 1)),
+))
+
+watch(waterfallEnabled, async (enabled) => {
+  localStorage.setItem(WATERFALL_PREFERENCE_KEY, String(enabled))
+  sessionStorage.removeItem('dramaforge:screenplay-waterfall-entry')
+  waterfallSwitching = false
+  waterfallPositioning = true
+  await nextTick()
+  const pane = editorPaneRef.value
+  const active = activeSegmentRef.value
+  if (pane && active) {
+    pane.scrollTop = active.offsetTop
+    lastWaterfallScrollTop = pane.scrollTop
+  }
+  requestAnimationFrame(() => {
+    updateWaterfallScrollHint()
+    waterfallPositioning = false
+  })
+})
 
 const blockTypeOptions: Array<{ label: string; value: ScreenplayBlockType }> = [
   { label: '場景標題', value: 'scene_heading' },
@@ -239,9 +483,69 @@ const blockTypeOptions: Array<{ label: string; value: ScreenplayBlockType }> = [
   { label: '空行', value: 'blank' },
 ]
 
+interface InsertBlockMenuOption {
+  label: string
+  value: string
+  children?: InsertBlockMenuOption[]
+}
+
+const participantCharacterNames = computed<string[]>(() => {
+  const allCards = cards.value || []
+  const outlineCard = allCards.find((card) => card.id === props.card.parent_id)
+  const outlineContent = (outlineCard?.content || {}) as Record<string, unknown>
+  const entityList = Array.isArray(outlineContent.entity_list) ? outlineContent.entity_list : []
+  const cardByName = new Map<string, CardRead>()
+  for (const card of allCards) {
+    const content = (card.content || {}) as Record<string, unknown>
+    const names = [card.title, content.name]
+    for (const rawName of names) {
+      const name = String(rawName || '').trim()
+      if (name && !cardByName.has(name)) cardByName.set(name, card)
+    }
+  }
+
+  const names: string[] = []
+  for (const item of entityList) {
+    const record = typeof item === 'object' && item ? (item as Record<string, unknown>) : null
+    const name = String(record ? (record.name || record.title || '') : (item || '')).trim()
+    if (!name) continue
+    const explicitType = String(record?.entity_type || '').trim().toLowerCase()
+    const entityCard = cardByName.get(name)
+    const cardContent = (entityCard?.content || {}) as Record<string, unknown>
+    const cardEntityType = String(cardContent.entity_type || '').trim().toLowerCase()
+    const cardTypeName = String(entityCard?.card_type?.name || '')
+    const isCharacter = explicitType === 'character'
+      || explicitType.includes('角色')
+      || cardEntityType === 'character'
+      || cardEntityType.includes('角色')
+      || cardTypeName.includes('角色')
+    if (isCharacter && !names.includes(name)) names.push(name)
+  }
+  return names
+})
+
+const insertBlockMenuOptions = computed<InsertBlockMenuOption[]>(() => blockTypeOptions.map((option) => {
+  if (option.value !== 'character' || !participantCharacterNames.value.length) {
+    return { label: option.label, value: option.value }
+  }
+  return {
+    label: option.label,
+    value: option.value,
+    children: participantCharacterNames.value.map((name) => ({
+      label: name,
+      value: `character-member:${name}`,
+    })),
+  }
+}))
+
 const blocks = ref<ScreenplayBlock[]>([])
 const originalSignature = ref('')
 const activeBlockId = ref<string | null>(null)
+const selectedBlockIds = ref<Set<string>>(new Set())
+const selectedBlockCount = computed(() => selectedBlockIds.value.size)
+const activeInsertIndex = ref<number | null>(null)
+const visibleInsertIndex = ref<number | null>(null)
+const visibleCharacterSubmenuIndex = ref<number | null>(null)
 const showInitialPromptDialog = ref(false)
 const showGenerationPanel = ref(false)
 const generationPanelRef = ref<InstanceType<typeof GenerationPanel>>()
@@ -249,8 +553,261 @@ const instructionExecutor = ref<InstructionExecutor | null>(null)
 const conversationHistory = ref<ConversationMessage[]>([])
 const currentAbortController = ref<AbortController | null>(null)
 const aiGenerating = ref(false)
+const editorPaneRef = ref<HTMLElement | null>(null)
+const activeSegmentRef = ref<HTMLElement | null>(null)
+const screenplayEditorRef = ref<HTMLElement | null>(null)
+const waterfallPreviewRefs = new Map<number, HTMLElement>()
+const insertDropdownRefs = new Map<number, { handleOpen?: () => void; handleClose?: () => void }>()
+let waterfallSwitching = false
+let waterfallPositioning = false
+let lastWaterfallScrollTop = 0
+let selectionPointerId: number | null = null
+let selectionAnchorId: string | null = null
+let lastSelectionTargetId: string | null = null
+let selectionPointerStart = { x: 0, y: 0 }
+let selectionPointerX = 0
+let selectionPointerY = 0
+let selectionPointerMoveFrame: number | null = null
+const selectionPointer = ref({ x: 0, y: 0 })
+const selectionDragging = ref(false)
+const selectionPointerMode = ref<'select' | 'move' | null>(null)
+const moveDropIndex = ref<number | null>(null)
+let suppressReleasedDragClick = false
+let selectionAutoScrollFrame: number | null = null
+
+type WaterfallSegment = {
+  id: number
+  title: string
+  blocks: ScreenplayBlock[]
+}
+
+const orderedScreenplayCards = computed(() => {
+  const allCards = cards.value || []
+  const byId = new Map(allCards.map(card => [card.id, card]))
+  const currentParent = byId.get(props.card.parent_id || -1)
+  const currentEpisode = Number((currentParent?.content as any)?.episode_number)
+
+  const orderedCards = allCards
+    .filter(card => card.card_type?.name === '劇本片段正文')
+    .map(card => {
+      const parent = byId.get(card.parent_id || -1)
+      const parentContent = (parent?.content || {}) as any
+      return {
+        card,
+        episode: Number(parentContent.episode_number),
+        segment: Number(parentContent.segment_number),
+        order: Number((card as any).display_order ?? 0),
+      }
+    })
+    .filter(item => !Number.isFinite(currentEpisode) || item.episode === currentEpisode)
+    .sort((a, b) => {
+      const segmentDelta = (Number.isFinite(a.segment) ? a.segment : Number.MAX_SAFE_INTEGER)
+        - (Number.isFinite(b.segment) ? b.segment : Number.MAX_SAFE_INTEGER)
+      return segmentDelta || a.order - b.order || a.card.id - b.card.id
+    })
+    .map(item => item.card)
+
+  const hasContent = (card: CardRead) => blocksFromContent(card.content).some(block =>
+    block.type !== 'blank' && String(block.text || '').trim().length > 0
+  )
+  const firstContentIndex = orderedCards.findIndex(hasContent)
+  if (firstContentIndex < 0) return []
+
+  let lastContentIndex = orderedCards.length - 1
+  while (lastContentIndex > firstContentIndex && !hasContent(orderedCards[lastContentIndex])) {
+    lastContentIndex -= 1
+  }
+  return orderedCards.slice(firstContentIndex, lastContentIndex + 1)
+})
+
+const currentWaterfallIndex = computed(() => orderedScreenplayCards.value.findIndex(card => card.id === props.card.id))
+
+function waterfallSegmentAt(index: number): WaterfallSegment | null {
+  const card = orderedScreenplayCards.value[index]
+  if (!card) return null
+  return {
+    id: card.id,
+    title: card.title,
+    blocks: blocksFromContent(card.content),
+  }
+}
+
+const previousSegment = computed(() => !waterfallEnabled.value || currentWaterfallIndex.value < 0
+  ? null
+  : waterfallSegmentAt(currentWaterfallIndex.value - 1))
+const nextSegment = computed(() => !waterfallEnabled.value || currentWaterfallIndex.value < 0
+  ? null
+  : waterfallSegmentAt(currentWaterfallIndex.value + 1))
+const previousSegments = computed(() => {
+  if (!waterfallEnabled.value || currentWaterfallIndex.value < 0) return []
+  return Array.from(
+    { length: Math.max(0, currentWaterfallIndex.value) },
+    (_, index) => waterfallSegmentAt(index),
+  ).filter((segment): segment is WaterfallSegment => Boolean(segment))
+})
+const nextSegments = computed(() => !waterfallEnabled.value || currentWaterfallIndex.value < 0
+  ? []
+  : Array.from(
+    { length: Math.max(0, orderedScreenplayCards.value.length - currentWaterfallIndex.value - 1) },
+    (_, offset) => waterfallSegmentAt(currentWaterfallIndex.value + offset + 1),
+  ).filter((segment): segment is WaterfallSegment => Boolean(segment)))
+
+function setWaterfallPreviewRef(_direction: 'previous' | 'next', cardId: number, element: any) {
+  if (element instanceof HTMLElement) waterfallPreviewRefs.set(cardId, element)
+  else waterfallPreviewRefs.delete(cardId)
+}
+
+function previewHasAutoBlankBefore(source: ScreenplayBlock[], index: number) {
+  return shouldInsertBlankBetween(source[index - 1], source[index])
+}
+
+function visualLineHeight() {
+  const pane = editorPaneRef.value
+  if (!pane) return 24
+  const sample = pane.querySelector<HTMLElement>('.preview-line, .block-preview')
+  const parsed = sample ? Number.parseFloat(getComputedStyle(sample).lineHeight) : 0
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 24
+}
+
+function requestWaterfallCard(cardId: number, direction: 'previous' | 'next') {
+  if (waterfallSwitching) return
+  const pane = editorPaneRef.value
+  const paneTop = pane?.getBoundingClientRect().top || 0
+  const targetPreview = waterfallPreviewRefs.get(cardId)
+  const anchorOffset = direction === 'next'
+    ? (targetPreview?.getBoundingClientRect().top || paneTop) - paneTop
+    : (targetPreview?.getBoundingClientRect().bottom || paneTop) - paneTop
+  waterfallSwitching = true
+  sessionStorage.setItem('dramaforge:screenplay-waterfall-entry', JSON.stringify({ cardId, direction, anchorOffset }))
+  emit('activate-card', cardId)
+}
+
+function handleWaterfallScroll() {
+  const pane = editorPaneRef.value
+  updateWaterfallScrollHint()
+  if (!waterfallEnabled.value || !pane || waterfallSwitching || waterfallPositioning) return
+  const currentScrollTop = pane.scrollTop
+  const direction = currentScrollTop > lastWaterfallScrollTop
+    ? 'next'
+    : currentScrollTop < lastWaterfallScrollTop
+      ? 'previous'
+      : null
+  lastWaterfallScrollTop = currentScrollTop
+  if (!direction) return
+  const paneRect = pane.getBoundingClientRect()
+  const threshold = visualLineHeight() * 10
+
+  const nextPreview = nextSegment.value ? waterfallPreviewRefs.get(nextSegment.value.id) : null
+  if (direction === 'next' && nextSegment.value && nextPreview) {
+    const nextTop = nextPreview.getBoundingClientRect().top
+    if (nextTop <= paneRect.bottom - threshold) {
+      requestWaterfallCard(nextSegment.value.id, 'next')
+      return
+    }
+  }
+
+  const previousPreview = previousSegment.value ? waterfallPreviewRefs.get(previousSegment.value.id) : null
+  if (direction === 'previous' && previousSegment.value && previousPreview) {
+    const previousBottom = previousPreview.getBoundingClientRect().bottom
+    if (previousBottom >= paneRect.top + threshold) {
+      requestWaterfallCard(previousSegment.value.id, 'previous')
+    }
+  }
+}
+
+function updateWaterfallScrollHint() {
+  const pane = editorPaneRef.value
+  if (!pane) {
+    scrollHintVisible.value = false
+    scrollHintProgress.value = 0
+    return
+  }
+  const maxScrollTop = Math.max(0, pane.scrollHeight - pane.clientHeight)
+  scrollHintVisible.value = maxScrollTop > 1
+  scrollHintProgress.value = maxScrollTop > 0
+    ? Math.min(1, Math.max(0, pane.scrollTop / maxScrollTop))
+    : 0
+}
+
+async function restoreWaterfallEntryPosition() {
+  const raw = sessionStorage.getItem('dramaforge:screenplay-waterfall-entry')
+  if (raw) sessionStorage.removeItem('dramaforge:screenplay-waterfall-entry')
+  waterfallPositioning = true
+  try {
+    await nextTick()
+    const pane = editorPaneRef.value
+    const active = activeSegmentRef.value
+    if (!pane || !active) return
+    if (!raw) {
+      pane.scrollTop = active.offsetTop
+      return
+    }
+    const entry = JSON.parse(raw) as { cardId?: number; direction?: 'previous' | 'next'; anchorOffset?: number }
+    if (entry.cardId !== props.card.id) {
+      pane.scrollTop = active.offsetTop
+      return
+    }
+    const anchorOffset = Number.isFinite(entry.anchorOffset) ? Number(entry.anchorOffset) : 0
+    await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
+    const paneTop = pane.getBoundingClientRect().top
+    const activeRect = active.getBoundingClientRect()
+    const renderedAnchorOffset = entry.direction === 'next'
+      ? activeRect.top - paneTop
+      : activeRect.bottom - paneTop
+    pane.scrollTop = Math.max(0, pane.scrollTop + renderedAnchorOffset - anchorOffset)
+    lastWaterfallScrollTop = pane.scrollTop
+  } catch {
+    // Ignore stale navigation state and use the normal initial position.
+  } finally {
+    waterfallSwitching = false
+    requestAnimationFrame(() => {
+      if (editorPaneRef.value) lastWaterfallScrollTop = editorPaneRef.value.scrollTop
+      updateWaterfallScrollHint()
+      waterfallPositioning = false
+    })
+  }
+}
 
 const screenplayText = computed(() => serializeBlocks(blocks.value))
+const screenplayWordCount = computed(() => blocks.value.reduce(
+  (total, block) => total + (block.type === 'blank' ? 0 : String(block.text || '').replace(/\s/g, '').length),
+  0,
+))
+
+function screenplayTextUnits(text: string): number {
+  return Array.from(text).reduce((total, char) => {
+    if (/\s/.test(char)) return total
+    return total + (/^[\x00-\xff]$/.test(char) ? 0.5 : 1)
+  }, 0)
+}
+
+function wrappedLineCount(text: string, charactersPerLine: number): number {
+  const logicalLines = String(text || '').split(/\r?\n/)
+  return logicalLines.reduce((total, line) => {
+    const units = screenplayTextUnits(line)
+    return total + Math.max(1, Math.ceil(units / charactersPerLine))
+  }, 0)
+}
+
+const screenplayLineCount = computed(() => {
+  let total = 0
+  let previous: ScreenplayBlock | undefined
+
+  for (const block of blocks.value) {
+    if (shouldInsertBlankBetween(previous, block)) total += 1
+    if (block.type === 'blank') {
+      total += 1
+    } else {
+      const charactersPerLine = block.type === 'dialogue' ? 24 : 40
+      total += wrappedLineCount(renderBlockText(block), charactersPerLine)
+    }
+    previous = block
+  }
+
+  return total
+})
+
+const screenplayPageCount = computed(() => Math.max(1, Math.ceil(screenplayLineCount.value / 45)))
 
 function normalizeContent(content: any) {
   return typeof content === 'object' && content ? content : {}
@@ -296,8 +853,8 @@ function blockTextFromAny(block: any) {
 
 function blocksFromLegacyLines(lines: any[]): ScreenplayBlock[] {
   if (!Array.isArray(lines)) return []
-  return lines.map((line): ScreenplayBlock => ({
-    id: uid(),
+  return lines.map((line, index): ScreenplayBlock => ({
+    id: `sp-loaded-${index}`,
     type: normalizeBlockType(line?.line_type || line?.type),
     text: stripBlockFormat(normalizeBlockType(line?.line_type || line?.type), typeof line?.text === 'string' ? line.text : ''),
     character: line?.character || null,
@@ -309,8 +866,8 @@ function blocksFromContent(content: any): ScreenplayBlock[] {
   const normalized = normalizeContent(content)
 
   if (Array.isArray(normalized.blocks) && normalized.blocks.length) {
-    return normalized.blocks.map((block: any): ScreenplayBlock => ({
-      id: uid(),
+    return normalized.blocks.map((block: any, index: number): ScreenplayBlock => ({
+      id: `sp-loaded-${index}`,
       type: normalizeBlockType(block?.type || block?.block_type || block?.line_type),
       text: stripBlockFormat(normalizeBlockType(block?.type || block?.block_type || block?.line_type), blockTextFromAny(block)),
       character: block?.character || null,
@@ -319,7 +876,10 @@ function blocksFromContent(content: any): ScreenplayBlock[] {
   }
 
   if (typeof normalized.screenplay_text === 'string' && normalized.screenplay_text.trim()) {
-    return parsePlainTextToBlocks(normalized.screenplay_text)
+    return parsePlainTextToBlocks(normalized.screenplay_text).map((block, index) => ({
+      ...block,
+      id: `sp-loaded-${index}`,
+    }))
   }
 
   if (Array.isArray(normalized.lines) && normalized.lines.length) {
@@ -327,7 +887,10 @@ function blocksFromContent(content: any): ScreenplayBlock[] {
   }
 
   if (typeof normalized.content === 'string' && normalized.content.trim()) {
-    return parsePlainTextToBlocks(normalized.content)
+    return parsePlainTextToBlocks(normalized.content).map((block, index) => ({
+      ...block,
+      id: `sp-loaded-${index}`,
+    }))
   }
 
   return []
@@ -494,6 +1057,7 @@ function shouldInsertBlankBetween(
   current: ScreenplayBlock | PersistedScreenplayBlock
 ) {
   if (!previous || previous.type === 'blank' || current.type === 'blank') return false
+  if (previous.type === 'action' && current.type === 'action') return false
   if (previous.type === 'character' && (current.type === 'parenthetical' || current.type === 'dialogue')) return false
   if (
     (previous.type === 'parenthetical' || previous.type === 'dialogue') &&
@@ -561,9 +1125,10 @@ function richParagraphStyle(block: ScreenplayBlock | PersistedScreenplayBlock, h
   const base: Record<string, string> = {
     'font-family': "'標楷體', 'DFKai-SB', BiauKai, serif",
     'font-size': '12pt',
-    'line-height': '1.2',
+    'line-height': '15.68pt',
     margin: hasGapBefore ? '12pt 0 0 0' : '0',
     'white-space': 'pre-wrap',
+    'mso-line-height-rule': 'exactly',
     'mso-pagination': 'none',
   }
 
@@ -579,6 +1144,7 @@ function richParagraphStyle(block: ScreenplayBlock | PersistedScreenplayBlock, h
         ...base,
         'margin-left': '1.35in',
         'margin-right': '1.35in',
+        'text-align': 'center',
       })
     case 'parenthetical':
       return inlineCss({
@@ -608,10 +1174,12 @@ function buildScreenplayHtml(source: Array<ScreenplayBlock | PersistedScreenplay
 
   for (const block of source) {
     if (shouldInsertBlankBetween(previous, block)) {
-      paragraphs.push(`<p style="${richParagraphStyle({ type: 'blank', text: '' }, false)}">&nbsp;</p>`)
+      paragraphs.push(`<p style="${richParagraphStyle({ type: 'blank', text: '' }, false)}"><br></p>`)
     }
-    const text = block.type === 'blank' ? '&nbsp;' : escapeHtml(renderBlockText(block))
-    paragraphs.push(`<p style="${richParagraphStyle(block, false)}">${text || '&nbsp;'}</p>`)
+    const text = block.type === 'blank'
+      ? '<br>'
+      : escapeHtml(renderBlockText(block)).replace(/\r?\n/g, '<br>')
+    paragraphs.push(`<p style="${richParagraphStyle(block, false)}">${text}</p>`)
     previous = block
   }
 
@@ -621,13 +1189,14 @@ function buildScreenplayHtml(source: Array<ScreenplayBlock | PersistedScreenplay
     '<head>',
     '<meta charset="utf-8">',
     '<style>',
-    '@page { size: 8.5in 11in; margin: 1in 1in 1in 1.2in; }',
-    'body { font-family: "標楷體", "DFKai-SB", BiauKai, serif; font-size: 12pt; line-height: 1.2; color: #111; }',
+    '@page Section1 { size: 595.3pt 841.9pt; margin: 63.8pt 56.7pt 63.8pt 56.7pt; mso-header-margin: 0pt; mso-footer-margin: 0pt; }',
+    'div.Section1 { page: Section1; }',
+    'body { margin: 0; font-family: "標楷體", "DFKai-SB", BiauKai, serif; font-size: 12pt; line-height: 15.68pt; color: #111; }',
     'p { margin: 0; }',
     '</style>',
     '</head>',
-    '<body style="font-family:\'標楷體\',\'DFKai-SB\',BiauKai,serif;font-size:12pt;line-height:1.2;color:#111;">',
-    '<div style="width:6.3in;font-family:\'標楷體\',\'DFKai-SB\',BiauKai,serif;">',
+    '<body style="margin:0;font-family:\'標楷體\',\'DFKai-SB\',BiauKai,serif;font-size:12pt;line-height:15.68pt;color:#111;">',
+    '<div class="Section1" style="width:17cm;font-family:\'標楷體\',\'DFKai-SB\',BiauKai,serif;">',
     paragraphs.join(''),
     '</div>',
     '</body>',
@@ -656,91 +1225,6 @@ function triggerDocumentDownload(content: string, filename: string) {
   URL.revokeObjectURL(url)
 }
 
-function escapeRtf(text: string): string {
-  return Array.from(String(text || '')).map((char) => {
-    if (char === '\\') return '\\\\'
-    if (char === '{') return '\\{'
-    if (char === '}') return '\\}'
-    if (char === '\n') return '\\line '
-    const codePoint = char.codePointAt(0) || 0
-    if (codePoint <= 0x7f) return char
-    if (codePoint <= 0xffff) {
-      const signed = codePoint > 0x7fff ? codePoint - 0x10000 : codePoint
-      return `\\u${signed}?`
-    }
-    return '?'
-  }).join('')
-}
-
-function rtfParagraphPrefix(block: ScreenplayBlock | PersistedScreenplayBlock, hasGapBefore: boolean) {
-  const spacing = hasGapBefore ? '\\sb240' : '\\sb0'
-  switch (block.type) {
-    case 'character':
-      return `\\pard\\qc${spacing}\\f0\\fs24 `
-    case 'dialogue':
-      return `\\pard\\li1944\\ri1944${spacing}\\f0\\fs24 `
-    case 'parenthetical':
-      return `\\pard\\qc${spacing}\\f0\\fs24 `
-    case 'transition':
-      return `\\pard\\qr${spacing}\\b\\f0\\fs24 `
-    case 'scene_heading':
-      return `\\pard${spacing}\\b\\f0\\fs24 `
-    default:
-      return `\\pard${spacing}\\f0\\fs24 `
-  }
-}
-
-function buildScreenplayRtf(source: Array<ScreenplayBlock | PersistedScreenplayBlock>) {
-  const lines: string[] = [
-    '{\\rtf1\\ansi\\deff0',
-    '{\\fonttbl{\\f0\\fnil\\fcharset136 標楷體;}}',
-    '\\paperw12240\\paperh15840\\margl1728\\margr1440\\margt1440\\margb1440',
-  ]
-  let previous: ScreenplayBlock | PersistedScreenplayBlock | undefined
-
-  for (const block of source) {
-    const hasGapBefore = shouldInsertBlankBetween(previous, block)
-    const text = block.type === 'blank' ? '' : renderBlockText(block)
-    const suffix = block.type === 'scene_heading' || block.type === 'transition' ? '\\b0\\par' : '\\par'
-    lines.push(`${rtfParagraphPrefix(block, hasGapBefore)}${escapeRtf(text)}${suffix}`)
-    previous = block
-  }
-
-  lines.push('}')
-  return lines.join('\n')
-}
-
-function copyTextWithLegacyCommand(text: string) {
-  const textarea = document.createElement('textarea')
-  textarea.value = text
-  textarea.setAttribute('readonly', 'true')
-  textarea.style.position = 'fixed'
-  textarea.style.left = '-9999px'
-  textarea.style.top = '0'
-  document.body.appendChild(textarea)
-  textarea.focus()
-  textarea.select()
-
-  try {
-    return document.execCommand('copy')
-  } finally {
-    document.body.removeChild(textarea)
-  }
-}
-
-async function copyPlainTextFallback(text: string) {
-  try {
-    await navigator.clipboard.writeText(text)
-    return
-  } catch (plainCopyError) {
-    console.warn('Plain screenplay copy failed, falling back to legacy copy:', plainCopyError)
-  }
-
-  if (!copyTextWithLegacyCommand(text)) {
-    throw new Error('Legacy copy command failed')
-  }
-}
-
 function placeholderFor(type: ScreenplayBlockType) {
   switch (type) {
     case 'scene_heading':
@@ -767,12 +1251,246 @@ function touch() {
   emit('update:dirty', signatureFromBlocks(blocks.value) !== originalSignature.value)
 }
 
+function clearBlockSelection(): void {
+  selectedBlockIds.value = new Set()
+  selectionAnchorId = null
+  lastSelectionTargetId = null
+}
+
+function selectionRange(anchorId: string, targetId: string): Set<string> {
+  const anchorIndex = blocks.value.findIndex(block => block.id === anchorId)
+  const targetIndex = blocks.value.findIndex(block => block.id === targetId)
+  if (anchorIndex < 0 || targetIndex < 0) return new Set()
+  const start = Math.min(anchorIndex, targetIndex)
+  const end = Math.max(anchorIndex, targetIndex)
+  return new Set(blocks.value.slice(start, end + 1).map(block => block.id))
+}
+
+function isBlockControl(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false
+  return Boolean(
+    target.closest('input, textarea, select, button, [contenteditable="true"], .el-select')
+  )
+}
+
+function blockIdAtPoint(x: number, y: number): string | null {
+  const paneRect = editorPaneRef.value?.getBoundingClientRect()
+  const listRect = activeSegmentRef.value
+    ?.querySelector<HTMLElement>('.block-list')
+    ?.getBoundingClientRect()
+  const hitX = listRect ? Math.max(listRect.left + 1, Math.min(listRect.right - 1, x)) : x
+  const hitY = paneRect ? Math.max(paneRect.top + 1, Math.min(paneRect.bottom - 1, y)) : y
+  const element = document.elementFromPoint(hitX, hitY)
+  const block = element?.closest<HTMLElement>('.screenplay-block[data-block-id]')
+  if (!block || !activeSegmentRef.value?.contains(block)) return null
+  return block.dataset.blockId || null
+}
+
+function updateDraggedSelection(x: number, y: number): void {
+  if (!selectionAnchorId) return
+  const targetId = blockIdAtPoint(x, y)
+  if (!targetId || targetId === lastSelectionTargetId) return
+  lastSelectionTargetId = targetId
+  selectedBlockIds.value = selectionRange(selectionAnchorId, targetId)
+}
+
+function moveInsertionIndexAtPoint(y: number): number {
+  const blockElements = activeSegmentRef.value?.querySelectorAll<HTMLElement>(
+    '.screenplay-block[data-block-id]'
+  )
+  if (!blockElements?.length) return 0
+  for (const element of blockElements) {
+    const id = element.dataset.blockId
+    const index = blocks.value.findIndex((block) => block.id === id)
+    if (index < 0) continue
+    const rect = element.getBoundingClientRect()
+    if (y < rect.top + rect.height / 2) return index
+  }
+  return blocks.value.length
+}
+
+function updateMoveDropIndex(y: number): void {
+  const nextIndex = moveInsertionIndexAtPoint(y)
+  if (moveDropIndex.value !== nextIndex) moveDropIndex.value = nextIndex
+}
+
+function flushBlockPointerMove(): void {
+  selectionPointerMoveFrame = null
+  selectionPointer.value = { x: selectionPointerX, y: selectionPointerY }
+  if (selectionPointerMode.value === 'move') updateMoveDropIndex(selectionPointerY)
+  else updateDraggedSelection(selectionPointerX, selectionPointerY)
+}
+
+function scheduleBlockPointerMove(): void {
+  if (selectionPointerMoveFrame !== null) return
+  selectionPointerMoveFrame = requestAnimationFrame(flushBlockPointerMove)
+}
+
+function applySelectedBlockMove(): void {
+  const rawDropIndex = moveDropIndex.value
+  const selected = selectedBlockIds.value
+  if (rawDropIndex === null || !selected.size) return
+  const moving = blocks.value.filter((block) => selected.has(block.id))
+  const remaining = blocks.value.filter((block) => !selected.has(block.id))
+  const removedBeforeDrop = blocks.value
+    .slice(0, rawDropIndex)
+    .filter((block) => selected.has(block.id)).length
+  const insertionIndex = Math.max(0, Math.min(remaining.length, rawDropIndex - removedBeforeDrop))
+  const reordered = [
+    ...remaining.slice(0, insertionIndex),
+    ...moving,
+    ...remaining.slice(insertionIndex),
+  ]
+  const orderChanged = reordered.some((block, index) => block.id !== blocks.value[index]?.id)
+  if (!orderChanged) return
+  blocks.value = reordered
+  touch()
+}
+
+function stopSelectionAutoScroll(): void {
+  if (selectionAutoScrollFrame !== null) cancelAnimationFrame(selectionAutoScrollFrame)
+  selectionAutoScrollFrame = null
+}
+
+function runSelectionAutoScroll(): void {
+  stopSelectionAutoScroll()
+  const step = (): void => {
+    const pane = editorPaneRef.value
+    if (!selectionDragging.value || !pane) {
+      selectionAutoScrollFrame = null
+      return
+    }
+    const rect = pane.getBoundingClientRect()
+    const edge = 52
+    let delta = 0
+    if (selectionPointerY < rect.top + edge) {
+      delta = -Math.ceil((rect.top + edge - selectionPointerY) / 5)
+    } else if (selectionPointerY > rect.bottom - edge) {
+      delta = Math.ceil((selectionPointerY - (rect.bottom - edge)) / 5)
+    }
+    if (delta) {
+      pane.scrollTop += Math.max(-18, Math.min(18, delta))
+      if (selectionPointerMode.value === 'move') updateMoveDropIndex(selectionPointerY)
+      else updateDraggedSelection(selectionPointerX, selectionPointerY)
+    }
+    selectionAutoScrollFrame = requestAnimationFrame(step)
+  }
+  selectionAutoScrollFrame = requestAnimationFrame(step)
+}
+
+function finishBlockPointerSelection(event?: PointerEvent): void {
+  if (selectionPointerId === null || (event && event.pointerId !== selectionPointerId)) return
+  if (event) {
+    selectionPointerX = event.clientX
+    selectionPointerY = event.clientY
+  }
+  window.removeEventListener('pointermove', handleBlockPointerMove)
+  window.removeEventListener('pointerup', finishBlockPointerSelection)
+  window.removeEventListener('pointercancel', finishBlockPointerSelection)
+  stopSelectionAutoScroll()
+  if (selectionPointerMoveFrame !== null) cancelAnimationFrame(selectionPointerMoveFrame)
+  selectionPointerMoveFrame = null
+  selectionPointerId = null
+  lastSelectionTargetId = null
+  if (selectionDragging.value) {
+    flushBlockPointerMove()
+    if (selectionPointerMode.value === 'move') applySelectedBlockMove()
+    suppressReleasedDragClick = true
+    activeBlockId.value = null
+    activeInsertIndex.value = null
+    visibleInsertIndex.value = null
+  }
+  selectionDragging.value = false
+  selectionPointerMode.value = null
+  moveDropIndex.value = null
+}
+
+function handleBlockPointerMove(event: PointerEvent): void {
+  if (event.pointerId !== selectionPointerId || !selectionAnchorId) return
+  selectionPointerX = event.clientX
+  selectionPointerY = event.clientY
+  if (!selectionDragging.value) {
+    const distance = Math.hypot(
+      event.clientX - selectionPointerStart.x,
+      event.clientY - selectionPointerStart.y
+    )
+    if (distance < 6) return
+    selectionDragging.value = true
+    window.getSelection()?.removeAllRanges()
+    if (selectionPointerMode.value === 'move') updateMoveDropIndex(event.clientY)
+    else selectedBlockIds.value = new Set([selectionAnchorId])
+    runSelectionAutoScroll()
+  }
+  event.preventDefault()
+  scheduleBlockPointerMove()
+}
+
+function handleBlockPointerDown(blockId: string, event: PointerEvent): void {
+  if (event.button !== 0 || isBlockControl(event.target)) return
+  finishBlockPointerSelection()
+  suppressReleasedDragClick = false
+  screenplayEditorRef.value?.focus({ preventScroll: true })
+  selectionPointerId = event.pointerId
+  selectionAnchorId = blockId
+  lastSelectionTargetId = blockId
+  selectionPointerMode.value = selectedBlockIds.value.has(blockId) ? 'move' : 'select'
+  moveDropIndex.value = null
+  selectionPointerStart = { x: event.clientX, y: event.clientY }
+  selectionPointerX = event.clientX
+  selectionPointerY = event.clientY
+  selectionPointer.value = { x: event.clientX, y: event.clientY }
+  selectionDragging.value = false
+  window.addEventListener('pointermove', handleBlockPointerMove, { passive: false })
+  window.addEventListener('pointerup', finishBlockPointerSelection)
+  window.addEventListener('pointercancel', finishBlockPointerSelection)
+}
+
+function handleBlockClick(blockId: string, event: MouseEvent): void {
+  if (suppressReleasedDragClick) {
+    suppressReleasedDragClick = false
+    return
+  }
+  if (event.ctrlKey || event.metaKey) {
+    const next = new Set(selectedBlockIds.value)
+    if (next.has(blockId)) next.delete(blockId)
+    else next.add(blockId)
+    selectedBlockIds.value = next
+    selectionAnchorId = blockId
+    activeBlockId.value = null
+    return
+  }
+  if (event.shiftKey && selectionAnchorId) {
+    selectedBlockIds.value = selectionRange(selectionAnchorId, blockId)
+    activeBlockId.value = null
+    return
+  }
+  if (selectedBlockIds.value.has(blockId)) return
+  clearBlockSelection()
+  activateBlock(blockId)
+}
+
+function handleEditorClickCapture(event: MouseEvent): void {
+  if (!suppressReleasedDragClick) return
+  suppressReleasedDragClick = false
+  event.preventDefault()
+  event.stopPropagation()
+}
+
+function handleOutsideSelectionPointerDown(event: PointerEvent): void {
+  if (selectionPointerId === null) suppressReleasedDragClick = false
+  if (!selectedBlockIds.value.size || selectionDragging.value) return
+  if (!(event.target instanceof Element)) return
+  if (event.target.closest('.screenplay-block.is-selected, .selection-actions')) return
+  clearBlockSelection()
+}
+
 function activateBlock(blockId: string) {
   activeBlockId.value = blockId
 }
 
 function deactivateBlock() {
   activeBlockId.value = null
+  clearBlockSelection()
 }
 
 function normalizeBlockText(block: ScreenplayBlock) {
@@ -790,8 +1508,9 @@ function addBlock(type: ScreenplayBlockType) {
   touch()
 }
 
-function insertBlockAt(index: number, type: ScreenplayBlockType) {
-  const block = makeBlock(type)
+function insertBlockAt(index: number, type: ScreenplayBlockType, text = '') {
+  const block = makeBlock(type, text)
+  if (type === 'character' && text) block.character = text
   blocks.value.splice(index, 0, block)
   activeBlockId.value = block.id
   touch()
@@ -801,13 +1520,71 @@ function insertBlockCommandAt(index: number, command: unknown) {
   insertBlockAt(index, normalizeBlockType(command))
 }
 
+function setInsertDropdownRef(index: number, element: unknown): void {
+  const dropdown = element as { handleOpen?: () => void; handleClose?: () => void } | null
+  if (dropdown) insertDropdownRefs.set(index, dropdown)
+  else insertDropdownRefs.delete(index)
+}
+
+async function openInsertDropdown(index: number): Promise<void> {
+  activeInsertIndex.value = index
+  await nextTick()
+  insertDropdownRefs.get(index)?.handleOpen?.()
+}
+
+function handleInsertDropdownCommand(index: number, value: unknown): void {
+  insertDropdownRefs.get(index)?.handleClose?.()
+  activeInsertIndex.value = null
+  visibleInsertIndex.value = null
+  visibleCharacterSubmenuIndex.value = null
+  const command = String(value || '')
+  if (!command) return
+  if (command.startsWith('character-member:')) {
+    insertBlockAt(index, 'character', command.slice('character-member:'.length))
+    return
+  }
+  insertBlockCommandAt(index, command)
+}
+
+function handleInsertDropdownVisibility(index: number, visible: boolean): void {
+  visibleInsertIndex.value = visible ? index : null
+  if (!visible) {
+    activeInsertIndex.value = null
+    visibleCharacterSubmenuIndex.value = null
+  }
+}
+
 function removeBlock(index: number) {
   const removed = blocks.value[index]
   blocks.value.splice(index, 1)
+  if (removed && selectedBlockIds.value.has(removed.id)) {
+    const next = new Set(selectedBlockIds.value)
+    next.delete(removed.id)
+    selectedBlockIds.value = next
+  }
   if (removed?.id === activeBlockId.value) {
     activeBlockId.value = blocks.value[index]?.id || blocks.value[index - 1]?.id || null
   }
   touch()
+}
+
+function removeSelectedBlocks(): void {
+  if (!selectedBlockIds.value.size) return
+  const selected = selectedBlockIds.value
+  blocks.value = blocks.value.filter(block => !selected.has(block.id))
+  if (activeBlockId.value && selected.has(activeBlockId.value)) activeBlockId.value = null
+  activeInsertIndex.value = null
+  visibleInsertIndex.value = null
+  clearBlockSelection()
+  touch()
+  screenplayEditorRef.value?.focus({ preventScroll: true })
+}
+
+function handleEditorKeydown(event: KeyboardEvent): void {
+  if (!selectedBlockIds.value.size || (event.key !== 'Delete' && event.key !== 'Backspace')) return
+  if (isBlockControl(event.target)) return
+  event.preventDefault()
+  removeSelectedBlocks()
 }
 
 function moveBlock(index: number, delta: number) {
@@ -815,44 +1592,9 @@ function moveBlock(index: number, delta: number) {
   if (nextIndex < 0 || nextIndex >= blocks.value.length) return
   const [block] = blocks.value.splice(index, 1)
   blocks.value.splice(nextIndex, 0, block)
+  clearBlockSelection()
   activeBlockId.value = block.id
   touch()
-}
-
-async function copyPlainText() {
-  try {
-    const plainText = screenplayText.value
-    const richHtml = buildScreenplayHtml(blocks.value)
-    const richRtf = buildScreenplayRtf(blocks.value)
-
-    if (typeof ClipboardItem !== 'undefined' && navigator.clipboard.write) {
-      try {
-        const clipboardData: Record<string, Blob> = {
-          'text/plain': new Blob([plainText], { type: 'text/plain' }),
-          'text/html': new Blob([richHtml], { type: 'text/html' }),
-        }
-        const supportsRtf = typeof (ClipboardItem as any).supports === 'function'
-          ? (ClipboardItem as any).supports('text/rtf')
-          : false
-        if (supportsRtf) {
-          clipboardData['text/rtf'] = new Blob([richRtf], { type: 'text/rtf' })
-        }
-        await navigator.clipboard.write([
-          new ClipboardItem(clipboardData),
-        ])
-      } catch (richCopyError) {
-        console.warn('Rich screenplay copy failed, falling back to plain text:', richCopyError)
-        await copyPlainTextFallback(plainText)
-      }
-    } else {
-      await copyPlainTextFallback(plainText)
-    }
-
-    ElMessage.success('已複製劇本文本')
-  } catch (error) {
-    console.error('Copy screenplay text failed:', error)
-    ElMessage.error('複製失敗')
-  }
 }
 
 function exportWordDocument() {
@@ -886,11 +1628,21 @@ function applyGeneratedContent(content: any) {
   }
   blocks.value = blocksFromContent(nextContent)
   activeBlockId.value = null
+  clearBlockSelection()
   touch()
 }
 
 function getContent() {
   return contentFromBlocks()
+}
+
+function getReviewTarget() {
+  const text = screenplayText.value.trim()
+  return {
+    targetField: 'content.screenplay_text',
+    targetText: text,
+    snapshot: text,
+  }
 }
 
 function buildInitialGenerationData(useExistingContent: boolean) {
@@ -918,6 +1670,28 @@ function getResolvedGenerationContext() {
   )
   const currentCardForResolve = { ...props.card, content: contentFromBlocks() }
   return resolveTemplate({ template, cards: cards.value, currentCard: currentCardForResolve as any })
+}
+
+function getRelationGraphScope() {
+  const outlineCard = (cards.value || []).find(card => card.id === props.card.parent_id)
+  const outlineContent = (outlineCard?.content || {}) as Record<string, unknown>
+  const rawEntityList = Array.isArray(outlineContent.entity_list) ? outlineContent.entity_list : []
+  const participants = rawEntityList
+    .map((item) => String(
+      typeof item === 'object' && item
+        ? ((item as Record<string, unknown>).name || (item as Record<string, unknown>).title || '')
+        : (item || ''),
+    ).trim())
+    .filter((name, index, all) => Boolean(name) && all.indexOf(name) === index)
+
+  const episodeNumber = Number(outlineContent.episode_number)
+  const segmentNumber = Number(outlineContent.segment_number)
+  return {
+    project_id: Number(props.card.project_id) || undefined,
+    volume_number: Number.isFinite(episodeNumber) ? episodeNumber : undefined,
+    chapter_number: Number.isFinite(segmentNumber) ? segmentNumber : undefined,
+    participants,
+  }
 }
 
 function wrapReferenceContext(contextInfo: string) {
@@ -987,6 +1761,7 @@ async function performScreenplayGeneration(
   aiGenerating.value = true
 
   try {
+    const relationGraphScope = getRelationGraphScope()
     await generateWithInstructionStream(
       {
         llm_config_id: params.llm_config_id!,
@@ -994,7 +1769,12 @@ async function performScreenplayGeneration(
         response_model_schema: schema,
         current_data: instructionExecutor.value?.getData() || buildInitialGenerationData(useExistingContent),
         conversation_context: conversationHistory.value,
+        generation_config: {
+          mode: 'instruction_stream',
+          custom: { pipeline: 'screenplay_text_then_normalize' },
+        },
         context_info: wrapReferenceContext(getResolvedGenerationContext()),
+        ...relationGraphScope,
         prompt_template: params.prompt_name,
         temperature: params.temperature,
         max_tokens: params.max_tokens,
@@ -1004,8 +1784,6 @@ async function performScreenplayGeneration(
         onThinking: text => generationPanelRef.value?.addMessage('thinking', text),
         onInstruction: (instruction: Instruction) => {
           instructionExecutor.value?.execute(instruction)
-          const data = instructionExecutor.value?.getData()
-          if (data) applyGeneratedContent(data)
           generationPanelRef.value?.addMessage('action', formatInstructionAction(instruction))
           generationPanelRef.value?.incrementCompletedFields()
         },
@@ -1076,12 +1854,17 @@ function handleRestartGeneration() {
 watch(
   () => props.card,
   (nextCard) => {
+    finishBlockPointerSelection()
     blocks.value = blocksFromContent(nextCard?.content)
     activeBlockId.value = null
+    activeInsertIndex.value = null
+    visibleInsertIndex.value = null
+    clearBlockSelection()
     originalSignature.value = signatureFromBlocks(blocks.value)
     emit('update:dirty', false)
+    void restoreWaterfallEntryPosition()
   },
-  { immediate: true, deep: true }
+  { immediate: true }
 )
 
 watch(
@@ -1111,17 +1894,30 @@ async function handleSave(newTitle?: string) {
 }
 
 async function restoreContent(versionContent: any) {
+  finishBlockPointerSelection()
   blocks.value = blocksFromContent(versionContent)
   activeBlockId.value = null
+  clearBlockSelection()
   originalSignature.value = signatureFromBlocks(blocks.value)
   emit('update:dirty', false)
 }
+
+onMounted(() => {
+  document.addEventListener('pointerdown', handleOutsideSelectionPointerDown, true)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('pointerdown', handleOutsideSelectionPointerDown, true)
+  finishBlockPointerSelection()
+  stopSelectionAutoScroll()
+})
 
 defineExpose({
   handleSave,
   restoreContent,
   applyGeneratedContent,
   getContent,
+  getReviewTarget,
   startGeneration,
 })
 </script>
@@ -1130,9 +1926,39 @@ defineExpose({
 .screenplay-editor {
   height: 100%;
   min-height: 0;
+  position: relative;
   display: flex;
   flex-direction: column;
   background: var(--el-bg-color);
+  outline: none;
+}
+
+.waterfall-scroll-hint {
+  position: absolute;
+  z-index: 6;
+  top: 58px;
+  left: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.waterfall-scroll-hint__tick {
+  display: block;
+  width: 7px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--el-text-color-placeholder);
+  opacity: 0.36;
+  transition: width 0.12s ease, opacity 0.12s ease, background-color 0.12s ease;
+}
+
+.waterfall-scroll-hint__tick.is-current {
+  width: 10px;
+  background: var(--el-text-color-primary);
+  opacity: 0.9;
 }
 
 .screenplay-toolbar {
@@ -1154,14 +1980,67 @@ defineExpose({
   min-width: 0;
 }
 
+.waterfall-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--el-text-color-regular);
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+}
+
+.selection-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 26px;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, var(--el-color-primary) 38%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--el-color-primary) 9%, var(--el-bg-color));
+  color: var(--el-color-primary);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 8%);
+}
+
+.drag-selection-badge {
+  position: fixed;
+  z-index: 20;
+  pointer-events: none;
+  padding: 5px 10px;
+  border: 1px solid color-mix(in srgb, var(--el-color-primary) 55%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--el-color-primary) 88%, #111);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 24%);
+  animation: drag-badge-in 0.12s ease-out;
+}
+
+@keyframes drag-badge-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .line-count {
   font-size: 12px;
   color: var(--el-text-color-secondary);
   white-space: nowrap;
 }
 
-.block-editor-pane,
-.preview-pane {
+.block-editor-pane {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
@@ -1170,6 +2049,74 @@ defineExpose({
 .block-editor-pane {
   padding: 18px;
   background: var(--el-fill-color-light);
+  overflow-anchor: none;
+}
+
+.active-segment-marker { width: 100%; }
+
+.segment-preview {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.segment-divider {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: fit-content;
+  max-width: calc(100% - 32px);
+  height: 30px;
+  margin: 8px auto;
+  padding: 0 14px;
+  border: 1px solid var(--el-border-color-light);
+  border-radius: 999px;
+  background: var(--el-fill-color);
+  color: var(--el-text-color-regular);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 28px;
+  box-sizing: border-box;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 8%);
+}
+
+.segment-divider-active {
+  border-color: var(--el-color-primary-light-5);
+  background: var(--el-color-primary-light-9);
+}
+
+.segment-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.readonly-label,
+.segment-state {
+  flex: 0 0 auto;
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.segment-state-active { color: var(--el-color-primary); }
+
+.screenplay-preview.waterfall-preview {
+  max-width: 712px;
+  min-height: 0;
+  padding: 24px 40px;
+  box-sizing: border-box;
+}
+
+.waterfall-preview .preview-line {
+  width: auto;
+  padding: 2px 8px;
+  border: 1px solid transparent;
+  box-sizing: content-box;
 }
 
 .empty-state {
@@ -1183,9 +2130,10 @@ defineExpose({
 .block-list {
   display: flex;
   flex-direction: column;
-  max-width: 82ch;
+  width: 100%;
+  max-width: 712px;
   margin: 0 auto;
-  min-height: 100%;
+  min-height: 0;
   padding: 24px 40px;
   border: 0;
   background: var(--el-fill-color-blank);
@@ -1199,8 +2147,9 @@ defineExpose({
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0;
-  transition: opacity 0.16s ease, height 0.16s ease, margin 0.16s ease;
+  transition:
+    height 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    margin 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .insert-row::before {
@@ -1210,44 +2159,256 @@ defineExpose({
   right: 0;
   top: 50%;
   border-top: 1px solid var(--el-color-primary-light-5);
+  opacity: 0;
+  transition:
+    opacity 0.14s ease,
+    border-color 0.14s ease,
+    box-shadow 0.14s ease;
 }
 
-.insert-row:hover,
-.insert-row:focus-within {
-  height: 28px;
-  margin: 2px 0;
+.insert-row:has(.insert-control-zone:hover)::before,
+.insert-row:has(.insert-control-zone:focus-within)::before,
+.insert-row.is-expanded::before,
+.insert-row.is-move-target::before {
   opacity: 1;
+}
+
+.insert-row.is-expanded {
+  height: 40px;
+  margin: 4px 0;
+}
+
+.insert-control-zone {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20%;
+  min-width: 72px;
+  height: 28px;
+}
+
+.insert-control-zone .insert-trigger {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.94);
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
+}
+
+.insert-control-zone:hover .insert-trigger,
+.insert-control-zone:focus-within .insert-trigger,
+.insert-row.is-expanded .insert-trigger {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
+.block-list.is-moving-blocks .insert-control-zone {
+  visibility: hidden;
+}
+
+.insert-row.is-move-target::before,
+.insert-row.is-expanded::before {
+  border-top: 2px solid var(--el-color-primary);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--el-color-primary) 45%, transparent);
 }
 
 .insert-button {
   position: relative;
   z-index: 1;
+  --el-button-size: 24px;
   box-shadow: var(--el-box-shadow-light);
 }
 
+.insert-dropdown {
+  position: relative;
+  z-index: 2;
+}
+
+.insert-dropdown-menu {
+  min-width: 148px;
+  padding: 6px;
+}
+
+.insert-character-menu-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-radius: 5px;
+}
+
+.insert-submenu-arrow {
+  flex: 0 0 auto;
+  color: var(--el-text-color-secondary);
+}
+
+.insert-character-popover-menu {
+  width: max-content;
+  min-width: 112px;
+  max-width: 220px;
+}
+
+.insert-character-option {
+  display: block;
+  width: 100%;
+  height: 34px;
+  padding: 0 12px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--el-text-color-regular);
+  font: inherit;
+  line-height: 34px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.insert-character-option:hover,
+.insert-character-option:focus-visible {
+  background: var(--el-dropdown-menuItem-hover-fill);
+  color: var(--el-dropdown-menuItem-hover-color);
+  outline: none;
+}
+
+:global(.screenplay-insert-dropdown-popper) {
+  z-index: 9999 !important;
+  overflow: visible !important;
+}
+
+:global(.screenplay-insert-dropdown-popper .insert-dropdown-menu),
+:global(.screenplay-insert-dropdown-popper .el-scrollbar__view) {
+  width: max-content !important;
+  min-width: 148px;
+}
+
+:global(.screenplay-insert-dropdown-popper .el-scrollbar),
+:global(.screenplay-insert-dropdown-popper .el-scrollbar__wrap),
+:global(.screenplay-insert-dropdown-popper .el-popper__content) {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+:global(.screenplay-insert-dropdown-popper .el-scrollbar__wrap) {
+  scrollbar-width: none !important;
+}
+
+:global(.screenplay-insert-dropdown-popper .el-scrollbar__wrap::-webkit-scrollbar) {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+:global(.screenplay-insert-dropdown-popper .el-scrollbar__bar) {
+  display: none !important;
+}
+
+:global(.screenplay-insert-dropdown-popper .el-dropdown-menu__item:not(.is-disabled):focus:not(:hover):not(.is-submenu-open)) {
+  background: transparent !important;
+  color: var(--el-text-color-regular) !important;
+}
+
+:global(.screenplay-insert-dropdown-popper .insert-character-menu-item.is-submenu-open) {
+  background: var(--el-dropdown-menuItem-hover-fill) !important;
+  color: var(--el-dropdown-menuItem-hover-color) !important;
+}
+
+:global(.screenplay-character-submenu-popper.el-popover) {
+  z-index: 10000 !important;
+  width: max-content !important;
+  min-width: 112px !important;
+  max-width: 220px;
+  padding: 6px !important;
+  overflow: visible !important;
+}
+
 .screenplay-block {
-  border: 1px solid transparent;
+  border: 0;
   border-radius: 6px;
   background: transparent;
   padding: 2px 8px;
   cursor: text;
-  transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+  transition: background 0.16s ease;
 }
 
 .screenplay-block.has-auto-gap-before {
-  margin-top: 1.55em;
+  margin-top: 1.2em;
 }
 
 .screenplay-block:hover {
-  background: var(--el-fill-color-extra-light);
+  background: var(--el-fill-color);
+}
+
+.screenplay-block.is-selected {
+  background: transparent;
+  box-shadow: none;
+  cursor: default;
+}
+
+.screenplay-block.is-selected .block-preview-text {
+  padding: 1px 2px;
+  margin: -1px -2px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--el-text-color-primary) 16%, transparent);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.block-list.is-drag-selecting .screenplay-block.is-selected {
+  animation: selected-block-in 0.14s ease-out;
+}
+
+@keyframes selected-block-in {
+  from {
+    opacity: 0.72;
+    transform: scale(0.997);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.block-list.is-drag-selecting,
+.block-list.is-drag-selecting .screenplay-block,
+.block-list.is-drag-selecting .block-preview {
+  cursor: crosshair;
+  user-select: none;
+}
+
+.block-list.is-moving-blocks,
+.block-list.is-moving-blocks .screenplay-block,
+.block-list.is-moving-blocks .block-preview {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.block-list.is-moving-blocks .screenplay-block.is-selected {
+  opacity: 0.56;
+  transform: scale(0.997);
 }
 
 .screenplay-block.is-active {
-  padding: 10px;
-  border-color: var(--el-border-color);
+  padding: 16px 18px;
   background: var(--el-fill-color-blank);
-  box-shadow: 0 0 0 2px var(--el-color-primary-light-9);
+  box-shadow: none;
   cursor: default;
+}
+
+@media (max-width: 760px) {
+  .screenplay-toolbar {
+    align-items: flex-start;
+  }
+  .toolbar-left {
+    flex-wrap: wrap;
+  }
 }
 
 .block-topline {
@@ -1255,11 +2416,15 @@ defineExpose({
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 14px;
 }
 
 .block-type-select {
   width: 132px;
+}
+
+.block-type-select :deep(.el-select__wrapper) {
+  background: var(--el-fill-color);
 }
 
 .block-actions {
@@ -1268,34 +2433,35 @@ defineExpose({
   gap: 2px;
 }
 
+.block-delete-button,
+.block-delete-button:hover,
+.block-delete-button:focus-visible {
+  color: #fff;
+}
+
 .block-input :deep(.el-textarea__inner) {
+  background: var(--el-fill-color);
   font-family: "Courier New", Courier, monospace;
   font-size: 15px;
   line-height: 1.55;
+  padding: 10px 12px;
 }
 
 .block-character.is-active .block-input,
 .block-dialogue.is-active .block-input,
 .block-parenthetical.is-active .block-input {
   display: block;
+  width: 100%;
   margin: 0 auto;
-}
-
-.block-character.is-active .block-input {
-  max-width: 28ch;
-}
-
-.block-dialogue.is-active .block-input {
-  max-width: 46ch;
-}
-
-.block-parenthetical.is-active .block-input {
-  max-width: 28ch;
 }
 
 .block-character.is-active .block-input :deep(.el-textarea__inner) {
   text-align: center;
   text-transform: uppercase;
+}
+
+.block-dialogue.is-active .block-input :deep(.el-textarea__inner) {
+  text-align: center;
 }
 
 .block-parenthetical.is-active .block-input :deep(.el-textarea__inner) {
@@ -1304,12 +2470,12 @@ defineExpose({
 
 .block-preview {
   margin: 0;
-  min-height: 1.55em;
+  min-height: 1.2em;
   width: 100%;
   color: var(--el-text-color-primary);
   font-family: "Courier New", Courier, monospace;
   font-size: 15px;
-  line-height: 1.55;
+  line-height: 1.2;
   white-space: pre-wrap;
   overflow-wrap: normal;
   user-select: text;
@@ -1345,6 +2511,7 @@ defineExpose({
 
 .block-dialogue .block-preview {
   max-width: 46ch;
+  text-align: center;
 }
 
 .block-parenthetical .block-preview {
@@ -1356,14 +2523,10 @@ defineExpose({
   text-align: right;
 }
 
-.preview-pane {
-  padding: 18px;
-  background: var(--el-fill-color-light);
-}
-
 .screenplay-preview {
   min-height: 100%;
-  max-width: 82ch;
+  width: 100%;
+  max-width: 680px;
   margin: 0 auto;
   padding: 32px 40px;
   border: 0;
@@ -1371,25 +2534,25 @@ defineExpose({
   color: var(--el-text-color-primary);
   font-family: "Courier New", Courier, monospace;
   font-size: 15px;
-  line-height: 1.55;
+  line-height: 1.2;
   user-select: text;
 }
 
 
 .preview-line {
   margin: 0;
-  min-height: 1.55em;
+  min-height: 1.2em;
   width: 100%;
   color: var(--el-text-color-primary);
   font-family: "Courier New", Courier, monospace;
   font-size: 15px;
-  line-height: 1.55;
+  line-height: 1.2;
   white-space: pre-wrap;
   overflow-wrap: normal;
 }
 
 .preview-line.has-auto-gap-before {
-  margin-top: 1.55em;
+  margin-top: 1.2em;
 }
 
 .preview-line.block-scene_heading,
@@ -1411,6 +2574,7 @@ defineExpose({
 
 .preview-line.block-dialogue {
   max-width: 46ch;
+  text-align: center;
 }
 
 .preview-line.block-parenthetical {
